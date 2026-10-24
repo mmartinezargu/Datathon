@@ -1,0 +1,14 @@
+# Datos descargados pesados: se vuelven a bajar con `uv run descargar.py`
+data/raw/*
+!data/raw/README.md
+!data/raw/ine_2881_poblacion_*.csv
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Web
+node_modules/
+web/dist/
+*.log

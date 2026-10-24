@@ -1,0 +1,13 @@
+[project]
+name = "cabida-etl"
+version = "0.1.0"
+description = "Prepara los datos abiertos de CABIDA y la validación 2015-2025"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2",
+    "geopandas>=1.0",
+    "pyogrio>=0.10",
+    "shapely>=2.0",
+    "requests>=2.32",
+    "scipy>=1.14",
+]
