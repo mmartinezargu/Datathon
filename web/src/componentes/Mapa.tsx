@@ -5,66 +5,96 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { COLOR_FUERA } from '../colores'
+
+/** Lo que enseña la etiqueta flotante al pasar el ratón por un municipio. */
+export interface InfoEtiqueta {
+  titulo: string
+  linea: string
+}
 
 interface Props {
   limites: GeoJSON.FeatureCollection
-  /** ine -> color de relleno; los que no estén salen en gris claro */
+  /** ine -> color de relleno; los que no estén salen en el color "fuera del reto" */
   colores: Record<string, string>
+  /** ine -> texto de la etiqueta flotante */
+  etiquetas: Record<string, InfoEtiqueta>
   seleccionado: string | null
   onSeleccionar: (ine: string | null) => void
 }
 
-const GRIS_FUERA = '#E3E8EC' // municipios fuera del reto (más de 50.000 hab.)
-
-export function Mapa({ limites, colores, seleccionado, onSeleccionar }: Props) {
+export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar }: Props) {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapa = useRef<maplibregl.Map | null>(null)
   const listo = useRef(false)
-  // Guardamos el callback en una ref para no recrear el mapa cuando cambie
+  // Refs para que los eventos del mapa lean siempre los datos más recientes
   const alSeleccionar = useRef(onSeleccionar)
   alSeleccionar.current = onSeleccionar
+  const textos = useRef(etiquetas)
+  textos.current = etiquetas
 
   // 1. Crear el mapa una sola vez
   useEffect(() => {
     if (!contenedor.current) return
     const m = new maplibregl.Map({
       container: contenedor.current,
-      style: { version: 8, sources: {}, layers: [{ id: 'fondo', type: 'background', paint: { 'background-color': '#F7F9FB' } }] },
+      style: { version: 8, sources: {}, layers: [{ id: 'fondo', type: 'background', paint: { 'background-color': '#EEF4FA' } }] },
       bounds: [[-4.58, 39.88], [-3.05, 41.17]], // Comunidad de Madrid
-      fitBoundsOptions: { padding: 20 },
+      fitBoundsOptions: { padding: { top: 90, bottom: 30, left: 30, right: 30 } },
       attributionControl: { compact: true, customAttribution: 'Límites: IDEM, Comunidad de Madrid (CC BY 4.0)' },
       dragRotate: false,
     })
-    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left')
+    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
     m.on('load', () => {
       m.addSource('municipios', { type: 'geojson', data: limites, promoteId: 'ine' })
+      // Sombra suave bajo la Comunidad para que el mapa "despegue" del fondo
+      m.addLayer({
+        id: 'sombra', type: 'line', source: 'municipios',
+        paint: { 'line-color': '#15233B', 'line-width': 6, 'line-opacity': 0.06, 'line-blur': 4, 'line-translate': [0, 3] },
+      })
       m.addLayer({
         id: 'relleno', type: 'fill', source: 'municipios',
-        paint: { 'fill-color': ['coalesce', ['get', 'color'], GRIS_FUERA], 'fill-opacity': 0.92 },
+        paint: {
+          'fill-color': ['coalesce', ['get', 'color'], COLOR_FUERA],
+          'fill-opacity': ['case', ['boolean', ['feature-state', 'encima'], false], 0.78, 1],
+        },
       })
       m.addLayer({
         id: 'borde', type: 'line', source: 'municipios',
-        paint: { 'line-color': '#FFFFFF', 'line-width': 0.7 },
+        paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 11, 1.4] },
       })
       m.addLayer({
         id: 'seleccion', type: 'line', source: 'municipios',
-        paint: { 'line-color': '#16232E', 'line-width': 2.4 },
+        paint: { 'line-color': '#15233B', 'line-width': 3 },
         filter: ['==', ['get', 'ine'], ''],
       })
       listo.current = true
       pintar()
     })
 
-    // Etiqueta flotante con el nombre al pasar el ratón
-    const etiqueta = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 })
+    // Etiqueta flotante al pasar el ratón
+    const etiqueta = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12, className: 'etiqueta-mapa' })
+    let encima: string | number | undefined
     m.on('mousemove', 'relleno', (e) => {
       const f = e.features?.[0]
       if (!f) return
+      if (encima !== undefined && encima !== f.id) m.setFeatureState({ source: 'municipios', id: encima }, { encima: false })
+      encima = f.id
+      m.setFeatureState({ source: 'municipios', id: encima! }, { encima: true })
       m.getCanvas().style.cursor = f.properties.universo ? 'pointer' : ''
-      etiqueta.setLngLat(e.lngLat).setText(f.properties.nombre).addTo(m)
+      const info = textos.current[String(f.properties.ine)]
+      const caja = document.createElement('div')
+      const t = document.createElement('strong')
+      t.textContent = f.properties.nombre
+      const l = document.createElement('span')
+      l.textContent = info ? info.linea : 'Más de 50.000 habitantes: fuera del reto'
+      caja.append(t, l)
+      etiqueta.setLngLat(e.lngLat).setDOMContent(caja).addTo(m)
     })
     m.on('mouseleave', 'relleno', () => {
+      if (encima !== undefined) m.setFeatureState({ source: 'municipios', id: encima }, { encima: false })
+      encima = undefined
       m.getCanvas().style.cursor = ''
       etiqueta.remove()
     })

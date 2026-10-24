@@ -24,10 +24,10 @@ uv run preparar.py       # genera web/public/datos y data/out
 uv run validacion.py     # prueba el modelo contra 2015-2025
 cd ../web
 npm install
-npm run build && npm run preview   # abre http://localhost:4173
+npm run dev                        # abre http://localhost:5173 y se recarga al guardar
 ```
 
-Ojo: con `npm run dev` el mapa puede salir en blanco (fallo de MapLibre en modo desarrollo). Usad `build` + `preview`.
+Para la versión final: `npm run build && npm run preview` (http://localhost:4173).
 
 ## Fuentes
 
