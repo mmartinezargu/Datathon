@@ -1,61 +1,71 @@
 // Pantalla principal de CABIDA: pestañas arriba; en "Mapa", el mapa a la izquierda
-// y el escenario, la leyenda y la lista (o la ficha) a la derecha.
+// y el escenario, la lista (o la ficha) a la derecha.
 
 import { useEffect, useMemo, useState } from 'react'
 import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
-import { Evolucion } from './componentes/Evolucion'
+import { Ficha } from './componentes/Ficha'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { ANIO_BASE, calcularPresion, escenarioPorDefecto } from './motor'
-import { ESCALA_CRECIMIENTO, colorCrecimiento, textoSobre } from './colores'
-import type { Escenario, Municipio, ResultadoMunicipio } from './tipos'
+import { calcular, calcularUmbrales, escenarioPorDefecto } from './motor'
+import { ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
+import type { Escenario, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, pct } from './formato'
 import './estilo.css'
 
 type Pestana = 'mapa' | 'validacion'
+type ColorMapa = 'tipo' | 'crecimiento'
 
 export default function App() {
   const [municipios, setMunicipios] = useState<Municipio[] | null>(null)
+  const [zonas, setZonas] = useState<ZonaSalud[] | null>(null)
   const [limites, setLimites] = useState<GeoJSON.FeatureCollection | null>(null)
   const [validacion, setValidacion] = useState<DatosValidacion | null>(null)
   const [escenario, setEscenario] = useState<Escenario>(escenarioPorDefecto())
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [pestana, setPestana] = useState<Pestana>('mapa')
+  const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
 
   // Cargar los datos que preparó Python
   useEffect(() => {
-    Promise.all(['municipios.json', 'limites.geojson', 'validacion.json'].map((f) => fetch(`datos/${f}`).then((r) => r.json())))
-      .then(([m, l, v]) => {
-        setMunicipios(m)
-        setLimites(l)
-        setValidacion(v)
-      })
+    const archivos = ['municipios.json', 'zonas_salud.json', 'limites.geojson', 'validacion.json']
+    Promise.all(archivos.map((f) => fetch(`datos/${f}`).then((r) => r.json()))).then(([m, z, l, v]) => {
+      setMunicipios(m)
+      setZonas(z)
+      setLimites(l)
+      setValidacion(v)
+    })
   }, [])
 
   // Recalcular solo cuando cambian los datos o las palancas
   const resultados = useMemo(
-    () => (municipios ? calcularPresion(municipios, escenario) : []),
-    [municipios, escenario],
+    () => (municipios && zonas ? calcular(municipios, zonas, escenario) : []),
+    [municipios, zonas, escenario],
+  )
+  const umbrales = useMemo(
+    () => (municipios && zonas ? calcularUmbrales(municipios.filter((m) => m.universo), zonas, escenario.exigencia) : null),
+    [municipios, zonas, escenario.exigencia],
   )
   const porIne = useMemo(() => new Map((municipios ?? []).map((m) => [m.ine, m])), [municipios])
   const colores = useMemo(
-    () => Object.fromEntries(resultados.map((r) => [r.ine, colorCrecimiento(r.crecimiento)])),
-    [resultados],
+    () => Object.fromEntries(resultados.map((r) => [r.ine,
+      colorMapa === 'tipo' ? TIPOS[r.tipo].color : colorCrecimiento(r.crecimiento)])),
+    [resultados, colorMapa],
   )
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${miles(r.poblacion)} habitantes; llegarían ${miles(r.llegan)} (+${pct(r.crecimiento)})`,
+      linea: `${TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
     }])),
     [resultados, porIne],
   )
 
-  if (!municipios || !limites || !validacion) {
+  if (!municipios || !zonas || !limites || !validacion || !umbrales) {
     return <div className="cargando"><Logo /> Cargando los datos de los 155 municipios…</div>
   }
 
-  const poblacionHoy = resultados.reduce((s, r) => s + r.poblacion, 0)
-  const crecimientoMedio = escenario.personas / poblacionHoy
+  const caben = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0)
+  const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
+  const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
 
   return (
@@ -77,26 +87,40 @@ export default function App() {
             <Mapa limites={limites} colores={colores} etiquetas={etiquetas}
               seleccionado={seleccionado} onSeleccionar={setSeleccionado} />
             <div className="cifras">
-              <Cifra valor="155" texto="municipios de menos de 50.000 habitantes" />
-              <Cifra valor={miles(poblacionHoy)} texto={`vecinos a 1 de enero de ${ANIO_BASE}`} />
-              <Cifra valor={`+${pct(crecimientoMedio)}`} texto={`crecerían de media hasta ${escenario.anio}`} />
+              <Cifra valor={miles(caben)} texto={`de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
+              <Cifra valor={miles(sinSitio)} texto="se quedarían sin sitio: ahí hay que invertir" acento={TIPOS.tension.color} />
+              <Cifra valor={String(cuenta.oportunidad)} texto="municipios con sitio al que no llega gente" acento={TIPOS.oportunidad.color} />
             </div>
-            <Leyenda />
+            <div className="leyenda" aria-label="Leyenda">
+              <Segmentos valor={colorMapa} onCambiar={setColorMapa} />
+              {colorMapa === 'tipo' ? (
+                <div className="leyenda-tipos">
+                  {ORDEN_TIPOS.map((t) => (
+                    <span key={t} title={TIPOS[t].que}><i style={{ background: TIPOS[t].color }} />{TIPOS[t].nombre}<b>{cuenta[t]}</b></span>
+                  ))}
+                </div>
+              ) : (
+                <div className="leyenda-barra">
+                  {ESCALA_CRECIMIENTO.map((t) => (
+                    <span key={t.color} style={{ background: t.color, color: textoSobre(t.color) }}>{t.texto}</span>
+                  ))}
+                </div>
+              )}
+              <div className="leyenda-fuera"><i /> Más de 50.000 habitantes (fuera del reto)</div>
+            </div>
           </div>
 
           <aside className="panel">
             <section className="escenario">
-              <p className="frase">
-                Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen
-              </p>
+              <p className="frase">Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen</p>
               <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
               <Palancas escenario={escenario} onCambiar={setEscenario} />
             </section>
 
             {sel ? (
-              <Ficha r={sel} m={porIne.get(sel.ine)!} anio={escenario.anio} onCerrar={() => setSeleccionado(null)} />
+              <Ficha r={sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales} onCerrar={() => setSeleccionado(null)} />
             ) : (
-              <Ranking resultados={resultados} porIne={porIne} onElegir={setSeleccionado} />
+              <Listas resultados={resultados} porIne={porIne} onElegir={setSeleccionado} />
             )}
           </aside>
         </main>
@@ -105,7 +129,7 @@ export default function App() {
   )
 }
 
-/** Logo: un hexágono partido en los 4 colores de los tipos de municipio (como la portada de la propuesta). */
+/** Logo: tres hexágonos en los colores de los tipos (como la portada de la propuesta). */
 function Logo() {
   const pts = (cx: number, cy: number, r: number) =>
     Array.from({ length: 6 }, (_, k) => {
@@ -114,84 +138,81 @@ function Logo() {
     }).join(' ')
   return (
     <svg className="logo" viewBox="0 0 40 36" aria-hidden="true">
-      <polygon points={pts(11, 10, 8.5)} fill="#FBD050" />
-      <polygon points={pts(26, 10, 8.5)} fill="#C9305E" />
+      <polygon points={pts(11, 10, 8.5)} fill="#1B998B" />
+      <polygon points={pts(26, 10, 8.5)} fill="#D7263D" />
       <polygon points={pts(18.5, 23, 8.5)} fill="#2F6FEB" />
     </svg>
   )
 }
 
-function Cifra({ valor, texto }: { valor: string; texto: string }) {
+function Cifra({ valor, texto, acento }: { valor: string; texto: string; acento?: string }) {
   return (
-    <div className="cifra">
-      <b>{valor}</b>
+    <div className="cifra" style={acento ? { borderTopColor: acento } : undefined}>
+      <b style={acento ? { color: acento } : undefined}>{valor}</b>
       <span>{texto}</span>
     </div>
   )
 }
 
-function Leyenda() {
+function Segmentos({ valor, onCambiar }: { valor: ColorMapa; onCambiar: (v: ColorMapa) => void }) {
+  const opciones: { v: ColorMapa; t: string }[] = [{ v: 'tipo', t: 'Tipo de municipio' }, { v: 'crecimiento', t: 'Cuánto crece' }]
   return (
-    <div className="leyenda" aria-label="Leyenda">
-      <div className="leyenda-titulo">Cuánto crecería cada municipio</div>
-      <div className="leyenda-barra">
-        {ESCALA_CRECIMIENTO.map((t) => (
-          <span key={t.color} style={{ background: t.color, color: textoSobre(t.color) }}>{t.texto}</span>
-        ))}
-      </div>
-      <div className="leyenda-fuera"><i /> Más de 50.000 habitantes (fuera del reto)</div>
+    <div className="segmentos mini" role="radiogroup" aria-label="Colorear el mapa por">
+      {opciones.map((o) => (
+        <button key={o.v} role="radio" aria-checked={valor === o.v} className={valor === o.v ? 'activo' : ''}
+          onClick={() => onCambiar(o.v)}>{o.t}</button>
+      ))}
     </div>
   )
 }
 
-function Ranking({ resultados, porIne, onElegir }: {
-  resultados: ResultadoMunicipio[]
-  porIne: Map<string, Municipio>
-  onElegir: (ine: string) => void
+type Lista = 'tension' | 'oportunidad' | 'crecimiento'
+
+function Listas({ resultados, porIne, onElegir }: {
+  resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; onElegir: (ine: string) => void
 }) {
-  const top = [...resultados].sort((a, b) => b.crecimiento - a.crecimiento).slice(0, 8)
-  const max = top[0]?.crecimiento || 1
+  const [lista, setLista] = useState<Lista>('tension')
+  const config = {
+    tension: {
+      titulo: 'Donde más gente se queda sin sitio',
+      filas: resultados.filter((r) => r.tipo === 'tension').sort((a, b) => a.margen - b.margen),
+      valor: (r: ResultadoMunicipio) => -r.margen, texto: (r: ResultadoMunicipio) => `−${miles(-r.margen)}`, color: () => TIPOS.tension.color,
+    },
+    oportunidad: {
+      titulo: 'Donde hay sitio y no llega gente',
+      filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => b.margen - a.margen),
+      valor: (r: ResultadoMunicipio) => r.margen, texto: (r: ResultadoMunicipio) => `+${miles(r.margen)}`, color: () => TIPOS.oportunidad.color,
+    },
+    crecimiento: {
+      titulo: 'Los que más crecerían',
+      filas: [...resultados].sort((a, b) => b.crecimiento - a.crecimiento),
+      valor: (r: ResultadoMunicipio) => r.crecimiento, texto: (r: ResultadoMunicipio) => `+${pct(r.crecimiento)}`, color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
+    },
+  }[lista]
+  const top = config.filas.slice(0, 8)
+  const max = top.length ? config.valor(top[0]) : 1
+
   return (
     <section className="ranking">
-      <h2>Los que más crecerían</h2>
-      <p className="ayuda">Pulsa un municipio, aquí o en el mapa, para ver su ficha.</p>
+      <div className="tabs-lista" role="tablist" aria-label="Listas">
+        {([['tension', 'Sin sitio'], ['oportunidad', 'Con sitio'], ['crecimiento', 'Más crecen']] as [Lista, string][]).map(([v, t]) => (
+          <button key={v} role="tab" aria-selected={lista === v} className={lista === v ? 'activa' : ''} onClick={() => setLista(v)}>{t}</button>
+        ))}
+      </div>
+      <h2>{config.titulo}</h2>
+      <p className="ayuda">{lista === 'crecimiento' ? 'Sobre su población actual.' : 'Personas, en el escenario elegido.'} Pulsa uno para ver su ficha.</p>
+      {top.length === 0 && <p className="vacio">Ningún municipio en este escenario. Mueve las palancas para ver otros.</p>}
       <ol>
         {top.map((r) => (
           <li key={r.ine}>
             <button onClick={() => onElegir(r.ine)}>
               <span className="r-nombre">{porIne.get(r.ine)?.nombre}</span>
-              <span className="r-barra">
-                <span style={{ width: `${(r.crecimiento / max) * 100}%`, background: colorCrecimiento(r.crecimiento) }} />
-              </span>
-              <span className="r-valor">+{pct(r.crecimiento)}</span>
+              <span className="r-barra"><span style={{ width: `${(config.valor(r) / max) * 100}%`, background: config.color(r) }} /></span>
+              <span className="r-valor">{config.texto(r)}</span>
             </button>
           </li>
         ))}
       </ol>
-    </section>
-  )
-}
-
-function Ficha({ r, m, anio, onCerrar }: { r: ResultadoMunicipio; m: Municipio; anio: number; onCerrar: () => void }) {
-  const color = colorCrecimiento(r.crecimiento)
-  return (
-    <section className="ficha" style={{ borderTopColor: color }}>
-      <div className="ficha-cabeza">
-        <div>
-          <h2>{m.nombre}</h2>
-          <div className="ayuda">{m.zona}, {miles(m.superficie_km2)} km²</div>
-        </div>
-        <button className="cerrar" onClick={onCerrar} aria-label="Cerrar la ficha y volver a la lista">✕</button>
-      </div>
-      <div className="ficha-cifras">
-        <div><b>{miles(r.poblacion)}</b><span>vecinos hoy</span></div>
-        <div><b style={{ color: color === '#FFF1B8' ? '#15233B' : color }}>+{miles(r.llegan)}</b><span>llegarían hasta {anio}</span></div>
-      </div>
-      <Evolucion poblacion={m.poblacion} anioFin={anio} poblacionFin={r.poblacion + r.llegan} color={color} />
-      <p className="ficha-frase">
-        Si sigue la tendencia, {m.nombre} recibiría unas <b>{miles(r.llegan)}</b> personas hasta {anio}:
-        un {pct(r.crecimiento)} más que hoy.
-      </p>
     </section>
   )
 }
