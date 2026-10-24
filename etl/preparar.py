@@ -1,0 +1,156 @@
+"""Prepara los «ingredientes» de cada municipio para la web de CABIDA.
+
+Uso (desde etl/):  uv run preparar.py
+
+Salidas:
+  web/public/datos/municipios.json   datos por municipio que lee la web
+  web/public/datos/limites.geojson   contornos simplificados para el mapa
+  data/out/tabla_maestra.csv         lo mismo en CSV (licencia CC BY 4.0)
+"""
+import json
+
+import geopandas as gpd
+import pandas as pd
+
+import capacidad
+from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, RAW, WEB_DATOS, leer_poblacion, miles
+
+# Peso del suavizado: un pueblo con K habitantes se fía a medias de su propia tasa
+# y a medias de la de su zona. Con 100 vecinos casi solo cuenta la zona.
+K_SUAVIZADO = 5_000
+ANIOS_TENDENCIA = (2015, 2025)
+
+
+def leer_zonas() -> pd.DataFrame:
+    """Zona estadística (NUTS4) y superficie de cada municipio, del portal de la CM."""
+    df = pd.read_csv(RAW / "cm_municipios.csv", sep=";", encoding="cp1252", dtype=str)
+    # El código INE del portal lleva un dígito de control al final (280014): se quita
+    df["ine"] = df["municipio_codigo_ine"].str[:5]
+    df["zona"] = df["nuts4_nombre"]
+    df["superficie_km2"] = df["superficie_km2"].astype(float)
+    return df[["ine", "zona", "superficie_km2"]]
+
+
+def calcular_tendencia(df: pd.DataFrame) -> pd.DataFrame:
+    """Tasa anual 2015-2025 de cada municipio, suavizada hacia la de su zona.
+
+    Estimador bayesiano empírico (en palabras sencillas: una media ponderada):
+        g_suavizada = w * g_propia + (1 - w) * g_zona,   w = P / (P + K)
+    Así un pueblo minúsculo con un año raro no da una tasa disparatada.
+    """
+    a0, a1 = ANIOS_TENDENCIA
+    anios = a1 - a0
+    df = df.copy()
+    df["g_propia"] = (df[a1] / df[a0]) ** (1 / anios) - 1
+
+    # Tasa de cada zona, calculada solo con los municipios del universo
+    zona = df.groupby("zona")[[a0, a1]].sum()
+    zona["g_zona"] = (zona[a1] / zona[a0]) ** (1 / anios) - 1
+    df = df.merge(zona[["g_zona"]], left_on="zona", right_index=True)
+
+    w = df[a0] / (df[a0] + K_SUAVIZADO)
+    df["g_suavizada"] = w * df["g_propia"] + (1 - w) * df["g_zona"]
+    return df
+
+
+def preparar_limites(universo: set[str], nombres: dict[str, str]) -> dict:
+    """Une los enclaves de cada municipio, simplifica los contornos y los pasa a GeoJSON ligero."""
+    gdf = gpd.read_file(RAW / "idem_limites_municipales.geojson")
+    gdf = gdf.dissolve(by="CD_INE", as_index=False)[["CD_INE", "geometry"]]
+    # Simplificar en metros (UTM 30N) y volver a grados para el mapa web
+    gdf = gdf.to_crs(25830)
+    gdf["geometry"] = gdf.simplify(60, preserve_topology=True)
+    gdf = gdf.to_crs(4326)
+    gdf["ine"] = gdf["CD_INE"]
+    gdf["nombre"] = gdf["ine"].map(nombres)
+    gdf["universo"] = gdf["ine"].isin(universo)
+    geo = json.loads(gdf[["ine", "nombre", "universo", "geometry"]].to_json(drop_id=True))
+    redondear_coordenadas(geo, 5)  # 5 decimales ≈ 1 metro: sobra para el mapa
+    return geo
+
+
+def redondear_coordenadas(geo: dict, decimales: int) -> None:
+    def r(c):
+        return [r(x) for x in c] if isinstance(c[0], list) else [round(v, decimales) for v in c]
+
+    for f in geo["features"]:
+        f["geometry"]["coordinates"] = r(f["geometry"]["coordinates"])
+
+
+COLUMNAS_CAPACIDAD = [
+    "viv_principales", "viv_no_principales", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
+    "colegios_primaria", "colegios_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
+]
+
+
+def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Une vivienda, planeamiento, colegios y sanidad (ver capacidad.py). Devuelve también las zonas de salud."""
+    sanidad, zonas = capacidad.leer_sanidad(pob)
+    df = (df.merge(capacidad.leer_viviendas(), on="ine", how="left")
+            .merge(capacidad.leer_planeamiento(), on="ine", how="left")
+            .merge(capacidad.leer_colegios(), on="ine", how="left")
+            .merge(sanidad, on="ine", how="left"))
+    df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
+        df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))
+    # Personas por hogar del municipio (Censo 2021): sirve para pasar viviendas a personas
+    df["personas_hogar"] = (df[2021] / df["hogares_2021"]).round(3)
+    return df, zonas
+
+
+def limpio(v):
+    """Convierte valores de pandas/numpy a algo que JSON entienda (y redondea)."""
+    if pd.isna(v):
+        return None
+    if isinstance(v, str):
+        return v
+    return round(float(v), 3)
+
+
+def main() -> None:
+    pob = leer_poblacion()
+    df = pob.merge(leer_zonas(), on="ine", how="left")
+    df["universo"] = df[ANIO_BASE] < LIMITE_HABITANTES
+    uni = calcular_tendencia(df[df["universo"]])
+    df = df.merge(uni[["ine", "g_propia", "g_zona", "g_suavizada"]], on="ine", how="left")
+    df, zonas = anadir_capacidad(df, pob)
+
+    n = int(df["universo"].sum())
+    hab = int(df.loc[df["universo"], ANIO_BASE].sum())
+    print(f"Universo: {n} municipios con < {miles(LIMITE_HABITANTES)} hab.; suman {miles(hab)}")
+
+    anios = [c for c in df.columns if isinstance(c, int)]
+    registros = []
+    for _, f in df.iterrows():
+        registros.append({
+            "ine": f["ine"],
+            "nombre": f["nombre"],
+            "zona": f["zona"],
+            "superficie_km2": f["superficie_km2"],
+            "universo": bool(f["universo"]),
+            "poblacion": {str(a): int(f[a]) for a in anios if pd.notna(f[a])},
+            "g_propia": None if pd.isna(f["g_propia"]) else round(f["g_propia"], 6),
+            "g_zona": None if pd.isna(f["g_zona"]) else round(f["g_zona"], 6),
+            "g_suavizada": None if pd.isna(f["g_suavizada"]) else round(f["g_suavizada"], 6),
+            "capacidad": None if not f["universo"] else {c: limpio(f[c]) for c in COLUMNAS_CAPACIDAD},
+        })
+
+    WEB_DATOS.mkdir(parents=True, exist_ok=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    (WEB_DATOS / "municipios.json").write_text(json.dumps(registros, ensure_ascii=False), encoding="utf-8")
+
+    (WEB_DATOS / "zonas_salud.json").write_text(
+        json.dumps(zonas.to_dict(orient="records"), ensure_ascii=False, default=int), encoding="utf-8")
+
+    limites = preparar_limites(set(df.loc[df["universo"], "ine"]), dict(zip(df["ine"], df["nombre"])))
+    (WEB_DATOS / "limites.geojson").write_text(json.dumps(limites, ensure_ascii=False), encoding="utf-8")
+
+    columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
+                *COLUMNAS_CAPACIDAD]
+    df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+
+    for nombre in ("municipios.json", "limites.geojson"):
+        print(f"  {nombre}: {(WEB_DATOS / nombre).stat().st_size / 1e3:.0f} KB")
+
+
+if __name__ == "__main__":
+    main()
