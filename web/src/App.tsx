@@ -15,8 +15,8 @@ import { OrigenTodos } from './componentes/OrigenVaso'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { ANIO_BASE, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
-import { COLOR_APAGADO, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
+import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
+import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, millones, pct } from './formato'
 import './estilo.css'
@@ -101,10 +101,16 @@ export default function App() {
     })),
     [resultados, colorMapa, resaltado],
   )
+  // Rayadas: las oportunidades condicionadas (hospital lejos), solo si se ve el color de su tipo
+  const rayados = useMemo(
+    () => new Set(colorMapa === 'tipo' && (!resaltado || resaltado === 'oportunidad')
+      ? resultados.filter((r) => r.condicionada).map((r) => r.ine) : []),
+    [resultados, colorMapa, resaltado],
+  )
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
+      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
     }])),
     [resultados, porIne],
   )
@@ -117,6 +123,7 @@ export default function App() {
   const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
+  const condicionadas = resultados.filter((r) => r.condicionada).length
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
   const selAntes = seleccionado ? resultadosSinInversion.find((r) => r.ine === seleccionado) ?? null : null
   const invertido = Object.values(inversiones).reduce((s, inv) => s + costeInversion(inv), 0)
@@ -174,13 +181,14 @@ export default function App() {
           {/* 2. Mapa */}
           <div className="columna col-mapa">
             <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
-            <Mapa limites={limites} colores={colores} etiquetas={etiquetas}
+            <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados}
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={invertido ? `de las ${miles(escenario.personas)} personas caben, contando lo que has invertido` : `de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
               <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
-              <Cifra valor={String(cuenta.oportunidad)} texto="municipios con sitio al que no llega gente" acento={TIPOS.oportunidad.color} />
+              <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
+                texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
             <div className="leyenda" aria-label="Leyenda">
               <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
@@ -194,6 +202,11 @@ export default function App() {
                       </button>
                     ))}
                   </div>
+                  {condicionadas > 0 && (!resaltado || resaltado === 'oportunidad') && (
+                    <div className="leyenda-condicionada" title={CONDICIONADA.que}>
+                      <i style={{ background: CONDICIONADA.fondo }} /> Rayado: {CONDICIONADA.nombre.toLowerCase()} (hospital a más de {HOSPITAL_LEJOS_KM} km)<b>{condicionadas}</b>
+                    </div>
+                  )}
                   <div className="leyenda-pista">{resaltado ? 'Pulsa otra vez para ver todos.' : 'Pulsa un tipo para verlo solo.'}</div>
                 </>
               ) : (

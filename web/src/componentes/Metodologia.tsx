@@ -5,9 +5,9 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, MARGEN_MINIMO, RITMO_ANUAL, TRAMOS_MUNICIPIO, TRAMOS_ZONA } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, RITMO_ANUAL, TRAMOS_MUNICIPIO, TRAMOS_ZONA } from '../motor'
 import { PERFILES } from '../mudanza'
-import { ORDEN_TIPOS, TIPOS } from '../colores'
+import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { Escenario, Perfil, Recurso } from '../tipos'
 import type { DatosValidacion } from './Validacion'
 import { miles, millones, pct } from '../formato'
@@ -23,6 +23,7 @@ const FUENTES = [
   { nombre: 'Municipios de la Comunidad de Madrid', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Zona estadística y superficie', url: 'https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d' },
   { nombre: 'Centros educativos', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Colegios de primaria e institutos en funcionamiento', url: 'https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5' },
   { nombre: 'Zonas básicas de salud', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'A qué centro de salud va cada municipio y cuánta gente atiende', url: 'https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff' },
+  { nombre: 'Centros sanitarios', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Dónde están los hospitales generales públicos', url: 'https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7' },
   { nombre: 'Límites municipales y planeamiento urbanístico refundido 2025', quien: 'IDEM, Comunidad de Madrid', para: 'El mapa y las viviendas previstas en suelo sin desarrollar', url: 'https://idem.comunidad.madrid/' },
 ]
 
@@ -79,6 +80,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
                 <li key={t}><span className="chip" style={{ background: TIPOS[t].color }}>{TIPOS[t].nombre}</span><span>{TIPOS[t].que}</span></li>
               ))}
             </ul>
+            <p>
+              Una oportunidad con el hospital a más de {HOSPITAL_LEJOS_KM} km sale <b>rayada</b>:
+              es una <span className="chip" style={{ background: CONDICIONADA.fondo }}>{CONDICIONADA.nombre.toLowerCase()}</span>.
+              Hay sitio, pero antes de atraer gente hay que asegurar el acceso.
+            </p>
           </div>
         </li>
         <li>
@@ -135,6 +141,8 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona que cubre más superficie suya, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
           <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio o un centro está lleno cuando atiende a tantos vecinos como los más cargados de su tamaño, no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso se equivoca en un {pct(nuestro.wape)} de las personas.</li>
+          <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
+          <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los pueblos de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
           <li><b>Faltan datos que también importan</b>: precios de la vivienda, empleo y transporte.</li>
         </ul>
       </section>
@@ -210,6 +218,10 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
               ))}
             </ul>
             <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
+            <p>
+              <b>Oportunidad condicionada:</b> una oportunidad cuyo hospital general público más cercano está a más de {HOSPITAL_LEJOS_KM} km
+              en línea recta, medidos desde la mediana de las coordenadas de sus colegios (si no tiene, desde el centro de su término).
+            </p>
           </section>
 
           <section>

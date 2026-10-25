@@ -20,6 +20,8 @@ export const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales,
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
 export const COSTE_COLEGIO = 9_500_000
 export const COSTE_CENTRO_SALUD = 8_000_000
+/** Más lejos que esto, una oportunidad queda «condicionada»: unos 30 min en coche [est.]. */
+export const HOSPITAL_LEJOS_KM = 25
 export const SIN_INVERSION: Inversion = { colegios: 0, centros: 0 }
 
 export function escenarioPorDefecto(anio = 2035): Escenario {
@@ -54,7 +56,10 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
   // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño)
   const medPresion = mediana(parciales.map((r) => r.crecimiento))
   const medCapacidad = mediana(parciales.map((r) => r.caben / r.poblacion))
-  return parciales.map((r) => ({ ...r, tipo: clasificar(r, medPresion, medCapacidad) }))
+  return parciales.map((r, i) => {
+    const tipo = clasificar(r, medPresion, medCapacidad)
+    return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM }
+  })
 }
 
 /** Personas que caben según cada recurso. null = ese límite no aplica a este municipio. */

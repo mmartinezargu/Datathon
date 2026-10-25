@@ -33,6 +33,8 @@ export interface Municipio {
   g_propia: number | null // tasa anual 2015-2025 del municipio
   g_zona: number | null // tasa anual de su zona
   g_suavizada: number | null // mezcla de las dos (estimador bayesiano empírico)
+  hospital_km: number // en línea recta, del núcleo al hospital general público más cercano
+  hospital_municipio: string // municipio de ese hospital
   capacidad: IngredientesCapacidad | null
 }
 
@@ -76,6 +78,7 @@ export interface ResultadoMunicipio {
   limitante: Limite // el recurso que pone el límite
   margen: number // caben - llegan (negativo = no caben)
   tipo: Tipo
+  condicionada: boolean // oportunidad con el hospital lejos: hay sitio, pero antes hay que asegurar el acceso
 }
 
 /** Vista ciudadana «¿Dónde me mudo?». */

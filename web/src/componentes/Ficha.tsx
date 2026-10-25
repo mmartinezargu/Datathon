@@ -1,9 +1,9 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
 import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, costeInversion, nivelesColegio, umbralesDe } from '../motor'
-import { LIMITES, TIPOS } from '../colores'
+import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Umbrales } from '../tipos'
-import { miles, millones, pct } from '../formato'
+import { decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
@@ -30,9 +30,15 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
       <div className="ficha-cabeza">
-        <span className="chip" style={{ background: tipo.color }}>{tipo.nombre}</span>
+        <span className="chip" style={{ background: r.condicionada ? CONDICIONADA.fondo : tipo.color }}>
+          {r.condicionada ? CONDICIONADA.nombre : tipo.nombre}
+        </span>
         <h2>{m.nombre}</h2>
         <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos hoy</div>
+        <div className="ayuda ficha-hospital">
+          <Icono nombre="sanidad" tamano={15} />
+          Hospital más cercano: {m.hospital_municipio}, a {decimal(m.hospital_km)} km en línea recta
+        </div>
       </div>
 
       <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto
@@ -80,7 +86,10 @@ function frase(r: ResultadoMunicipio, m: Municipio, anio: number): string {
     case 'polo':
       return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${miles(r.caben)}: puede crecer sin desbordarse.`
     case 'oportunidad':
-      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. Tiene sitio para acoger a más gente.`
+      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. ` +
+        (r.condicionada
+          ? `Tiene sitio, pero el hospital queda a ${decimal(m.hospital_km)} km: antes de atraer gente hay que asegurar el acceso.`
+          : 'Tiene sitio para acoger a más gente.')
     default:
       return `Llegarían unas ${miles(r.llegan)} personas y caben ${miles(r.caben)}. Crece poco y tiene poco margen.`
   }
