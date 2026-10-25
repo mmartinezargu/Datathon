@@ -59,9 +59,10 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
         <div className="l-leyenda"><i /> lo que llega ({miles(r.llegan)})</div>
       </div>
 
-      <div className="cuenta">
-        <b>De dónde sale:</b> {explicacion(r, m, escenario, umbrales, inversion)}
-      </div>
+      <details className="cuenta-detalle">
+        <summary><span aria-hidden="true">#</span>Ver la cuenta</summary>
+        <div className="cuenta">{explicacion(r, m, escenario, umbrales, inversion)}</div>
+      </details>
 
       <Invertir r={r} antes={antes} m={m} umbrales={umbrales} inversion={inversion} onInvertir={onInvertir} />
 

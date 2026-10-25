@@ -74,7 +74,7 @@ export function OrigenMunicipio({ anio, limitante }: { anio: number; limitante: 
         },
       ]} />
       <p className="origen-aviso">
-        La cuenta exacta está más abajo, en «De dónde sale». Recuerda que «caben» compara con pueblos de su tamaño: no es una norma oficial.
+        La cuenta exacta está más abajo, en «Ver la cuenta». Recuerda que «caben» compara con pueblos de su tamaño: no es una norma oficial.
       </p>
     </>
   )
