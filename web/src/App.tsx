@@ -5,14 +5,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
+import { Descarga } from './componentes/Descarga'
+import { Mudanza } from './componentes/Mudanza'
+import { Metodologia } from './componentes/Metodologia'
+import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { calcular, calcularUmbrales, escenarioPorDefecto } from './motor'
+import { SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
 import { ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
-import type { Escenario, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
-import { miles, pct } from './formato'
+import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
+import { miles, millones, pct } from './formato'
 import './estilo.css'
 
-type Pestana = 'mapa' | 'validacion'
+type Pestana = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 
 export default function App() {
@@ -24,6 +28,9 @@ export default function App() {
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [pestana, setPestana] = useState<Pestana>('mapa')
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
+  const [inversiones, setInversiones] = useState<Inversiones>({})
+  const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
+  const [comparados, setComparados] = useState<string[]>([])
 
   // Cargar los datos que preparó Python
   useEffect(() => {
@@ -38,8 +45,14 @@ export default function App() {
 
   // Recalcular solo cuando cambian los datos o las palancas
   const resultados = useMemo(
-    () => (municipios && zonas ? calcular(municipios, zonas, escenario) : []),
-    [municipios, zonas, escenario],
+    () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones) : []),
+    [municipios, zonas, escenario, inversiones],
+  )
+  // Lo mismo sin inversiones, para enseñar en la ficha el "antes" y el "después"
+  const hayInversion = Object.keys(inversiones).length > 0
+  const resultadosSinInversion = useMemo(
+    () => (municipios && zonas && hayInversion ? calcular(municipios, zonas, escenario) : resultados),
+    [municipios, zonas, escenario, hayInversion, resultados],
   )
   const umbrales = useMemo(
     () => (municipios && zonas ? calcularUmbrales(municipios.filter((m) => m.universo), zonas, escenario.exigencia) : null),
@@ -67,6 +80,14 @@ export default function App() {
   const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
+  const selAntes = seleccionado ? resultadosSinInversion.find((r) => r.ine === seleccionado) ?? null : null
+  const invertido = Object.values(inversiones).reduce((s, inv) => s + costeInversion(inv), 0)
+  const invertir = (ine: string, inv: Inversion) =>
+    setInversiones((antes) => {
+      const nuevas = { ...antes, [ine]: inv }
+      if (!inv.colegios && !inv.centros) delete nuevas[ine] // sin nada construido, fuera de la lista
+      return nuevas
+    })
 
   return (
     <div className="app">
@@ -74,13 +95,23 @@ export default function App() {
         <div className="marca"><Logo /><span>CABIDA</span></div>
         <nav className="pestanas" aria-label="Secciones">
           <button className={pestana === 'mapa' ? 'activa' : ''} onClick={() => setPestana('mapa')}>Mapa</button>
+          <button className={pestana === 'mudanza' ? 'activa' : ''} onClick={() => setPestana('mudanza')}>¿Dónde me mudo?</button>
           <button className={pestana === 'validacion' ? 'activa' : ''} onClick={() => setPestana('validacion')}>Validación</button>
+          <button className={pestana === 'metodologia' ? 'activa' : ''} onClick={() => setPestana('metodologia')}>Cómo se calcula</button>
         </nav>
         <span className="lema">¿Dónde cabe la nueva población de la Comunidad de Madrid?</span>
       </header>
 
       {pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
+      ) : pestana === 'metodologia' ? (
+        <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
+      ) : pestana === 'mudanza' ? (
+        <main className="pagina">
+          <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
+            filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
+            onVerEnMapa={(ine) => { setSeleccionado(ine); setPestana('mapa') }} />
+        </main>
       ) : (
         <main className="cuerpo">
           <div className="zona-mapa">
@@ -88,7 +119,7 @@ export default function App() {
               seleccionado={seleccionado} onSeleccionar={setSeleccionado} />
             <div className="cifras">
               <Cifra valor={miles(caben)} texto={`de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
-              <Cifra valor={miles(sinSitio)} texto="se quedarían sin sitio: ahí hay que invertir" acento={TIPOS.tension.color} />
+              <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, contando lo que has invertido (${millones(invertido)})` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
               <Cifra valor={String(cuenta.oportunidad)} texto="municipios con sitio al que no llega gente" acento={TIPOS.oportunidad.color} />
             </div>
             <div className="leyenda" aria-label="Leyenda">
@@ -118,10 +149,14 @@ export default function App() {
             </section>
 
             {sel ? (
-              <Ficha r={sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales} onCerrar={() => setSeleccionado(null)} />
+              <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales}
+                inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)}
+                onCerrar={() => setSeleccionado(null)} />
             ) : (
               <Listas resultados={resultados} porIne={porIne} onElegir={setSeleccionado} />
             )}
+
+            <Descarga resultados={resultados} porIne={porIne} escenario={escenario} inversiones={inversiones} />
           </aside>
         </main>
       )}

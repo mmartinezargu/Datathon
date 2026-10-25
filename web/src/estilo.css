@@ -208,3 +208,83 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .l-leyenda i { width: 2px; height: 12px; background: var(--tinta); }
 .cuenta { margin-top: 14px; background: var(--fondo); border-radius: 11px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .l-barra { transition: none; } }
+
+/* ---------- ¿Y si invertimos aquí? ---------- */
+.invertir { display: flex; flex-direction: column; gap: 8px; }
+.contador { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--fondo); border-radius: 11px; padding: 8px 12px; }
+.c-nombre { display: block; font-weight: 700; font-size: 13.5px; }
+.c-botones { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.c-botones b { min-width: 1.4em; text-align: center; font-family: var(--disp); font-size: 18px; font-variant-numeric: tabular-nums; }
+.c-botones button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--linea); background: #fff; cursor: pointer; font-size: 18px; font-weight: 700; line-height: 1; }
+.c-botones button:hover:not(:disabled) { background: var(--cielo-claro); border-color: var(--cielo); }
+.c-botones button:disabled { opacity: 0.35; cursor: default; }
+.invertir-efecto { margin-top: 10px; border: 1px solid var(--linea); border-left: 4px solid var(--cielo); border-radius: 11px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; }
+.invertir-efecto p { margin: 0 0 6px; }
+.invertir-efecto .chip { margin-bottom: 0; vertical-align: middle; }
+.boton-quitar { border: 0; background: none; padding: 0; color: var(--cielo); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+/* ---------- Descarga de datos ---------- */
+.descarga h3 { font-family: var(--disp); font-size: 14.5px; margin: 0 0 6px; }
+.descarga .desplegar { margin-top: 10px; }
+.descarga-pie { margin-top: 10px; line-height: 1.5; }
+.descarga-pie a { color: var(--cielo); font-weight: 600; }
+
+/* ---------- ¿Dónde me mudo? ---------- */
+.mudanza { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.filtros h2 { font-size: 15px; margin: 0 0 8px; }
+.filtros h2 + .segmentos, .filtros .pista { margin-bottom: 0; }
+.filtros .pista + h2 { margin-top: 18px; }
+.casillas { display: flex; flex-wrap: wrap; gap: 8px; }
+.casilla { display: inline-flex; align-items: center; gap: 7px; background: var(--fondo); border-radius: 10px; padding: 7px 12px; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.casilla input, .casilla-mini input { accent-color: var(--cielo); width: 16px; height: 16px; margin: 0; cursor: pointer; }
+.filtros-fila { display: grid; grid-template-columns: minmax(180px, 1fr) 2fr; gap: 16px; }
+.filtros select { width: 100%; margin-top: 8px; font: inherit; font-size: 13.5px; padding: 7px 10px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; color: var(--tinta); }
+.candidatos { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.candidatos li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; border: 1px solid var(--linea); border-radius: 12px; padding: 12px 14px; }
+.candidatos li.marcado { border-color: var(--cielo); background: var(--cielo-claro); }
+.puesto { font-family: var(--disp); font-weight: 800; font-size: 20px; color: var(--tinta3); font-variant-numeric: tabular-nums; }
+.cand-cabeza { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.cand-cabeza b { font-family: var(--disp); font-size: 17px; }
+.cand-cabeza .chip { margin-bottom: 0; }
+.cand-cuerpo p { margin: 6px 0 8px; font-size: 13.5px; }
+.cand-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 12.5px; }
+.encaje { display: inline-flex; align-items: center; gap: 8px; color: var(--tinta2); font-variant-numeric: tabular-nums; }
+.encaje-pista { width: 70px; height: 8px; background: var(--fondo); border-radius: 4px; overflow: hidden; }
+.encaje-pista span { display: block; height: 100%; background: var(--cielo); border-radius: 4px; }
+.casilla-mini { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer; }
+.enlace { border: 0; background: none; padding: 0; color: var(--cielo); font-weight: 600; font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+.tabla-scroll { overflow-x: auto; }
+.comparador th { font-size: 13.5px; color: var(--tinta); text-align: right; white-space: nowrap; }
+.comparador .cerrar.mini { width: 22px; height: 22px; font-size: 11px; margin-left: 6px; vertical-align: middle; }
+.comp-nombre { color: var(--tinta2); font-size: 12.5px; }
+@media (max-width: 640px) {
+  .filtros-fila { grid-template-columns: 1fr; }
+  .val-cabeza h1 { font-size: 28px; }
+  .segmentos.ancho button { padding: 4px 6px; }
+}
+.pestanas button { white-space: nowrap; }
+@media (max-width: 640px) {
+  .cabecera { gap: 10px; padding: 0 12px; }
+  .marca span { display: none; }
+  .pestanas button { padding: 0 7px; font-size: 13px; }
+}
+
+/* ---------- Cómo se calcula ---------- */
+.metodologia { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+.metodologia .val-tarjeta p { font-size: 14px; line-height: 1.55; margin: 0 0 10px; max-width: 72ch; }
+.metodologia .val-tarjeta p:last-child { margin-bottom: 0; }
+.formula { background: var(--fondo); border-left: 3px solid var(--cielo); border-radius: 0 8px 8px 0; padding: 8px 12px; font-size: 13.5px !important; font-variant-numeric: tabular-nums; }
+.limites-metodo { margin: 0; display: grid; grid-template-columns: 110px 1fr; gap: 12px 16px; }
+.limites-metodo dt { font-family: var(--disp); font-weight: 750; font-size: 14.5px; padding-top: 2px; }
+.limites-metodo dd { margin: 0; }
+.tipos-metodo, .perfiles-metodo, .limitaciones { margin: 0 0 10px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.5; }
+.tipos-metodo li { display: grid; grid-template-columns: 170px 1fr; gap: 10px; align-items: baseline; }
+.tipos-metodo .chip { margin-bottom: 0; justify-self: start; }
+.limitaciones li { padding-left: 14px; border-left: 3px solid var(--linea); }
+.fuentes td { vertical-align: top; }
+.fuentes a { color: var(--cielo); font-weight: 600; }
+@media (max-width: 640px) {
+  .limites-metodo, .tipos-metodo li { grid-template-columns: 1fr; gap: 4px; }
+  .limites-metodo dd { margin-bottom: 8px; }
+  .pestanas { overflow-x: auto; scrollbar-width: none; }
+}

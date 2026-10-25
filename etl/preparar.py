@@ -6,8 +6,10 @@ Salidas:
   web/public/datos/municipios.json   datos por municipio que lee la web
   web/public/datos/limites.geojson   contornos simplificados para el mapa
   data/out/tabla_maestra.csv         lo mismo en CSV (licencia CC BY 4.0)
+  web/public/datos/tabla_maestra.csv copia para descargarla desde la web (también sin internet)
 """
 import json
+import shutil
 
 import geopandas as gpd
 import pandas as pd
@@ -147,6 +149,7 @@ def main() -> None:
     columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
                 *COLUMNAS_CAPACIDAD]
     df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+    shutil.copyfile(OUT / "tabla_maestra.csv", WEB_DATOS / "tabla_maestra.csv")
 
     for nombre in ("municipios.json", "limites.geojson"):
         print(f"  {nombre}: {(WEB_DATOS / nombre).stat().st_size / 1e3:.0f} KB")
