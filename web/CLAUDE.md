@@ -17,6 +17,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: perfil, filtros, ranking con frase y comparador |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
+| `src/componentes/Metodologia.tsx` | Pestaña «Cómo se calcula»: fórmulas en palabras sencillas, fuentes con enlace y limitaciones. Lee las constantes de `motor.ts` y `mudanza.ts` |
 | `src/componentes/Validacion.tsx` | Pestaña de validación 2015→2025 |
 | `src/colores.ts` | Paleta de los 4 tipos. Úsala siempre, no metas colores sueltos |
 | `src/formato.ts` | Formato español de números y porcentajes |

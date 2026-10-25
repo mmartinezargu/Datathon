@@ -7,6 +7,7 @@ import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
 import { Mudanza } from './componentes/Mudanza'
+import { Metodologia } from './componentes/Metodologia'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
@@ -15,7 +16,7 @@ import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, Resu
 import { miles, millones, pct } from './formato'
 import './estilo.css'
 
-type Pestana = 'mapa' | 'mudanza' | 'validacion'
+type Pestana = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 
 export default function App() {
@@ -96,12 +97,15 @@ export default function App() {
           <button className={pestana === 'mapa' ? 'activa' : ''} onClick={() => setPestana('mapa')}>Mapa</button>
           <button className={pestana === 'mudanza' ? 'activa' : ''} onClick={() => setPestana('mudanza')}>¿Dónde me mudo?</button>
           <button className={pestana === 'validacion' ? 'activa' : ''} onClick={() => setPestana('validacion')}>Validación</button>
+          <button className={pestana === 'metodologia' ? 'activa' : ''} onClick={() => setPestana('metodologia')}>Cómo se calcula</button>
         </nav>
         <span className="lema">¿Dónde cabe la nueva población de la Comunidad de Madrid?</span>
       </header>
 
       {pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
+      ) : pestana === 'metodologia' ? (
+        <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
       ) : pestana === 'mudanza' ? (
         <main className="pagina">
           <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}

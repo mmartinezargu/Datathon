@@ -13,10 +13,10 @@ export const CRECIMIENTO_DECADA = 134_426
 /** Escenario por defecto: seguir al ritmo de la última década. */
 export const RITMO_ANUAL = CRECIMIENTO_DECADA / 10
 /** Para no marcar "en tensión" por un puñado de personas. */
-const MARGEN_MINIMO = 25
+export const MARGEN_MINIMO = 25
 /** Tramos de tamaño: un pueblo de 800 vecinos no se compara con uno de 40.000. */
-const TRAMOS_MUNICIPIO = [1_000, 5_000, 10_000, 20_000, Infinity]
-const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales, medias y urbanas
+export const TRAMOS_MUNICIPIO = [1_000, 5_000, 10_000, 20_000, Infinity]
+export const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales, medias y urbanas
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
 export const COSTE_COLEGIO = 9_500_000
 export const COSTE_CENTRO_SALUD = 8_000_000
