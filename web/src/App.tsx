@@ -6,14 +6,16 @@ import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
+import { Mudanza } from './componentes/Mudanza'
+import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
 import { ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
-import type { Escenario, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
+import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, millones, pct } from './formato'
 import './estilo.css'
 
-type Pestana = 'mapa' | 'validacion'
+type Pestana = 'mapa' | 'mudanza' | 'validacion'
 type ColorMapa = 'tipo' | 'crecimiento'
 
 export default function App() {
@@ -26,6 +28,8 @@ export default function App() {
   const [pestana, setPestana] = useState<Pestana>('mapa')
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
   const [inversiones, setInversiones] = useState<Inversiones>({})
+  const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
+  const [comparados, setComparados] = useState<string[]>([])
 
   // Cargar los datos que preparó Python
   useEffect(() => {
@@ -90,6 +94,7 @@ export default function App() {
         <div className="marca"><Logo /><span>CABIDA</span></div>
         <nav className="pestanas" aria-label="Secciones">
           <button className={pestana === 'mapa' ? 'activa' : ''} onClick={() => setPestana('mapa')}>Mapa</button>
+          <button className={pestana === 'mudanza' ? 'activa' : ''} onClick={() => setPestana('mudanza')}>¿Dónde me mudo?</button>
           <button className={pestana === 'validacion' ? 'activa' : ''} onClick={() => setPestana('validacion')}>Validación</button>
         </nav>
         <span className="lema">¿Dónde cabe la nueva población de la Comunidad de Madrid?</span>
@@ -97,6 +102,12 @@ export default function App() {
 
       {pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
+      ) : pestana === 'mudanza' ? (
+        <main className="pagina">
+          <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
+            filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
+            onVerEnMapa={(ine) => { setSeleccionado(ine); setPestana('mapa') }} />
+        </main>
       ) : (
         <main className="cuerpo">
           <div className="zona-mapa">

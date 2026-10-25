@@ -77,3 +77,25 @@ export interface ResultadoMunicipio {
   margen: number // caben - llegan (negativo = no caben)
   tipo: Tipo
 }
+
+/** Vista ciudadana «¿Dónde me mudo?». */
+export type Perfil = 'familia' | 'teletrabajo' | 'mayor'
+export type Tamano = 'todos' | 'pueblo' | 'mediano' | 'grande'
+export type Recurso = 'colegios' | 'sanidad' | 'vivienda'
+
+export interface FiltrosMudanza {
+  perfil: Perfil
+  colegio: boolean // que tenga colegio de primaria
+  instituto: boolean // que tenga instituto (secundaria)
+  sitioLibre: boolean // que no se quede sin sitio con la gente que llega
+  zona: string | null // zona estadística; null = cualquiera
+  tamano: Tamano
+}
+
+/** Un municipio en el ranking de «¿Dónde me mudo?». */
+export interface Candidato {
+  ine: string
+  puntos: number // 0-100: lo bien que encaja con el perfil, comparado con los demás que pasan los filtros
+  sitio: Record<Recurso, number | null> // personas que aún caben en cada recurso después de que llegue la gente prevista (null = no aplica)
+  razones: Recurso[] // los recursos que más le suben en el ranking, de más a menos
+}
