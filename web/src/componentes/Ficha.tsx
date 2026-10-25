@@ -7,6 +7,7 @@ import { miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
+import { OrigenMunicipio } from './OrigenVaso'
 
 interface Props {
   r: ResultadoMunicipio
@@ -34,7 +35,8 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
         <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos hoy</div>
       </div>
 
-      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto />
+      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto
+        origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
       <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
 

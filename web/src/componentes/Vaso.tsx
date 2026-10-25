@@ -5,6 +5,7 @@
 // Las alturas son proporcionales: un vaso pequeño con una torre roja encima = no cabe casi nadie.
 // El componente no hace cuentas del modelo: recibe las cifras ya calculadas por el motor.
 
+import type { ReactNode } from 'react'
 import { TIPOS } from '../colores'
 import { miles } from '../formato'
 
@@ -15,6 +16,8 @@ interface Props {
   /** Texto final de la nota cuando sobra sitio en otros municipios (vista de los 155 juntos). */
   notaLibre?: string
   compacto?: boolean
+  /** Explicación del desplegable «¿De dónde sale esto?». Si no se da, no hay desplegable. */
+  origen?: ReactNode
 }
 
 // Medidas del dibujo (unidades del SVG)
@@ -24,7 +27,7 @@ const SUELO = 214 // línea del fondo del vaso
 const ALTO_TOTAL = 186 // altura de la columna más alta (lo que llega, o el vaso si sobra sitio)
 const MINIMO = 10 // para que un trozo muy pequeño siga viéndose
 
-export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto }: Props) {
+export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: Props) {
   const llegan = dentro + fuera
   const rebosa = fuera > 0
   // Si rebosa, el vaso útil es lo que ya está lleno; el sitio libre de otros municipios va en la nota
@@ -80,6 +83,12 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto }: Props) {
         <p className="vaso-frase">{frase(llegan, dentro, fuera, libre)}</p>
         {rebosa && libre > 0 && notaLibre && (
           <p className="vaso-nota">Queda sitio para {miles(libre)} personas más, {notaLibre}</p>
+        )}
+        {origen && (
+          <details className="vaso-origen">
+            <summary><span aria-hidden="true">?</span>¿De dónde sale esto?</summary>
+            <div className="vaso-origen-cuerpo">{origen}</div>
+          </details>
         )}
       </figcaption>
     </figure>

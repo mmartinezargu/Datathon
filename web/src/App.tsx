@@ -11,6 +11,7 @@ import { Mudanza } from './componentes/Mudanza'
 import { Metodologia } from './componentes/Metodologia'
 import { Inicio, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
+import { OrigenTodos } from './componentes/OrigenVaso'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
@@ -221,7 +222,8 @@ export default function App() {
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
                   <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
-                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio." />
+                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio."
+                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} />} />
                 </section>
                 <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
               </>

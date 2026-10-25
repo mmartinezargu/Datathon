@@ -79,6 +79,25 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .vaso-nota { margin: 0; font-size: 12.5px; color: var(--tinta2); line-height: 1.4; }
 .vaso-agua { transition: y 0.5s ease, height 0.5s ease; }
 
+/* Desplegable «¿De dónde sale esto?» bajo el vaso */
+.vaso-origen { margin-top: 6px; }
+.vaso-origen summary {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+  font-size: 13px; font-weight: 650; color: var(--cielo); padding: 4px 4px 4px 0; border-radius: 8px;
+}
+.vaso-origen summary::-webkit-details-marker { display: none; }
+.vaso-origen summary span {
+  width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--cielo-claro); font-weight: 800; font-size: 12px;
+}
+.vaso-origen summary:hover { text-decoration: underline; }
+.vaso-origen[open] summary span { background: var(--cielo); color: #fff; }
+.vaso-origen-cuerpo { margin-top: 6px; background: var(--fondo); border-radius: 12px; padding: 12px 14px; }
+.origen-lista { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.origen-lista dt { font-family: var(--disp); font-weight: 750; font-size: 14.5px; }
+.origen-lista dd { margin: 1px 0 0; font-size: 13px; line-height: 1.45; color: var(--tinta); }
+.origen-aviso { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--linea); font-size: 12.5px; line-height: 1.45; color: var(--tinta2); }
+
 /* ---------- Portada ---------- */
 .inicio { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
 .inicio-portada { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: center; }
