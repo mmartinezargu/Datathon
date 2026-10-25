@@ -5,7 +5,7 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, RITMO_ANUAL, TRAMOS_MUNICIPIO, TRAMOS_ZONA } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, RITMO_ANUAL, TRAMOS_MUNICIPIO, TRAMOS_ZONA } from '../motor'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { Escenario, Perfil, Recurso } from '../tipos'
@@ -104,7 +104,8 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
         <h2>Y además</h2>
         <p>
           <b>¿Y si invertimos aquí?</b> Al añadir un colegio (unos {millones(COSTE_COLEGIO)}) o un centro de salud (unos {millones(COSTE_CENTRO_SALUD)})
-          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe.
+          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe. También se enseña un plazo orientativo hasta que abre:
+          unos {PLAZO_COLEGIO_ANIOS} años un colegio y unos {PLAZO_CENTRO_SALUD_ANIOS} un centro de salud. Son estimaciones, no plazos oficiales.
         </p>
         <p>
           <b>Dirigir lo que no cabe.</b> Con el interruptor de las palancas, la gente que no cabe en su pueblo se lleva a los

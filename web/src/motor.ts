@@ -20,6 +20,9 @@ export const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales,
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
 export const COSTE_COLEGIO = 9_500_000
 export const COSTE_CENTRO_SALUD = 8_000_000
+/** Plazo orientativo hasta que abre, en años [est.]. */
+export const PLAZO_COLEGIO_ANIOS = 2
+export const PLAZO_CENTRO_SALUD_ANIOS = 3
 /** Más lejos que esto, una oportunidad queda «condicionada»: unos 30 min en coche [est.]. */
 export const HOSPITAL_LEJOS_KM = 25
 export const SIN_INVERSION: Inversion = { colegios: 0, centros: 0 }
@@ -149,6 +152,11 @@ export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
 /** Coste de lo que se decide construir en un municipio, en euros. */
 export function costeInversion(inv: Inversion): number {
   return inv.colegios * COSTE_COLEGIO + inv.centros * COSTE_CENTRO_SALUD
+}
+
+/** Plazo orientativo hasta que esté todo abierto: el de la obra más larga (se construyen a la vez). */
+export function plazoInversion(inv: Inversion): number {
+  return Math.max(inv.colegios ? PLAZO_COLEGIO_ANIOS : 0, inv.centros ? PLAZO_CENTRO_SALUD_ANIOS : 0)
 }
 
 /** Los umbrales que le tocan a un municipio concreto (para explicar la cuenta en su ficha). */

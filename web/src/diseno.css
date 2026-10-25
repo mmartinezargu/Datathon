@@ -250,3 +250,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .interruptor-texto { display: flex; flex-direction: column; font-size: 13.5px; }
 .interruptor-texto b { font-weight: 600; }
 .ficha-reequilibrio { font-size: 13px; background: var(--fondo); border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }
+.estimacion {
+  display: inline-block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--tinta2); border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; vertical-align: 1px;
+}

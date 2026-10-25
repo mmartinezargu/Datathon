@@ -1,6 +1,6 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, costeInversion, nivelesColegio, umbralesDe } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Umbrales } from '../tipos'
 import { decimal, miles, millones, pct } from '../formato'
@@ -144,10 +144,10 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
     <>
       <h3>¿Y si invertimos aquí?</h3>
       <div className="invertir">
-        <Contador nombre="Colegios nuevos" coste={COSTE_COLEGIO} valor={inversion.colegios}
+        <Contador nombre="Colegios nuevos" coste={COSTE_COLEGIO} plazo={PLAZO_COLEGIO_ANIOS} valor={inversion.colegios}
           onCambiar={(colegios) => onInvertir({ ...inversion, colegios })}
           aviso={sinColegio ? 'No tiene colegio propio: sus alumnos van a otro municipio.' : undefined} />
-        <Contador nombre="Centros de salud nuevos" coste={COSTE_CENTRO_SALUD} valor={inversion.centros}
+        <Contador nombre="Centros de salud nuevos" coste={COSTE_CENTRO_SALUD} plazo={PLAZO_CENTRO_SALUD_ANIOS} valor={inversion.centros}
           onCambiar={(centros) => onInvertir({ ...inversion, centros })} />
       </div>
       {hay && (
@@ -156,6 +156,7 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
             Con <b>{millones(costeInversion(inversion))}</b> caben <b>{miles(r.caben)}</b> personas
             {ganan >= 1 ? <> ({miles(ganan)} más que antes)</> : <>, las mismas que antes</>}.
           </p>
+          <p>Estaría listo en <b>unos {plazoInversion(inversion)} años</b> <span className="estimacion">estimación</span></p>
           {r.tipo !== antes.tipo ? (
             <p>
               Pasa de <span className="chip" style={{ background: TIPOS[antes.tipo].color }}>{TIPOS[antes.tipo].nombre}</span> a{' '}
@@ -172,14 +173,16 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
   )
 }
 
-function Contador({ nombre, coste, valor, onCambiar, aviso }: {
-  nombre: string; coste: number; valor: number; onCambiar: (v: number) => void; aviso?: string
+function Contador({ nombre, coste, plazo, valor, onCambiar, aviso }: {
+  nombre: string; coste: number; plazo: number; valor: number; onCambiar: (v: number) => void; aviso?: string
 }) {
   return (
     <div className="contador">
       <div>
         <span className="c-nombre">{nombre}</span>
-        <span className="ayuda">{aviso ?? `unos ${millones(coste)} cada uno`}</span>
+        <span className="ayuda">
+          {aviso ?? <>unos {millones(coste)} cada uno; abre en unos {plazo} años <span className="estimacion">estimación</span></>}
+        </span>
       </div>
       <div className="c-botones">
         <button onClick={() => onCambiar(valor - 1)} disabled={valor === 0} aria-label={`Quitar uno: ${nombre.toLowerCase()}`}>−</button>
