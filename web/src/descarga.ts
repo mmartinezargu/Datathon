@@ -37,7 +37,8 @@ export function descargar(nombre: string, texto: string) {
   a.href = url
   a.download = nombre
   a.click()
-  URL.revokeObjectURL(url)
+  // Se libera un poco después: si se libera en el mismo instante, Firefox y Safari cancelan la descarga
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 function entero(n: number | null): string {

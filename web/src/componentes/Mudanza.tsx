@@ -5,6 +5,7 @@ import { TIPOS } from '../colores'
 import { PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
 import type { Candidato, Escenario, FiltrosMudanza, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, pct } from '../formato'
+import { Icono } from './Iconos'
 
 const MAX_COMPARAR = 3
 const MAX_RANKING = 10
@@ -102,9 +103,10 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
                   <div className="cand-cabeza">
                     <b>{m.nombre}</b>
                     <span className="chip" style={{ background: TIPOS[r.tipo].color }}>{TIPOS[r.tipo].nombre}</span>
-                    <span className="ayuda">{miles(r.poblacion)} vecinos · {m.zona}</span>
+                    <span className="ayuda">{miles(r.poblacion)} vecinos, {m.zona}</span>
                   </div>
-                  <p>{frase(c, escenario.anio)}</p>
+                  <BarrasSitio c={c} poblacion={r.poblacion} />
+                  <p className="cand-frase">{frase(c, escenario.anio)}</p>
                   <div className="cand-acciones">
                     <span className="encaje" title="Lo bien que encaja con tu perfil, comparado con los demás que cumplen lo que pides">
                       <span className="encaje-pista"><span style={{ width: `${c.puntos}%` }} /></span>
@@ -126,6 +128,34 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
           de alquiler ni tiempos de viaje al trabajo: mira también eso antes de decidir.
         </p>
       </section>
+    </div>
+  )
+}
+
+const BARRAS: { k: Recurso; nombre: string }[] = [
+  { k: 'colegios', nombre: 'Colegios' },
+  { k: 'sanidad', nombre: 'Centro de salud' },
+  { k: 'vivienda', nombre: 'Casas' },
+]
+
+/**
+ * Sitio que le queda en cada recurso cuando ya ha llegado la gente prevista.
+ * La barra llena = sitio para tantas personas como vecinos tiene hoy (o más).
+ */
+function BarrasSitio({ c, poblacion }: { c: Candidato; poblacion: number }) {
+  return (
+    <div className="barras-sitio">
+      {BARRAS.map(({ k, nombre }) => {
+        const v = c.sitio[k]
+        const ancho = v === null ? 0 : Math.min(1, Math.abs(v) / poblacion) * 100
+        return (
+          <div key={k} className={`bs-fila${v === null ? ' sin' : v < 0 ? ' falta' : ' hay'}`}>
+            <span className="bs-nombre"><Icono nombre={k} tamano={16} />{nombre}</span>
+            <span className="bs-pista"><span style={{ width: `${Math.max(ancho, v === null ? 0 : 3)}%` }} /></span>
+            <span className="bs-valor">{v === null ? 'no tiene' : v >= 0 ? `+${miles(v)}` : `−${miles(-v)}`}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }

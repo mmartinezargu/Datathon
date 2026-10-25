@@ -20,6 +20,7 @@ export const ESCALA_CRECIMIENTO: Tramo[] = [
 ]
 
 export const COLOR_FUERA = '#DCE5EE' // municipios fuera del reto (más de 50.000 hab.)
+export const COLOR_APAGADO = '#E8EDF2' // municipios que no son del tipo que se ha pulsado en la leyenda
 
 export function colorCrecimiento(c: number): string {
   return ESCALA_CRECIMIENTO.find((t) => c < t.hasta)!.color

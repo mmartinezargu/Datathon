@@ -104,7 +104,13 @@ export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar 
     })
 
     mapa.current = m
-    return () => m.remove()
+    // Si la columna del mapa cambia de tamaño (o aparece en el móvil), el mapa se reajusta
+    const observador = new ResizeObserver(() => m.resize())
+    observador.observe(contenedor.current)
+    return () => {
+      observador.disconnect()
+      m.remove()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

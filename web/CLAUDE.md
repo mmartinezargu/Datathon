@@ -13,12 +13,16 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/App.tsx` | Estado global y composición de la app |
 | `src/componentes/Mapa.tsx` | Mapa MapLibre de los 155 municipios coloreados por tipo |
 | `src/componentes/Palancas.tsx` | Controles del escenario (supuestos) |
-| `src/componentes/Ficha.tsx` | Ficha de un municipio con la cuenta detallada |
+| `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta» |
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: perfil, filtros, ranking con frase y comparador |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
-| `src/componentes/Metodologia.tsx` | Pestaña «Cómo se calcula»: fórmulas en palabras sencillas, fuentes con enlace y limitaciones. Lee las constantes de `motor.ts` y `mudanza.ts` |
+| `src/componentes/Metodologia.tsx` | Pestaña «Cómo se calcula»: 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Lee las constantes de `motor.ts` y `mudanza.ts` |
 | `src/componentes/Validacion.tsx` | Pestaña de validación 2015→2025 |
+| `src/componentes/Inicio.tsx` | Portada: la pregunta del reto, el vaso de los 155 y tres puertas (gestor, vecino, ¿es fiable?) |
+| `src/componentes/Vaso.tsx` | El dibujo del vaso: el vaso = lo que cabe, el agua = lo que llega; si no cabe, rebosa en rojo. Recibe cifras ya calculadas |
+| `src/componentes/Iconos.tsx` | Iconos SVG propios (`<Icono nombre="colegios" />`). Sin librerías de iconos |
+| `src/diseno.css` | Estilos del rediseño (3 columnas, vaso, portada, móvil). Va después de `estilo.css` |
 | `src/colores.ts` | Paleta de los 4 tipos. Úsala siempre, no metas colores sueltos |
 | `src/formato.ts` | Formato español de números y porcentajes |
 | `public/datos/` | **Generado** por el ETL. No editar a mano |

@@ -1,5 +1,6 @@
-// Pantalla principal de CABIDA: pestañas arriba; en "Mapa", el mapa a la izquierda
-// y el escenario, la lista (o la ficha) a la derecha.
+// Pantalla principal de CABIDA.
+// Pestañas arriba. La de "Mapa del gestor" va en 3 columnas, en el orden en que se usa:
+//   1 Escenario (lo que mueves)  ->  2 Mapa (lo que miras)  ->  3 Resultado (lo que lees)
 
 import { useEffect, useMemo, useState } from 'react'
 import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
@@ -8,16 +9,35 @@ import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
 import { Mudanza } from './componentes/Mudanza'
 import { Metodologia } from './componentes/Metodologia'
+import { Inicio, type Totales } from './componentes/Inicio'
+import { Vaso } from './componentes/Vaso'
+import { OrigenTodos } from './componentes/OrigenVaso'
+import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
-import { ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
+import { ANIO_BASE, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
+import { COLOR_APAGADO, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, millones, pct } from './formato'
 import './estilo.css'
+import './diseno.css'
 
-type Pestana = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
+type VistaMovil = 'escenario' | 'mapa' | 'resultado'
+
+// Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', validacion: 'fiable', metodologia: 'como' }
+const pestanaDelEnlace = (): Pestana =>
+  (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
+
+const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
+  { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
+  { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
+  { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
+  { id: 'validacion', texto: '¿Es fiable?', icono: 'fiable' },
+  { id: 'metodologia', texto: 'Cómo se calcula', icono: 'metodo' },
+]
 
 export default function App() {
   const [municipios, setMunicipios] = useState<Municipio[] | null>(null)
@@ -26,11 +46,25 @@ export default function App() {
   const [validacion, setValidacion] = useState<DatosValidacion | null>(null)
   const [escenario, setEscenario] = useState<Escenario>(escenarioPorDefecto())
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
-  const [pestana, setPestana] = useState<Pestana>('mapa')
+  const [pestana, setPestanaEstado] = useState<Pestana>(pestanaDelEnlace)
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
+  const [resaltado, setResaltado] = useState<Tipo | null>(null)
+  const [vistaMovil, setVistaMovil] = useState<VistaMovil>('mapa')
   const [inversiones, setInversiones] = useState<Inversiones>({})
   const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
   const [comparados, setComparados] = useState<string[]>([])
+
+  // Cambiar de pestaña también cambia el enlace; los botones atrás/adelante del navegador funcionan
+  const setPestana = (p: Pestana) => {
+    setPestanaEstado(p)
+    const destino = HASH[p] ? `#${HASH[p]}` : window.location.pathname
+    if (destino !== window.location.hash) window.history.pushState(null, '', destino)
+  }
+  useEffect(() => {
+    const alCambiar = () => setPestanaEstado(pestanaDelEnlace())
+    window.addEventListener('popstate', alCambiar)
+    return () => window.removeEventListener('popstate', alCambiar)
+  }, [])
 
   // Cargar los datos que preparó Python
   useEffect(() => {
@@ -59,10 +93,13 @@ export default function App() {
     [municipios, zonas, escenario.exigencia],
   )
   const porIne = useMemo(() => new Map((municipios ?? []).map((m) => [m.ine, m])), [municipios])
+  // Color de cada municipio; si se ha pulsado un tipo en la leyenda, los demás se apagan
   const colores = useMemo(
-    () => Object.fromEntries(resultados.map((r) => [r.ine,
-      colorMapa === 'tipo' ? TIPOS[r.tipo].color : colorCrecimiento(r.crecimiento)])),
-    [resultados, colorMapa],
+    () => Object.fromEntries(resultados.map((r) => {
+      if (resaltado && r.tipo !== resaltado) return [r.ine, COLOR_APAGADO]
+      return [r.ine, colorMapa === 'tipo' ? TIPOS[r.tipo].color : colorCrecimiento(r.crecimiento)]
+    })),
+    [resultados, colorMapa, resaltado],
   )
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
@@ -76,8 +113,9 @@ export default function App() {
     return <div className="cargando"><Logo /> Cargando los datos de los 155 municipios…</div>
   }
 
-  const caben = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0)
+  const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0)
   const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
+  const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
   const selAntes = seleccionado ? resultadosSinInversion.find((r) => r.ine === seleccionado) ?? null : null
@@ -88,21 +126,29 @@ export default function App() {
       if (!inv.colegios && !inv.centros) delete nuevas[ine] // sin nada construido, fuera de la lista
       return nuevas
     })
+  const elegir = (ine: string | null) => {
+    setSeleccionado(ine)
+    if (ine) setVistaMovil('resultado') // en el móvil, enseña la ficha al pulsar un municipio
+  }
 
   return (
     <div className="app">
       <header className="cabecera">
-        <div className="marca"><Logo /><span>CABIDA</span></div>
+        <button className="marca" onClick={() => setPestana('inicio')} aria-label="CABIDA: volver al inicio"><Logo /><span>CABIDA</span></button>
         <nav className="pestanas" aria-label="Secciones">
-          <button className={pestana === 'mapa' ? 'activa' : ''} onClick={() => setPestana('mapa')}>Mapa</button>
-          <button className={pestana === 'mudanza' ? 'activa' : ''} onClick={() => setPestana('mudanza')}>¿Dónde me mudo?</button>
-          <button className={pestana === 'validacion' ? 'activa' : ''} onClick={() => setPestana('validacion')}>Validación</button>
-          <button className={pestana === 'metodologia' ? 'activa' : ''} onClick={() => setPestana('metodologia')}>Cómo se calcula</button>
+          {PESTANAS.map((p) => (
+            <button key={p.id} className={pestana === p.id ? 'activa' : ''} aria-current={pestana === p.id ? 'page' : undefined}
+              onClick={() => setPestana(p.id)}>
+              <Icono nombre={p.icono} tamano={18} /><span>{p.texto}</span>
+            </button>
+          ))}
         </nav>
-        <span className="lema">¿Dónde cabe la nueva población de la Comunidad de Madrid?</span>
       </header>
 
-      {pestana === 'validacion' ? (
+      {pestana === 'inicio' ? (
+        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio })}
+          onIr={(d) => setPestana(d)} /></main>
+      ) : pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
       ) : pestana === 'metodologia' ? (
         <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
@@ -110,26 +156,46 @@ export default function App() {
         <main className="pagina">
           <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
             filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
-            onVerEnMapa={(ine) => { setSeleccionado(ine); setPestana('mapa') }} />
+            onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (
-        <main className="cuerpo">
-          <div className="zona-mapa">
+        <main className={`cuerpo vista-${vistaMovil}${sel ? ' con-ficha' : ''}`}>
+          {/* 1. Escenario */}
+          <aside className="columna col-escenario" aria-label="Escenario">
+            <TituloColumna numero={1} texto="Escenario" ayuda="Mueve las palancas" />
+            <section className="escenario">
+              <p className="frase">Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen</p>
+              <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
+              <Palancas escenario={escenario} onCambiar={setEscenario} />
+            </section>
+            <Descarga resultados={resultados} porIne={porIne} escenario={escenario} inversiones={inversiones} />
+          </aside>
+
+          {/* 2. Mapa */}
+          <div className="columna col-mapa">
+            <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
             <Mapa limites={limites} colores={colores} etiquetas={etiquetas}
-              seleccionado={seleccionado} onSeleccionar={setSeleccionado} />
+              seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
-              <Cifra valor={miles(caben)} texto={`de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
-              <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, contando lo que has invertido (${millones(invertido)})` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
+              <Cifra valor={miles(dentro)}
+                texto={invertido ? `de las ${miles(escenario.personas)} personas caben, contando lo que has invertido` : `de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
+              <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
               <Cifra valor={String(cuenta.oportunidad)} texto="municipios con sitio al que no llega gente" acento={TIPOS.oportunidad.color} />
             </div>
             <div className="leyenda" aria-label="Leyenda">
-              <Segmentos valor={colorMapa} onCambiar={setColorMapa} />
+              <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
               {colorMapa === 'tipo' ? (
-                <div className="leyenda-tipos">
-                  {ORDEN_TIPOS.map((t) => (
-                    <span key={t} title={TIPOS[t].que}><i style={{ background: TIPOS[t].color }} />{TIPOS[t].nombre}<b>{cuenta[t]}</b></span>
-                  ))}
-                </div>
+                <>
+                  <div className="leyenda-tipos">
+                    {ORDEN_TIPOS.map((t) => (
+                      <button key={t} className={`tipo-boton${resaltado === t ? ' activo' : ''}${resaltado && resaltado !== t ? ' apagado' : ''}`}
+                        aria-pressed={resaltado === t} title={TIPOS[t].que} onClick={() => setResaltado(resaltado === t ? null : t)}>
+                        <i style={{ background: TIPOS[t].color }} />{TIPOS[t].nombre}<b>{cuenta[t]}</b>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="leyenda-pista">{resaltado ? 'Pulsa otra vez para ver todos.' : 'Pulsa un tipo para verlo solo.'}</div>
+                </>
               ) : (
                 <div className="leyenda-barra">
                   {ESCALA_CRECIMIENTO.map((t) => (
@@ -141,27 +207,54 @@ export default function App() {
             </div>
           </div>
 
-          <aside className="panel">
-            <section className="escenario">
-              <p className="frase">Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen</p>
-              <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
-              <Palancas escenario={escenario} onCambiar={setEscenario} />
-            </section>
-
+          {/* 3. Resultado */}
+          <aside className="columna col-resultado" aria-label="Resultado">
             {sel ? (
-              <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales}
-                inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)}
-                onCerrar={() => setSeleccionado(null)} />
+              <>
+                <div className="resultado-barra">
+                  <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
+                </div>
+                <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales}
+                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} />
+              </>
             ) : (
-              <Listas resultados={resultados} porIne={porIne} onElegir={setSeleccionado} />
+              <>
+                <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
+                <section className="resultado-vaso">
+                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
+                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio."
+                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} />} />
+                </section>
+                <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
+              </>
             )}
-
-            <Descarga resultados={resultados} porIne={porIne} escenario={escenario} inversiones={inversiones} />
           </aside>
+
+          {/* Navegación del móvil: una columna cada vez */}
+          <nav className="nav-movil" aria-label="Partes del mapa">
+            {([['escenario', 'Escenario', 'ritmo'], ['mapa', 'Mapa', 'mapa'], ['resultado', sel ? 'Ficha' : 'Resultado', 'personas']] as [VistaMovil, string, NombreIcono][]).map(([v, t, i]) => (
+              <button key={v} className={vistaMovil === v ? 'activa' : ''} onClick={() => setVistaMovil(v)}><Icono nombre={i} tamano={20} />{t}</button>
+            ))}
+          </nav>
         </main>
       )}
     </div>
   )
+}
+
+/** Cifras de la portada. Son sumas de lo que ya han calculado Python y el motor. */
+function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], anio: number,
+  vaso: { capacidad: number; dentro: number; fuera: number }): Totales {
+  const suma = (lista: Municipio[], anioPob: number) => lista.reduce((s, m) => s + (m.poblacion[String(anioPob)] ?? 0), 0)
+  const universo = municipios.filter((m) => m.universo)
+  return {
+    municipios: resultados.length,
+    vecinos: suma(universo, ANIO_BASE),
+    crecimientoPequenos: suma(universo, ANIO_BASE) / suma(universo, ANIO_BASE - 10) - 1,
+    crecimientoComunidad: suma(municipios, ANIO_BASE) / suma(municipios, ANIO_BASE - 10) - 1,
+    anio,
+    ...vaso,
+  }
 }
 
 /** Logo: tres hexágonos en los colores de los tipos (como la portada de la propuesta). */
@@ -177,6 +270,15 @@ function Logo() {
       <polygon points={pts(26, 10, 8.5)} fill="#D7263D" />
       <polygon points={pts(18.5, 23, 8.5)} fill="#2F6FEB" />
     </svg>
+  )
+}
+
+function TituloColumna({ numero, texto, ayuda }: { numero: number; texto: string; ayuda: string }) {
+  return (
+    <div className="titulo-columna">
+      <span className="paso">{numero}</span>
+      <div><b>{texto}</b><span>{ayuda}</span></div>
+    </div>
   )
 }
 
@@ -203,39 +305,52 @@ function Segmentos({ valor, onCambiar }: { valor: ColorMapa; onCambiar: (v: Colo
 
 type Lista = 'tension' | 'oportunidad' | 'crecimiento'
 
-function Listas({ resultados, porIne, onElegir }: {
-  resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; onElegir: (ine: string) => void
+function Listas({ resultados, porIne, resaltado, onElegir }: {
+  resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; resaltado: Tipo | null; onElegir: (ine: string) => void
 }) {
   const [lista, setLista] = useState<Lista>('tension')
-  const config = {
+  const margen = {
+    valor: (r: ResultadoMunicipio) => Math.abs(r.margen),
+    texto: (r: ResultadoMunicipio) => (r.margen < 0 ? `−${miles(-r.margen)}` : `+${miles(r.margen)}`),
+  }
+  // Si se ha pulsado un tipo en la leyenda, la lista enseña solo ese tipo
+  const config = resaltado ? {
+    titulo: `${TIPOS[resaltado].nombre}: ${TIPOS[resaltado].que}`,
+    ayuda: 'Personas que sobran (−) o sitio libre (+).',
+    filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(b.margen) - Math.abs(a.margen)),
+    ...margen, color: () => TIPOS[resaltado].color,
+  } : {
     tension: {
-      titulo: 'Donde más gente se queda sin sitio',
+      titulo: 'Donde más gente se queda sin sitio', ayuda: 'Personas, en el escenario elegido.',
       filas: resultados.filter((r) => r.tipo === 'tension').sort((a, b) => a.margen - b.margen),
-      valor: (r: ResultadoMunicipio) => -r.margen, texto: (r: ResultadoMunicipio) => `−${miles(-r.margen)}`, color: () => TIPOS.tension.color,
+      ...margen, color: () => TIPOS.tension.color,
     },
     oportunidad: {
-      titulo: 'Donde hay sitio y no llega gente',
+      titulo: 'Donde hay sitio y no llega gente', ayuda: 'Personas, en el escenario elegido.',
       filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => b.margen - a.margen),
-      valor: (r: ResultadoMunicipio) => r.margen, texto: (r: ResultadoMunicipio) => `+${miles(r.margen)}`, color: () => TIPOS.oportunidad.color,
+      ...margen, color: () => TIPOS.oportunidad.color,
     },
     crecimiento: {
-      titulo: 'Los que más crecerían',
+      titulo: 'Los que más crecerían', ayuda: 'Sobre su población actual.',
       filas: [...resultados].sort((a, b) => b.crecimiento - a.crecimiento),
-      valor: (r: ResultadoMunicipio) => r.crecimiento, texto: (r: ResultadoMunicipio) => `+${pct(r.crecimiento)}`, color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
+      valor: (r: ResultadoMunicipio) => r.crecimiento, texto: (r: ResultadoMunicipio) => `+${pct(r.crecimiento)}`,
+      color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
     },
   }[lista]
   const top = config.filas.slice(0, 8)
-  const max = top.length ? config.valor(top[0]) : 1
+  const max = top.length ? config.valor(top[0]) || 1 : 1
 
   return (
     <section className="ranking">
-      <div className="tabs-lista" role="tablist" aria-label="Listas">
-        {([['tension', 'Sin sitio'], ['oportunidad', 'Con sitio'], ['crecimiento', 'Más crecen']] as [Lista, string][]).map(([v, t]) => (
-          <button key={v} role="tab" aria-selected={lista === v} className={lista === v ? 'activa' : ''} onClick={() => setLista(v)}>{t}</button>
-        ))}
-      </div>
+      {!resaltado && (
+        <div className="tabs-lista" role="tablist" aria-label="Listas">
+          {([['tension', 'Sin sitio'], ['oportunidad', 'Con sitio'], ['crecimiento', 'Más crecen']] as [Lista, string][]).map(([v, t]) => (
+            <button key={v} role="tab" aria-selected={lista === v} className={lista === v ? 'activa' : ''} onClick={() => setLista(v)}>{t}</button>
+          ))}
+        </div>
+      )}
       <h2>{config.titulo}</h2>
-      <p className="ayuda">{lista === 'crecimiento' ? 'Sobre su población actual.' : 'Personas, en el escenario elegido.'} Pulsa uno para ver su ficha.</p>
+      <p className="ayuda">{config.ayuda} Pulsa uno para ver su ficha.</p>
       {top.length === 0 && <p className="vacio">Ningún municipio en este escenario. Mueve las palancas para ver otros.</p>}
       <ol>
         {top.map((r) => (

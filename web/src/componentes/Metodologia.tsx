@@ -1,4 +1,7 @@
-// Pestaña «Cómo se calcula»: las fórmulas en palabras sencillas, las fuentes y lo que el modelo no sabe.
+// Pestaña «Cómo se calcula».
+// Arriba, lo que se cuenta en la demo: 4 pasos en lenguaje llano, sin fórmulas.
+// Después, de dónde salen los datos y lo que el modelo no sabe.
+// Al final, tapado en un desplegable «Ver la cuenta exacta», las fórmulas, por si alguien las pide.
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
@@ -8,6 +11,7 @@ import { ORDEN_TIPOS, TIPOS } from '../colores'
 import type { Escenario, Perfil, Recurso } from '../tipos'
 import type { DatosValidacion } from './Validacion'
 import { miles, millones, pct } from '../formato'
+import { Icono } from './Iconos'
 
 /** Mismo valor que K_SUAVIZADO en etl/preparar.py. */
 const K_SUAVIZADO = 5_000
@@ -34,107 +38,70 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
       <section className="val-cabeza">
         <h1>Cómo se calcula</h1>
         <p>
-          CABIDA hace dos preguntas a cada uno de los 155 municipios de la Comunidad de Madrid con menos de 50.000
-          habitantes: <b>¿cuánta gente va a llegar?</b> y <b>¿cuánta cabe sin desbordar sus servicios?</b> Aquí está cómo
-          se responde a cada una, de dónde salen los datos y qué no sabe el modelo.
+          En cuatro pasos. A cada uno de los 155 municipios de la Comunidad de Madrid con menos de 50.000 habitantes
+          se le hacen dos preguntas: <b>¿cuánta gente va a llegar?</b> y <b>¿cuánta cabe sin desbordar sus servicios?</b>{' '}
+          La diferencia dice dónde hay que invertir.
         </p>
       </section>
 
-      <section className="val-tarjeta">
-        <h2>1. Cuánta gente llega</h2>
-        <p>
-          Se parte de cómo ha crecido cada municipio entre 2015 y 2025. Un pueblo muy pequeño puede tener un año raro,
-          así que su ritmo se mezcla con el de su zona: cuanto más pequeño, más pesa la zona.
-        </p>
-        <p className="formula">ritmo = peso × ritmo propio + (1 − peso) × ritmo de su zona, con peso = vecinos ÷ (vecinos + {miles(K_SUAVIZADO)})</p>
-        <p>
-          Después se reparte el total del escenario según ese ritmo. Por defecto son las {miles(CRECIMIENTO_DECADA)} personas
-          que ganaron estos municipios en la última década, unas {miles(RITMO_ANUAL)} al año. Ahora mismo está elegido:
-          <b> {miles(escenario.personas)} personas hasta {escenario.anio}</b>.
-        </p>
-      </section>
-
-      <section className="val-tarjeta">
-        <h2>2. Cuánta gente cabe</h2>
-        <p>
-          Se calculan cuatro límites y <b>manda el más bajo</b>: de nada sirve tener casas si no hay plaza en el colegio.
-          Los porcentajes son los supuestos que se pueden cambiar en el mapa, en «Supuestos».
-        </p>
-        <dl className="limites-metodo">
-          <dt>Vivienda</dt>
-          <dd>
-            <p className="formula">(viviendas vacías o secundarias × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
-          </dd>
-          <dt>Colegios</dt>
-          <dd>
+      <ol className="pasos-simples">
+        <li>
+          <span className="paso-num">1</span>
+          <div>
+            <h2>Cuánta gente llega</h2>
             <p>
-              Se mira cuántos vecinos atiende cada colegio en los municipios de su mismo tamaño (se agrupan con cortes en{' '}
-              {y(TRAMOS_MUNICIPIO.slice(0, -1).map((t) => miles(t)))} habitantes). Un colegio está «lleno»
-              cuando atiende a tantos como el {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño.
-              Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
+              Repetimos lo que ya pasó. Entre 2015 y 2025 estos pueblos ganaron <b>{miles(CRECIMIENTO_DECADA)} personas</b>.
+              Suponemos que sigue igual y lo repartimos según lo que creció cada pueblo. No es una predicción: es «¿qué pasaría
+              si todo sigue como hasta ahora?».
             </p>
-            <p className="formula">colegios × vecinos por colegio cuando está lleno − vecinos de hoy</p>
-            <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica.</p>
-          </dd>
-          <dt>Sanidad</dt>
-          <dd>
+          </div>
+        </li>
+        <li>
+          <span className="paso-num">2</span>
+          <div>
+            <h2>Cuánta gente cabe</h2>
+            <p>Miramos cuatro cosas y <b>manda la que se queda más corta</b>, porque de nada sirve tener casas si no hay sitio en el colegio.</p>
+            <ul className="cuatro-cosas">
+              <li><Icono nombre="vivienda" tamano={20} />Casas</li>
+              <li><Icono nombre="colegios" tamano={20} />Colegios</li>
+              <li><Icono nombre="sanidad" tamano={20} />Centro de salud</li>
+              <li><Icono nombre="ritmo" tamano={20} />Ritmo de crecimiento</li>
+            </ul>
+          </div>
+        </li>
+        <li>
+          <span className="paso-num">3</span>
+          <div>
+            <h2>Qué tipo de pueblo es</h2>
+            <p>Comparamos lo que llega con lo que cabe y sale uno de estos cuatro colores:</p>
+            <ul className="tipos-simples">
+              {ORDEN_TIPOS.map((t) => (
+                <li key={t}><span className="chip" style={{ background: TIPOS[t].color }}>{TIPOS[t].nombre}</span><span>{TIPOS[t].que}</span></li>
+              ))}
+            </ul>
+          </div>
+        </li>
+        <li>
+          <span className="paso-num">4</span>
+          <div>
+            <h2>¿Acierta?</h2>
             <p>
-              Cada municipio va a una zona básica de salud. Igual que con los colegios, se compara con las zonas de su
-              tamaño (cortes en {y(TRAMOS_ZONA.slice(0, -1).map((t) => miles(t)))} personas) para saber
-              cuánta gente aguanta antes de saturarse.
+              Lo probamos contra el pasado: con los datos hasta {validacion.datos_hasta} predijimos {validacion.periodo.replace('-', ' a ')} y lo
+              comparamos con lo que pasó de verdad. CABIDA coloca mal <b>{pct(nuestro.wape)}</b> de las personas; seguir la
+              tendencia sin más, {pct(tendencia.wape)}. El detalle está en la pestaña «¿Es fiable?».
             </p>
-            <p className="formula">(lo que aguanta la zona − lo que atiende hoy) × la parte de la zona que son vecinos del municipio</p>
-          </dd>
-          <dt>Ritmo</dt>
-          <dd>
-            <p>Aunque haya sitio, un municipio no debería crecer más de un {pct(escenario.ritmoMax, 1)} al año sin que se resientan sus calles y servicios.</p>
-            <p className="formula">vecinos de hoy × ((1 + {pct(escenario.ritmoMax, 1)})^{anios} − 1)</p>
-          </dd>
-        </dl>
-      </section>
+          </div>
+        </li>
+      </ol>
 
       <section className="val-tarjeta">
-        <h2>3. Qué tipo de municipio es</h2>
-        <p>Se cruza lo que llega con lo que cabe. Las fronteras son la mediana de los 155: la mitad está por encima y la mitad por debajo.</p>
-        <ul className="tipos-metodo">
-          {ORDEN_TIPOS.map((t) => (
-            <li key={t}>
-              <span className="chip" style={{ background: TIPOS[t].color }}>{TIPOS[t].nombre}</span>
-              <span>{REGLA[t]}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
-      </section>
-
-      <section className="val-tarjeta">
-        <h2>4. «¿Y si invertimos aquí?» y «¿Dónde me mudo?»</h2>
+        <h2>Y además</h2>
         <p>
-          <b>Invertir.</b> Cada colegio nuevo (unos {millones(COSTE_COLEGIO)}) se suma al nivel con menos sitio. Cada centro de
-          salud nuevo (unos {millones(COSTE_CENTRO_SALUD)}) añade, solo para ese municipio, lo que aguanta una zona de salud como
-          la suya. Después se recalcula todo: a veces el límite pasa a otro recurso y hace falta invertir en algo más.
+          <b>¿Y si invertimos aquí?</b> Al añadir un colegio (unos {millones(COSTE_COLEGIO)}) o un centro de salud (unos {millones(COSTE_CENTRO_SALUD)})
+          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe.
         </p>
         <p>
-          <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda
-          <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos. Cada perfil da un peso distinto:
-        </p>
-        <ul className="perfiles-metodo">
-          {(Object.keys(PERFILES) as Perfil[]).map((p) => (
-            <li key={p}>
-              <b>{PERFILES[p].nombre}:</b>{' '}
-              {(Object.entries(PERFILES[p].pesos) as [Recurso, number][]).filter(([, w]) => w > 0)
-                .sort((a, b) => b[1] - a[1]).map(([k, w]) => `${NOMBRE_RECURSO[k]} ${pct(w, 0)}`).join(', ')}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="val-tarjeta">
-        <h2>5. ¿Acierta?</h2>
-        <p>
-          Lo probamos contra el pasado: con los datos hasta {validacion.datos_hasta}, repartimos el crecimiento que hubo de verdad
-          entre {validacion.periodo.replace('-', ' y ')}. CABIDA coloca mal <b>{pct(nuestro.wape)}</b> de las personas;
-          seguir la tendencia sin más, {pct(tendencia.wape)}. Lo tienes con detalle en la pestaña «Validación».
+          <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
         </p>
       </section>
 
@@ -171,6 +138,103 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <li><b>Faltan datos que también importan</b>: precios de la vivienda, empleo y transporte.</li>
         </ul>
       </section>
+
+      <details className="formulas">
+        <summary>
+          <span><b>Ver la cuenta exacta</b><small>Las fórmulas, por si alguien las quiere comprobar</small></span>
+          <span className="mas" aria-hidden="true" />
+        </summary>
+        <div className="formulas-cuerpo">
+          <section>
+            <h3>1. Cuánta gente llega</h3>
+            <p>
+              Se parte de cómo ha crecido cada municipio entre 2015 y 2025. Un pueblo muy pequeño puede tener un año raro,
+              así que su ritmo se mezcla con el de su zona: cuanto más pequeño, más pesa la zona.
+            </p>
+            <p className="formula">ritmo = peso × ritmo propio + (1 − peso) × ritmo de su zona, con peso = vecinos ÷ (vecinos + {miles(K_SUAVIZADO)})</p>
+            <p>
+              Después se reparte el total del escenario según ese ritmo. Por defecto son las {miles(CRECIMIENTO_DECADA)} personas
+              que ganaron estos municipios en la última década, unas {miles(RITMO_ANUAL)} al año. Ahora mismo está elegido:
+              <b> {miles(escenario.personas)} personas hasta {escenario.anio}</b>.
+            </p>
+          </section>
+
+          <section>
+            <h3>2. Cuánta gente cabe</h3>
+            <p>
+              Se calculan cuatro límites y manda el más bajo. Los porcentajes son los supuestos que se pueden cambiar en el
+              mapa, en «Supuestos».
+            </p>
+            <dl className="limites-metodo">
+              <dt>Vivienda</dt>
+              <dd>
+                <p className="formula">(viviendas vacías o secundarias × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
+              </dd>
+              <dt>Colegios</dt>
+              <dd>
+                <p>
+                  Se mira cuántos vecinos atiende cada colegio en los municipios de su mismo tamaño (se agrupan con cortes en{' '}
+                  {y(TRAMOS_MUNICIPIO.slice(0, -1).map((t) => miles(t)))} habitantes). Un colegio está «lleno»
+                  cuando atiende a tantos como el {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño.
+                  Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
+                </p>
+                <p className="formula">colegios × vecinos por colegio cuando está lleno − vecinos de hoy</p>
+                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica.</p>
+              </dd>
+              <dt>Sanidad</dt>
+              <dd>
+                <p>
+                  Cada municipio va a una zona básica de salud. Igual que con los colegios, se compara con las zonas de su
+                  tamaño (cortes en {y(TRAMOS_ZONA.slice(0, -1).map((t) => miles(t)))} personas) para saber
+                  cuánta gente aguanta antes de saturarse.
+                </p>
+                <p className="formula">(lo que aguanta la zona − lo que atiende hoy) × la parte de la zona que son vecinos del municipio</p>
+              </dd>
+              <dt>Ritmo</dt>
+              <dd>
+                <p>Aunque haya sitio, un municipio no debería crecer más de un {pct(escenario.ritmoMax, 1)} al año sin que se resientan sus calles y servicios.</p>
+                <p className="formula">vecinos de hoy × ((1 + {pct(escenario.ritmoMax, 1)})^{anios} − 1)</p>
+              </dd>
+            </dl>
+          </section>
+
+          <section>
+            <h3>3. Qué tipo de municipio es</h3>
+            <p>Se cruza lo que llega con lo que cabe. Las fronteras son la mediana de los 155: la mitad está por encima y la mitad por debajo.</p>
+            <ul className="tipos-metodo">
+              {ORDEN_TIPOS.map((t) => (
+                <li key={t}>
+                  <span className="chip" style={{ background: TIPOS[t].color }}>{TIPOS[t].nombre}</span>
+                  <span>{REGLA[t]}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
+          </section>
+
+          <section>
+            <h3>4. Invertir y mudarse</h3>
+            <p>
+              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio. Cada centro de salud nuevo añade, solo para ese
+              municipio, lo que aguanta una zona de salud como la suya. Después se recalcula todo: a veces el límite pasa a otro
+              recurso y hace falta invertir en algo más.
+            </p>
+            <p>
+              <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda
+              <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos. Cada perfil da un peso distinto:
+            </p>
+            <ul className="perfiles-metodo">
+              {(Object.keys(PERFILES) as Perfil[]).map((p) => (
+                <li key={p}>
+                  <b>{PERFILES[p].nombre}:</b>{' '}
+                  {(Object.entries(PERFILES[p].pesos) as [Recurso, number][]).filter(([, w]) => w > 0)
+                    .sort((a, b) => b[1] - a[1]).map(([k, w]) => `${NOMBRE_RECURSO[k]} ${pct(w, 0)}`).join(', ')}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </details>
     </div>
   )
 }

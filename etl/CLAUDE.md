@@ -8,7 +8,7 @@ Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, 
 |---|---|
 | `comun.py` | Compartido por `preparar.py` y `validacion.py`: rutas (`RAIZ`, `RAW`, `OUT`, `WEB_DATOS`), `LIMITE_HABITANTES = 50_000`, `ANIO_BASE = 2025`, lectura de población. Usa estas constantes, no rutas a mano |
 | `descargar.py` | Baja los datos abiertos a `../data/raw` (~170 MB) |
-| `capacidad.py` | Ingredientes fijos de la capacidad (viviendas, colegios, centros sanitarios). Los umbrales y la cuenta final con palancas los calcula `web/src/motor.ts` |
+| `capacidad.py` | Ingredientes fijos de la capacidad (viviendas, planeamiento, colegios y zona básica de salud de cada municipio). Los umbrales y la cuenta final con palancas los calcula `web/src/motor.ts` |
 | `preparar.py` | Genera `../web/public/datos/*.json` y `../data/out/*.csv` |
 | `validacion.py` | Valida el modelo 2015→2025 y escribe `validacion_municipios.csv` / `validacion.json` |
 
