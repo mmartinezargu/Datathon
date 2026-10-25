@@ -5,6 +5,8 @@ import { LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Umbrales } from '../tipos'
 import { miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
+import { Icono } from './Iconos'
+import { Vaso } from './Vaso'
 
 interface Props {
   r: ResultadoMunicipio
@@ -14,12 +16,11 @@ interface Props {
   umbrales: Umbrales
   inversion: Inversion
   onInvertir: (inv: Inversion) => void
-  onCerrar: () => void
 }
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir, onCerrar }: Props) {
+export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
@@ -28,18 +29,12 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir,
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
       <div className="ficha-cabeza">
-        <div>
-          <span className="chip" style={{ background: tipo.color }}>{tipo.nombre}</span>
-          <h2>{m.nombre}</h2>
-          <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos</div>
-        </div>
-        <button className="cerrar" onClick={onCerrar} aria-label="Cerrar la ficha y volver a la lista">✕</button>
+        <span className="chip" style={{ background: tipo.color }}>{tipo.nombre}</span>
+        <h2>{m.nombre}</h2>
+        <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos hoy</div>
       </div>
 
-      <div className="ficha-cifras">
-        <div><b>{miles(r.llegan)}</b><span>llegarían hasta {escenario.anio}</span></div>
-        <div><b style={{ color: tipo.color }}>{miles(r.caben)}</b><span>caben (límite: {LIMITES[r.limitante].nombre.toLowerCase()})</span></div>
-      </div>
+      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto />
 
       <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
 
@@ -50,7 +45,7 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir,
           const manda = l === r.limitante
           return (
             <div key={l} className={`limite${manda ? ' manda' : ''}`}>
-              <span className="l-nombre">{LIMITES[l].nombre}</span>
+              <span className="l-nombre"><Icono nombre={l} tamano={17} />{LIMITES[l].nombre}</span>
               <span className="l-pista">
                 {v !== null && <span className="l-barra" style={{ width: `${(v / escala) * 100}%`, background: manda ? tipo.color : undefined }} />}
                 <span className="l-llegan" style={{ left: `${(r.llegan / escala) * 100}%` }} title={`Llegan ${miles(r.llegan)}`} />
