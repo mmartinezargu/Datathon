@@ -1,90 +1,112 @@
 // El vaso de CABIDA: la idea del proyecto en un dibujo.
-//   el vaso = la gente que cabe;   el agua = la gente que llega.
-// Si llega más de la que cabe, el agua rebosa en rojo y cae fuera.
-// Si sobra sitio, se ve el hueco libre arriba.
+//   - el vaso (azul, abajo) = la gente que llega y cabe;
+//   - lo que sobresale por encima del borde (rojo) = la gente que llega y no cabe;
+//   - si sobra sitio, el vaso queda medio vacío y se ve el hueco libre.
+// Las alturas son proporcionales: un vaso pequeño con una torre roja encima = no cabe casi nadie.
 // El componente no hace cuentas del modelo: recibe las cifras ya calculadas por el motor.
 
-import { useId } from 'react'
 import { TIPOS } from '../colores'
 import { miles } from '../formato'
 
 interface Props {
-  capacidad: number // personas que caben (el tamaño del vaso)
+  capacidad: number // personas que caben en total
   dentro: number // personas que llegan y caben
   fuera: number // personas que llegan y no caben
-  /** Texto bajo "sitio libre" cuando el sitio está en otro sitio (vista de los 155 juntos). */
+  /** Texto final de la nota cuando sobra sitio en otros municipios (vista de los 155 juntos). */
   notaLibre?: string
   compacto?: boolean
 }
 
-// Geometría del vaso (unidades del dibujo)
-const BORDE = 30 // altura del borde superior
-const FONDO = 150 // altura del fondo
-const ALTO = FONDO - BORDE
+// Medidas del dibujo (unidades del SVG)
+const ANCHO_VASO = 92
+const X_VASO = 8
+const SUELO = 214 // línea del fondo del vaso
+const ALTO_TOTAL = 186 // altura de la columna más alta (lo que llega, o el vaso si sobra sitio)
+const MINIMO = 10 // para que un trozo muy pequeño siga viéndose
 
 export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto }: Props) {
-  const idRecorte = `vaso-${useId().replace(/:/g, '')}`
   const llegan = dentro + fuera
-  const libre = Math.max(0, capacidad - dentro)
-  const lleno = capacidad > 0 ? Math.min(1, dentro / capacidad) : fuera > 0 ? 1 : 0
-  const nivel = FONDO - lleno * ALTO
   const rebosa = fuera > 0
-  const parteFuera = llegan > 0 ? fuera / llegan : 0 // de 0 a 1: cuánto de lo que llega no cabe
+  // Si rebosa, el vaso útil es lo que ya está lleno; el sitio libre de otros municipios va en la nota
+  const tamanoVaso = rebosa ? dentro : capacidad
+  const libre = Math.max(0, capacidad - dentro)
+  const escala = ALTO_TOTAL / Math.max(llegan, tamanoVaso, 1)
+
+  const altoVaso = Math.max(MINIMO, tamanoVaso * escala)
+  const altoAgua = rebosa ? altoVaso : Math.max(llegan > 0 ? 4 : 0, dentro * escala)
+  const altoRojo = rebosa ? Math.max(MINIMO, fuera * escala) : 0
+  const borde = SUELO - altoVaso // altura del borde del vaso
+  const techo = borde - altoRojo // altura de lo más alto que llega
   const rojo = TIPOS.tension.color
   const azul = TIPOS.oportunidad.color
+  const xEtiqueta = X_VASO + ANCHO_VASO + 16
 
   const resumen = rebosa
-    ? `Llegan ${miles(llegan)} personas y caben ${miles(dentro)}: ${miles(fuera)} se quedan sin sitio.`
-    : `Llegan ${miles(llegan)} personas y caben ${miles(capacidad)}: sobra sitio para ${miles(libre)}.`
+    ? `Llegan ${miles(llegan)} personas: caben ${miles(dentro)} y ${miles(fuera)} se quedan sin sitio.`
+    : `Llegan ${miles(llegan)} personas y caben todas: sobra sitio para ${miles(libre)} más.`
 
   return (
     <figure className={`vaso${compacto ? ' compacto' : ''}`}>
-      <svg viewBox="-4 -2 168 177" role="img" aria-label={resumen}>
-        <defs>
-          <clipPath id={idRecorte}>
-            <path d={`M33 ${BORDE} L42 ${FONDO - 2} Q43 ${FONDO + 3} 48 ${FONDO + 3} L112 ${FONDO + 3} Q117 ${FONDO + 3} 118 ${FONDO - 2} L127 ${BORDE} Z`} />
-          </clipPath>
-        </defs>
-
-        {/* Lo que no cabe: dos chorros que caen por fuera y un charco en el suelo (detrás del vaso) */}
+      <svg viewBox="0 0 300 236" role="img" aria-label={resumen}>
+        {/* Lo que no cabe: sobresale por encima del borde del vaso */}
         {rebosa && (
-          <g>
-            <path d={`M28 ${BORDE + 1} C14 ${BORDE + 10} 9 ${BORDE + 60} ${11 - parteFuera * 3} 163`}
-              fill="none" stroke={rojo} strokeWidth={4 + parteFuera * 4} strokeLinecap="round" />
-            <path d={`M132 ${BORDE + 1} C146 ${BORDE + 10} 151 ${BORDE + 60} ${149 + parteFuera * 3} 163`}
-              fill="none" stroke={rojo} strokeWidth={4 + parteFuera * 4} strokeLinecap="round" />
-            <ellipse cx="80" cy="166" rx={44 + parteFuera * 34} ry={4 + parteFuera * 3} fill={rojo} />
+          <g fill={rojo}>
+            <rect x={X_VASO} y={techo} width={ANCHO_VASO} height={altoRojo + 2} rx="6" />
+            <text x={X_VASO + ANCHO_VASO / 2} y={techo + Math.min(altoRojo / 2 + 5, altoRojo - 6)} className="vaso-dentro-texto"
+              textAnchor="middle" fill="#fff" visibility={altoRojo > 34 ? 'visible' : 'hidden'}>no caben</text>
           </g>
         )}
 
-        {/* Agua dentro del vaso */}
-        <g clipPath={`url(#${idRecorte})`}>
-          <rect x="0" y="0" width="160" height="175" fill="#EEF4FA" />
-          <rect className="vaso-agua" x="0" y={nivel} width="160" height={175 - nivel} fill={azul} opacity="0.88" />
-          <path d={`M0 ${nivel} Q20 ${nivel - 4} 40 ${nivel} T80 ${nivel} T120 ${nivel} T160 ${nivel} V${nivel + 5} H0 Z`} fill="#FFFFFF" opacity="0.28" />
-        </g>
+        {/* El vaso: fondo claro, agua azul y el contorno */}
+        <rect x={X_VASO} y={borde} width={ANCHO_VASO} height={altoVaso} fill="#EEF4FA" />
+        <rect className="vaso-agua" x={X_VASO} y={SUELO - altoAgua} width={ANCHO_VASO} height={altoAgua} fill={azul} />
+        {!rebosa && libre > 0 && (
+          <text x={X_VASO + ANCHO_VASO / 2} y={borde + Math.min(22, (altoVaso - altoAgua) / 2 + 5)} className="vaso-dentro-texto"
+            textAnchor="middle" fill={azul} visibility={altoVaso - altoAgua > 30 ? 'visible' : 'hidden'}>sitio libre</text>
+        )}
+        <path d={`M${X_VASO} ${borde} V${SUELO} H${X_VASO + ANCHO_VASO} V${borde}`} fill="none" stroke="#15233B"
+          strokeWidth="4" strokeLinejoin="round" />
+        <line x1={X_VASO - 8} y1={borde} x2={X_VASO + ANCHO_VASO + 8} y2={borde} stroke="#15233B" strokeWidth="4" strokeLinecap="round" />
 
-        {/* Lo que rebosa por encima del borde */}
-        {rebosa && <path d={`M26 ${BORDE + 1} Q80 ${BORDE - 14 - parteFuera * 22} 134 ${BORDE + 1} Z`} fill={rojo} />}
-
-        {/* El vaso (por delante del agua) */}
-        <path d={`M30 ${BORDE} L40 ${FONDO} Q41 ${FONDO + 6} 48 ${FONDO + 6} L112 ${FONDO + 6} Q119 ${FONDO + 6} 120 ${FONDO} L130 ${BORDE}`}
-          fill="none" stroke="#15233B" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" />
-        <line x1="25" y1={BORDE} x2="135" y2={BORDE} stroke="#15233B" strokeWidth="3.5" strokeLinecap="round" />
+        {/* Etiquetas a la derecha, cada una a la altura de lo que señala */}
+        <Etiqueta x={xEtiqueta} y={rebosa ? techo : Math.max(SUELO - altoAgua, borde + 46)} titulo="Llegan" valor={miles(llegan)} color="#15233B" />
+        {rebosa && <Etiqueta x={xEtiqueta} y={borde - altoRojo / 2} titulo="No caben" valor={miles(fuera)} color={rojo} fuerte medio />}
+        <Etiqueta x={xEtiqueta} y={rebosa ? borde + altoVaso / 2 : borde} titulo={rebosa ? 'Caben' : 'Caben en total'}
+          valor={miles(rebosa ? dentro : capacidad)} color={azul} medio={rebosa} />
+        <line x1={X_VASO - 8} y1={SUELO + 2} x2={X_VASO + ANCHO_VASO + 8} y2={SUELO + 2} stroke="#15233B" strokeWidth="2" opacity="0.25" />
       </svg>
 
       <figcaption>
-        <div className="vaso-fila"><i style={{ background: azul }} /><span>Llegan</span><b>{miles(llegan)}</b></div>
-        <div className="vaso-fila"><i className="vaso-borde" /><span>Caben</span><b>{miles(rebosa ? dentro : capacidad)}</b></div>
-        {rebosa ? (
-          <div className="vaso-fila destacado" style={{ color: rojo }}><i style={{ background: rojo }} /><span>Sin sitio</span><b>{miles(fuera)}</b></div>
-        ) : (
-          <div className="vaso-fila destacado" style={{ color: azul }}><i className="vaso-hueco" /><span>Sitio libre</span><b>{miles(libre)}</b></div>
-        )}
+        <p className="vaso-frase">{frase(llegan, dentro, fuera, libre)}</p>
         {rebosa && libre > 0 && notaLibre && (
-          <div className="vaso-nota">Y queda sitio para {miles(libre)} más, {notaLibre}</div>
+          <p className="vaso-nota">Queda sitio para {miles(libre)} personas más, {notaLibre}</p>
         )}
       </figcaption>
     </figure>
   )
+}
+
+/** Etiqueta con una rayita que apunta a su altura. `medio`: centrada en esa altura. */
+function Etiqueta({ x, y, titulo, valor, color, fuerte, medio }: {
+  x: number; y: number; titulo: string; valor: string; color: string; fuerte?: boolean; medio?: boolean
+}) {
+  // Que no se salga por arriba ni se pegue al suelo
+  const yTexto = Math.min(Math.max(y + (medio ? 0 : 6), 20), SUELO - 20)
+  return (
+    <g>
+      <line x1={x - 12} y1={y} x2={x - 3} y2={y} stroke={color} strokeWidth="2" />
+      <text x={x} y={yTexto - 6} className="vaso-etiqueta" fill={color}>{titulo}</text>
+      <text x={x} y={yTexto + 16} className={`vaso-valor${fuerte ? ' fuerte' : ''}`} fill={color}>{valor}</text>
+    </g>
+  )
+}
+
+/** La idea en una frase: de cada 10 personas que llegan, cuántas caben. */
+function frase(llegan: number, dentro: number, fuera: number, libre: number): string {
+  if (llegan <= 0) return 'No le llega gente nueva en este escenario.'
+  if (fuera <= 0) return `Caben todas las que llegan y sobra sitio para ${miles(libre)} más.`
+  const deDiez = Math.round((dentro / llegan) * 10)
+  if (deDiez === 0) return 'De cada 10 personas que llegan, no cabe ni una.'
+  if (deDiez === 10) return `Caben casi todas: solo ${miles(fuera)} se quedan sin sitio.`
+  return `De cada 10 personas que llegan, ${deDiez === 1 ? 'cabe 1' : `caben ${deDiez}`}.`
 }

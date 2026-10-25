@@ -221,7 +221,7 @@ export default function App() {
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
                   <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
-                    notaLibre="pero en municipios a los que no llega la gente: ahí apunta el reequilibrio." />
+                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio." />
                 </section>
                 <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
               </>

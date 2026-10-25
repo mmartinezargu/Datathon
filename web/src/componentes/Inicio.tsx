@@ -42,7 +42,7 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
         </div>
         <div className="inicio-vaso">
           <p className="inicio-vaso-titulo">Si sigue el ritmo actual, hasta {t.anio}, con los colegios y centros de salud de hoy:</p>
-          <Vaso capacidad={t.capacidad} dentro={t.dentro} fuera={t.fuera} notaLibre="pero en municipios a los que no llega la gente." />
+          <Vaso capacidad={t.capacidad} dentro={t.dentro} fuera={t.fuera} notaLibre="pero en municipios a los que no va la gente." />
         </div>
       </section>
 

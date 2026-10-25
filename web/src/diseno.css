@@ -67,18 +67,16 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .limite { grid-template-columns: 136px 1fr 66px; }
 
 /* ---------- El vaso ---------- */
-.vaso { margin: 6px 0 0; display: flex; align-items: center; gap: 18px; }
-.vaso svg { width: 150px; height: auto; flex-shrink: 0; overflow: visible; }
-.vaso.compacto svg { width: 112px; }
-.vaso figcaption { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.vaso-fila { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 8px; font-size: 13.5px; }
-.vaso-fila i { width: 12px; height: 12px; border-radius: 3px; }
-.vaso-fila b { font-family: var(--disp); font-weight: 750; font-size: 19px; font-variant-numeric: tabular-nums; }
-.vaso-fila.destacado { font-weight: 650; }
-.vaso-fila.destacado b { font-size: 24px; }
-.vaso-borde { border: 2.5px solid var(--tinta); border-radius: 2px; background: transparent; }
-.vaso-hueco { border: 2px dashed currentColor; background: transparent; }
-.vaso-nota { font-size: 12px; color: var(--tinta2); line-height: 1.35; border-top: 1px solid var(--linea); padding-top: 6px; }
+.vaso { margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.vaso svg { width: 100%; max-width: 300px; height: auto; overflow: visible; }
+.vaso.compacto svg { max-width: 270px; }
+.vaso-etiqueta { font-family: var(--texto); font-size: 13px; font-weight: 600; }
+.vaso-valor { font-family: var(--disp); font-size: 21px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.vaso-valor.fuerte { font-size: 27px; }
+.vaso-dentro-texto { font-family: var(--texto); font-size: 12.5px; font-weight: 700; }
+.vaso figcaption { display: flex; flex-direction: column; gap: 4px; }
+.vaso-frase { margin: 0; font-family: var(--disp); font-weight: 700; font-size: 17px; line-height: 1.25; }
+.vaso-nota { margin: 0; font-size: 12.5px; color: var(--tinta2); line-height: 1.4; }
 .vaso-agua { transition: y 0.5s ease, height 0.5s ease; }
 
 /* ---------- Portada ---------- */
@@ -152,7 +150,6 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .pestanas button span { display: none; }
   .pestanas button { padding: 0 12px; }
   .inicio-portada, .puertas, .inicio-datos { grid-template-columns: 1fr; }
-  .vaso svg { width: 110px; }
   .col-mapa .cifra:nth-child(2) { display: none; }
   .leyenda { left: 8px; right: 8px; bottom: 8px; max-width: none; }
   .bs-fila { grid-template-columns: 112px 1fr 64px; }
