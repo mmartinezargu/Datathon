@@ -208,3 +208,17 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .l-leyenda i { width: 2px; height: 12px; background: var(--tinta); }
 .cuenta { margin-top: 14px; background: var(--fondo); border-radius: 11px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .l-barra { transition: none; } }
+
+/* ---------- ¿Y si invertimos aquí? ---------- */
+.invertir { display: flex; flex-direction: column; gap: 8px; }
+.contador { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--fondo); border-radius: 11px; padding: 8px 12px; }
+.c-nombre { display: block; font-weight: 700; font-size: 13.5px; }
+.c-botones { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.c-botones b { min-width: 1.4em; text-align: center; font-family: var(--disp); font-size: 18px; font-variant-numeric: tabular-nums; }
+.c-botones button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--linea); background: #fff; cursor: pointer; font-size: 18px; font-weight: 700; line-height: 1; }
+.c-botones button:hover:not(:disabled) { background: var(--cielo-claro); border-color: var(--cielo); }
+.c-botones button:disabled { opacity: 0.35; cursor: default; }
+.invertir-efecto { margin-top: 10px; border: 1px solid var(--linea); border-left: 4px solid var(--cielo); border-radius: 11px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; }
+.invertir-efecto p { margin: 0 0 6px; }
+.invertir-efecto .chip { margin-bottom: 0; vertical-align: middle; }
+.boton-quitar { border: 0; background: none; padding: 0; color: var(--cielo); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: underline; }

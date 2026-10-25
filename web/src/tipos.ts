@@ -46,6 +46,15 @@ export interface Escenario {
   exigencia: number // hasta qué percentil se pueden cargar colegios y centros (0.75 = como el 25 % más cargado)
 }
 
+/** Lo que el usuario decide construir en un municipio (modo «¿y si invertimos aquí?»). */
+export interface Inversion {
+  colegios: number // colegios nuevos (cada uno va al nivel con menos sitio)
+  centros: number // centros de salud nuevos
+}
+
+/** Inversiones simuladas, por código INE. */
+export type Inversiones = Record<string, Inversion>
+
 /** Umbrales de saturación calculados con la exigencia elegida. */
 export interface Umbrales {
   primaria: number[] // habitantes por colegio, por tramo de tamaño del municipio

@@ -10,3 +10,8 @@ export function miles(n: number): string {
 export function pct(n: number, decimales = 1): string {
   return (n * 100).toFixed(decimales).replace('.', ',') + ' %'
 }
+
+/** Euros en millones: 9500000 -> "9,5 M€"; 16000000 -> "16 M€". */
+export function millones(n: number): string {
+  return (n / 1e6).toFixed(1).replace(/\.0$/, '').replace('.', ',') + ' M€'
+}
