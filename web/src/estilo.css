@@ -222,3 +222,9 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .invertir-efecto p { margin: 0 0 6px; }
 .invertir-efecto .chip { margin-bottom: 0; vertical-align: middle; }
 .boton-quitar { border: 0; background: none; padding: 0; color: var(--cielo); font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: underline; }
+
+/* ---------- Descarga de datos ---------- */
+.descarga h3 { font-family: var(--disp); font-size: 14.5px; margin: 0 0 6px; }
+.descarga .desplegar { margin-top: 10px; }
+.descarga-pie { margin-top: 10px; line-height: 1.5; }
+.descarga-pie a { color: var(--cielo); font-weight: 600; }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
+import { Descarga } from './componentes/Descarga'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
 import { ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
@@ -139,6 +140,8 @@ export default function App() {
             ) : (
               <Listas resultados={resultados} porIne={porIne} onElegir={setSeleccionado} />
             )}
+
+            <Descarga resultados={resultados} porIne={porIne} escenario={escenario} inversiones={inversiones} />
           </aside>
         </main>
       )}
