@@ -6,6 +6,7 @@ Salidas:
   web/public/datos/municipios.json   datos por municipio que lee la web
   web/public/datos/limites.geojson   contornos simplificados para el mapa
   data/out/tabla_maestra.csv         lo mismo en CSV (licencia CC BY 4.0)
+  data/out/diccionario.csv           qué es cada columna de tabla_maestra.csv y validacion_municipios.csv
   web/public/datos/tabla_maestra.csv copia para descargarla desde la web (también sin internet)
 """
 import json
@@ -17,6 +18,7 @@ import pandas as pd
 from scipy.spatial import cKDTree
 
 import capacidad
+import diccionario
 from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, RAW, WEB_DATOS, leer_poblacion, miles
 
 # Peso del suavizado: un pueblo con K habitantes se fía a medias de su propia tasa
@@ -196,7 +198,9 @@ def main() -> None:
 
     columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
                 *COLUMNAS_CAPACIDAD, "hospital_km", "hospital_municipio"]
+    diccionario.comprobar("tabla_maestra.csv", columnas)
     df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+    diccionario.escribir()
     shutil.copyfile(OUT / "tabla_maestra.csv", WEB_DATOS / "tabla_maestra.csv")
 
     for nombre in ("municipios.json", "limites.geojson"):
