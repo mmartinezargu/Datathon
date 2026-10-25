@@ -26,7 +26,7 @@ const ROJO = TIPOS.tension.color
 const TINTA = '#15233B'
 
 /** Para el vaso de los 155 municipios juntos (portada y columna de resultado). */
-export function OrigenTodos({ llegan, anio }: { llegan: number; anio: number }) {
+export function OrigenTodos({ llegan, anio, reequilibrio }: { llegan: number; anio: number; reequilibrio: boolean }) {
   return (
     <>
       <Filas items={[
@@ -42,7 +42,10 @@ export function OrigenTodos({ llegan, anio }: { llegan: number; anio: number }) 
         },
         {
           color: ROJO, titulo: 'No caben',
-          texto: 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente no se manda a otro pueblo: el mapa solo dice dónde faltaría sitio.',
+          texto: reequilibrio
+            ? 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente se dirige a los pueblos con sitio libre (menos a los que tienen el hospital lejos). ' +
+              'Lo que queda aquí es lo que no cabe en ninguno.'
+            : 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente no se manda a otro pueblo: el mapa solo dice dónde faltaría sitio.',
         },
       ]} />
       <p className="origen-aviso">

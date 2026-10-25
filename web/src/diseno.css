@@ -233,3 +233,20 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .vaso-agua, .puerta { transition: none; }
   .puerta:hover { transform: none; }
 }
+
+/* Interruptor del reequilibrio (Palancas) */
+.interruptor { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.interruptor input {
+  appearance: none; flex-shrink: 0; width: 36px; height: 20px; border-radius: 999px; margin: 1px 0 0;
+  background: var(--linea); position: relative; cursor: pointer; transition: background .15s;
+}
+.interruptor input::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+}
+.interruptor input:checked { background: var(--cielo); }
+.interruptor input:checked::after { transform: translateX(16px); }
+.interruptor input:focus-visible { outline: 2px solid var(--cielo); outline-offset: 2px; }
+.interruptor-texto { display: flex; flex-direction: column; font-size: 13.5px; }
+.interruptor-texto b { font-weight: 600; }
+.ficha-reequilibrio { font-size: 13px; background: var(--fondo); border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }

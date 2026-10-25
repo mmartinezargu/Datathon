@@ -32,6 +32,7 @@ export function escenarioPorDefecto(anio = 2035): Escenario {
     pctVivienda: 0.15,
     ritmoMax: 0.03,
     exigencia: 0.9,
+    reequilibrio: false,
   }
 }
 
@@ -53,13 +54,32 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
     return { ine: m.ine, poblacion: p, llegan: llegan[i], crecimiento: llegan[i] / p, limites, caben, limitante, margen: caben - llegan[i] }
   })
 
-  // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño)
+  // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño).
+  // Se calcula siempre con lo que llega por tendencia, también con el reequilibrio activo:
+  // si no, los municipios llenos quedarían con margen 0 y el mapa escondería dónde falta sitio.
   const medPresion = mediana(parciales.map((r) => r.crecimiento))
   const medCapacidad = mediana(parciales.map((r) => r.caben / r.poblacion))
-  return parciales.map((r, i) => {
+  const conTipo = parciales.map((r, i) => {
     const tipo = clasificar(r, medPresion, medCapacidad)
-    return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM }
+    return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM, recibe: 0, ceden: 0 }
   })
+
+  // 4. Reequilibrio (si se activa): lo que no cabe se dirige a los municipios con sitio
+  return esc.reequilibrio ? reequilibrar(conTipo) : conTipo
+}
+
+/**
+ * Reequilibrio: lo que no cabe en los municipios llenos se reparte entre los que tienen sitio,
+ * en proporción al sitio libre de cada uno. No se dirige a nadie a una oportunidad condicionada
+ * (hospital lejos). Si no hay sitio para todos, cada uno se llena y el resto se queda sin sitio.
+ * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade `recibe` y `ceden`.
+ */
+export function reequilibrar(resultados: ResultadoMunicipio[]): ResultadoMunicipio[] {
+  const libre = resultados.map((r) => (r.condicionada ? 0 : Math.max(0, r.caben - r.llegan)))
+  const exceso = resultados.reduce((s, r) => s + Math.max(0, r.llegan - r.caben), 0)
+  const sumaLibre = libre.reduce((s, l) => s + l, 0)
+  const parte = sumaLibre > 0 ? Math.min(1, exceso / sumaLibre) : 0
+  return resultados.map((r, i) => ({ ...r, recibe: libre[i] * parte, ceden: Math.max(0, r.llegan - r.caben) }))
 }
 
 /** Personas que caben según cada recurso. null = ese límite no aplica a este municipio. */

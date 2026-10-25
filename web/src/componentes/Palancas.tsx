@@ -44,6 +44,16 @@ export function Palancas({ escenario, onCambiar }: Props) {
         texto={miles(escenario.personas)} min={0} max={maximo} paso={1000}
         pista={`Ritmo de la última década: ${miles(RITMO_ANUAL * anios)} hasta ${escenario.anio}`}
         onCambiar={(v) => cambiar({ personas: v })} />
+      <label className="control interruptor">
+        <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />
+        <span className="interruptor-texto">
+          <b>Dirigir lo que no cabe a los municipios con sitio</b>
+          <span className="pista">
+            Quien no cabe en su municipio va a los que tienen sitio libre (no a los que tienen el hospital lejos).
+            Los colores del mapa no cambian: siguen diciendo dónde falta sitio.
+          </span>
+        </span>
+      </label>
 
       <button className="desplegar" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
         <span>Supuestos del cálculo</span>

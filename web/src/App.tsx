@@ -119,8 +119,11 @@ export default function App() {
     return <div className="cargando"><Logo /> Cargando los datos de los 155 municipios…</div>
   }
 
-  const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0)
-  const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
+  // Con reequilibrio, lo que se dirige a otros municipios pasa de «sin sitio» a «caben»
+  const dirigidos = resultados.reduce((s, r) => s + r.recibe, 0)
+  const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0) + dirigidos
+  const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0) - dirigidos
+  const reequilibrio = escenario.reequilibrio
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const condicionadas = resultados.filter((r) => r.condicionada).length
@@ -153,7 +156,7 @@ export default function App() {
       </header>
 
       {pestana === 'inicio' ? (
-        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio })}
+        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio, reequilibrio })}
           onIr={(d) => setPestana(d)} /></main>
       ) : pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
@@ -185,8 +188,13 @@ export default function App() {
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
               <Cifra valor={miles(dentro)}
-                texto={invertido ? `de las ${miles(escenario.personas)} personas caben, contando lo que has invertido` : `de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
-              <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
+                texto={`de las ${miles(escenario.personas)} personas caben` +
+                  (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
+                  (reequilibrio ? `, dirigiendo ${miles(dirigidos)} a municipios con sitio` : '')} />
+              <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
+                texto={reequilibrio
+                  ? `no caben en ningún municipio${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
+                  : invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} />
               <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
                 texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
@@ -235,8 +243,10 @@ export default function App() {
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
                   <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
-                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio."
-                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} />} />
+                    notaLibre={reequilibrio
+                      ? 'que queda libre después de dirigir la gente (o en municipios con el hospital lejos).'
+                      : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
+                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} reequilibrio={reequilibrio} />} />
                 </section>
                 <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
               </>
@@ -257,7 +267,7 @@ export default function App() {
 
 /** Cifras de la portada. Son sumas de lo que ya han calculado Python y el motor. */
 function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], anio: number,
-  vaso: { capacidad: number; dentro: number; fuera: number }): Totales {
+  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean }): Totales {
   const suma = (lista: Municipio[], anioPob: number) => lista.reduce((s, m) => s + (m.poblacion[String(anioPob)] ?? 0), 0)
   const universo = municipios.filter((m) => m.universo)
   return {

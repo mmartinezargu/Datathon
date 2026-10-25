@@ -46,6 +46,7 @@ export interface Escenario {
   pctVivienda: number // parte de la vivienda vacía o secundaria que se ocupa (0-1)
   ritmoMax: number // crecimiento máximo prudente al año (0.03 = 3 %)
   exigencia: number // hasta qué percentil se pueden cargar colegios y centros (0.75 = como el 25 % más cargado)
+  reequilibrio: boolean // dirigir lo que no cabe a los municipios con sitio
 }
 
 /** Lo que el usuario decide construir en un municipio (modo «¿y si invertimos aquí?»). */
@@ -79,6 +80,8 @@ export interface ResultadoMunicipio {
   margen: number // caben - llegan (negativo = no caben)
   tipo: Tipo
   condicionada: boolean // oportunidad con el hospital lejos: hay sitio, pero antes hay que asegurar el acceso
+  recibe: number // con reequilibrio: personas que no caben en otros municipios y se dirigen aquí
+  ceden: number // con reequilibrio: personas que le tocaban, no caben y se dirigen a otros municipios
 }
 
 /** Vista ciudadana «¿Dónde me mudo?». */

@@ -107,6 +107,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe.
         </p>
         <p>
+          <b>Dirigir lo que no cabe.</b> Con el interruptor de las palancas, la gente que no cabe en su pueblo se lleva a los
+          que tienen sitio libre, en proporción a ese sitio. No se lleva a nadie a los pueblos con el hospital lejos. Los colores
+          del mapa no cambian: siguen diciendo dónde falta sitio.
+        </p>
+        <p>
           <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
         </p>
       </section>
@@ -217,6 +222,12 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
                 </li>
               ))}
             </ul>
+            <p>
+              <b>Dirigir lo que no cabe (si se activa).</b> Se suma lo que no cabe en todos los municipios y se reparte entre los que
+              tienen sitio, menos las oportunidades condicionadas:
+            </p>
+            <p className="formula">recibe = sitio libre del municipio × mín(1, lo que no cabe en total ÷ sitio libre en total)</p>
+            <p className="ayuda">El tipo se calcula con lo que llega por tendencia, antes de este paso.</p>
             <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
             <p>
               <b>Oportunidad condicionada:</b> una oportunidad cuyo hospital general público más cercano está a más de {HOSPITAL_LEJOS_KM} km

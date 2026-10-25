@@ -45,6 +45,13 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
       <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
+      {escenario.reequilibrio && (r.recibe >= 1 || r.ceden >= 1) && (
+        <p className="ficha-reequilibrio">
+          {r.recibe >= 1
+            ? <>Recibe <b>{miles(r.recibe)}</b> personas que no caben en otros municipios.</>
+            : <><b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios.</>}
+        </p>
+      )}
 
       <h3>Personas que caben según cada recurso</h3>
       <div className="limites">
