@@ -1,15 +1,17 @@
-// Pestaña «Cómo se calcula».
+// Pestaña «Cómo funciona».
 // Arriba, lo que se cuenta en la demo: 4 pasos en lenguaje llano, sin fórmulas.
 // Después, de dónde salen los datos y lo que el modelo no sabe.
-// Al final, tapado en un desplegable «Ver la cuenta exacta», las fórmulas, por si alguien las pide.
+// Tapado en un desplegable «Ver la cuenta exacta», las fórmulas, por si alguien las pide.
+// Al final, «¿Acierta?»: la prueba contra 2015-2025 (Validacion.tsx), a la que lleva el enlace #fiable.
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
 import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
-import type { Escenario, Perfil, Recurso } from '../tipos'
-import type { DatosValidacion } from './Validacion'
+import type { DatosValidacion, Escenario, Perfil, Recurso } from '../tipos'
+import { Validacion } from './Validacion'
+import { deCada100, modelosClave } from '../validacion'
 import { miles, millones, pct } from '../formato'
 import { Icono } from './Iconos'
 
@@ -37,13 +39,12 @@ const NOMBRE_RECURSO: Record<Recurso, string> = { colegios: 'colegios', sanidad:
 export function Metodologia({ escenario, validacion }: { escenario: Escenario; validacion: DatosValidacion }) {
   const anios = escenario.anio - ANIO_BASE
   const prevision = segunPrevision(escenario.anio)
-  const nuestro = validacion.modelos.at(-1)!
-  const tendencia = validacion.modelos.find((m) => m.modelo.startsWith('Extrapolar')) ?? validacion.modelos[1]
+  const { nuestro, tendencia } = modelosClave(validacion)
 
   return (
     <div className="metodologia">
       <section className="val-cabeza">
-        <h1>Cómo se calcula</h1>
+        <h1>Cómo funciona</h1>
         <p>
           En cuatro pasos. A cada uno de los 155 municipios de la Comunidad de Madrid con menos de 50.000 habitantes
           se le hacen dos preguntas: <b>¿cuánta gente va a llegar?</b> y <b>¿cuánta cabe sin desbordar sus servicios?</b>{' '}
@@ -104,8 +105,9 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
             <h2>¿Acierta?</h2>
             <p>
               Lo probamos contra el pasado: con los datos hasta {validacion.datos_hasta} predijimos {validacion.periodo.replace('-', ' a ')} y lo
-              comparamos con lo que pasó de verdad. CABIDA coloca mal <b>{pct(nuestro.wape)}</b> de las personas; seguir la
-              tendencia sin más, {pct(tendencia.wape)}. El detalle está en la pestaña «¿Es fiable?».
+              comparamos con lo que pasó de verdad. CABIDA acierta el municipio de <b>{deCada100(nuestro.fuera_municipio)} de cada 100
+              personas</b> ({deCada100(nuestro.fuera_zona)} si se mira por zonas); seguir la tendencia sin más,{' '}
+              {deCada100(tendencia.fuera_municipio)}. El detalle está <a href="#fiable">al final de esta página</a>.
             </p>
           </div>
         </li>
@@ -161,7 +163,7 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <li><b>Suelo sin cifra de viviendas.</b> El suelo pendiente que no trae cifra de viviendas en el planeamiento cuenta como 0 ({miles(SUELO_SIN_CIFRA_HA)} ha en los 155), así que la capacidad de vivienda es prudente.</li>
           <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
           <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos niños como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
-          <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso se equivoca en un {pct(nuestro.wape)} de las personas.</li>
+          <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso pone en otro municipio a {Math.round(nuestro.fuera_municipio * 100)} de cada 100 personas.</li>
           <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
           <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los pueblos de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
           <li><b>Faltan datos que también importan</b>: precios de la vivienda, empleo y transporte.</li>
@@ -287,6 +289,8 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           </section>
         </div>
       </details>
+
+      <Validacion datos={validacion} />
     </div>
   )
 }

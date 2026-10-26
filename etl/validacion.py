@@ -6,8 +6,14 @@ Idea: hacemos como si estuviéramos en 2015. Con datos solo hasta 2015,
 cada modelo reparte entre los 155 municipios el crecimiento que hubo de verdad
 en 2015-2025. Luego comparamos con lo que pasó.
 
-Error (WAPE): de cada 100 personas que ganaron estos municipios,
-cuántas colocó el modelo en el municipio equivocado. Menos es mejor.
+Error (WAPE): suma de |previsto - real| entre lo que crecieron de verdad.
+Cuenta dos veces a cada persona mal colocada: una donde falta y otra donde sobra.
+
+Personas colocadas en otro municipio: la mitad de esa suma, entre el total
+(sum|previsto - real| / 2 / total). Es la parte del total que el modelo puso en
+un municipio que no era. 1 menos eso = de cada 100, cuántas acierta dónde van.
+Se calcula también agrupando por zona (lo que se coloca en otra zona).
+Menos es mejor.
 
 Salidas: web/public/datos/validacion.json y data/out/validacion_municipios.csv
 """
@@ -52,6 +58,14 @@ def repartir_con_tope(total: float, pesos: np.ndarray, topes: np.ndarray) -> np.
     return asignado
 
 
+def colocadas_fuera(pred: np.ndarray, real: np.ndarray, grupos: np.ndarray | None = None) -> float:
+    """Parte del total colocada en otro municipio (o en otra zona, si se dan `grupos`)."""
+    if grupos is not None:
+        pred = pd.Series(pred).groupby(grupos).sum().to_numpy()
+        real = pd.Series(real).groupby(grupos).sum().to_numpy()
+    return float(np.abs(pred - real).sum() / 2 / real.sum())
+
+
 def main() -> None:
     df = leer_poblacion().merge(leer_zonas(), on="ine")
     # Mismo universo que la app: los 155 municipios con < 50.000 hab. en 2025
@@ -86,18 +100,22 @@ def main() -> None:
     }
 
     top_real = set(np.argsort(-real)[:20])
+    zonas = df["zona"].to_numpy()
     filas = []
     for nombre, pred in modelos.items():
         wape = np.abs(pred - real).sum() / np.abs(real).sum()
         aciertos = len(top_real & set(np.argsort(-pred)[:20]))
         rho = spearmanr(pred / p1, real / p1).statistic
         filas.append({"modelo": nombre, "wape": round(float(wape), 4),
+                      "fuera_municipio": round(colocadas_fuera(pred, real), 4),
+                      "fuera_zona": round(colocadas_fuera(pred, real, zonas), 4),
                       "aciertos_top20": aciertos, "spearman": round(float(rho), 3)})
 
     print(f"Crecimiento real 2015-2025 de los {len(df)} municipios: {miles(total)} personas\n")
-    print(f"{'Modelo':46} {'Error':>7} {'Top 20':>7} {'Spearman':>9}")
+    print(f"{'Modelo':46} {'WAPE':>7} {'Otro mun.':>10} {'Otra zona':>10} {'Top 20':>7} {'Spearman':>9}")
     for f in filas:
-        print(f"{f['modelo']:46} {f['wape']:>7.1%} {f['aciertos_top20']:>4}/20 {f['spearman']:>9.2f}")
+        print(f"{f['modelo']:46} {f['wape']:>7.1%} {f['fuera_municipio']:>10.1%} {f['fuera_zona']:>10.1%}"
+              f" {f['aciertos_top20']:>4}/20 {f['spearman']:>9.2f}")
 
     final = list(modelos.values())[-1]
     detalle = pd.DataFrame({

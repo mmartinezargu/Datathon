@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 export type NombreIcono =
   | 'inicio' | 'mapa' | 'vivir' | 'fiable' | 'metodo'
   | 'vivienda' | 'colegios' | 'sanidad' | 'ritmo'
-  | 'personas' | 'volver' | 'descarga'
+  | 'personas' | 'volver' | 'descarga' | 'plegar' | 'desplegar' | 'ojo'
 
 const TRAZOS: Record<NombreIcono, ReactNode> = {
   inicio: <><path d="M4 11.5 12 5l8 6.5" /><path d="M6.5 10v9h11v-9" /><path d="M10 19v-5h4v5" /></>,
@@ -21,6 +21,9 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
   personas: <><circle cx="9" cy="8.5" r="3" /><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5" /><circle cx="17" cy="9.5" r="2.4" /><path d="M15.6 14.3c2.4-.3 4.3 1.2 4.9 4.2" /></>,
   volver: <><path d="M19 12H5" /><path d="m11 6-6 6 6 6" /></>,
   descarga: <><path d="M12 4v11" /><path d="m7 10.5 5 5 5-5" /><path d="M5 19.5h14" /></>,
+  plegar: <><path d="m14.5 6-6 6 6 6" /></>,
+  desplegar: <><path d="m9.5 6 6 6-6 6" /></>,
+  ojo: <><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></>,
 }
 
 export function Icono({ nombre, tamano = 20, className }: { nombre: NombreIcono; tamano?: number; className?: string }) {

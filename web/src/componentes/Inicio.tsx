@@ -17,12 +17,12 @@ export interface Totales {
   reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
-type Destino = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
+export type Destino = 'mapa' | 'mudanza' | 'acierta' | 'metodologia'
 
 const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: string; boton: string }[] = [
   { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan, por qué, y qué pasa si se construye un colegio o un centro de salud.', boton: 'Abrir el mapa' },
   { destino: 'mudanza', icono: 'vivir', quien: 'Busco dónde vivir', que: 'Dinos quién eres y qué necesitas, y te enseñamos dónde habrá sitio para ti.', boton: 'Buscar municipio' },
-  { destino: 'validacion', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
+  { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
 
 export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino) => void }) {
@@ -62,7 +62,7 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
 
       <p className="inicio-pie">
         Todo sale de datos abiertos del INE, el Portal de Datos Abiertos de la Comunidad de Madrid y el IDEM.{' '}
-        <button className="enlace" onClick={() => onIr('metodologia')}>Cómo se calcula</button>
+        <button className="enlace" onClick={() => onIr('metodologia')}>Cómo funciona</button>
       </p>
     </div>
   )
