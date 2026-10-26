@@ -1,9 +1,9 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, alLimite, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
-import { decimal, miles, millones, pct } from '../formato'
+import { caben, decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
@@ -27,6 +27,8 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
   const escala = Math.max(r.llegan, ...valores, 1)
+  const ampliado = inversion.colegios > 0 || inversion.centros > 0
+  const limite = alLimite(r, m, umbrales, inversion)
 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
@@ -42,13 +44,14 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
         </div>
       </div>
 
-      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto
+      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto ampliado={ampliado}
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
-      <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
+      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado)}</p>
+      {limite && <p className="ficha-limite" style={{ borderLeftColor: TIPOS.tension.color }}>{textoAlLimite(limite, m)}</p>}
       {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} />}
 
-      <h3>Personas que caben según cada recurso</h3>
+      <h3>Personas que caben{ampliado ? '' : ' sin ampliar servicios'}, según cada recurso</h3>
       <div className="limites">
         {ORDEN.map((l) => {
           const v = r.limites[l]
@@ -107,21 +110,38 @@ function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map
   )
 }
 
-function frase(r: ResultadoMunicipio, m: Municipio, anio: number): string {
+function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: boolean): string {
   const l = LIMITES[r.limitante].frase
+  const sin = ampliado ? '' : ' sin ampliar servicios'
   switch (r.tipo) {
     case 'tension':
-      return `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero solo caben unas ${miles(r.caben)}: ${l}.`
+      return r.caben < 1
+        ? `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero no cabe nadie${sin}: ${l}.`
+        : `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero solo caben unas ${miles(r.caben)}${sin}: ${l}.`
     case 'polo':
-      return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${miles(r.caben)}: puede crecer sin desbordarse.`
+      return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${caben(r.caben)}${sin}: puede crecer sin desbordarse.`
     case 'oportunidad':
-      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. ` +
+      return `Caben unas ${miles(r.caben)} personas${sin}, pero solo llegarían ${miles(r.llegan)}. ` +
         (r.condicionada
           ? `Tiene sitio, pero el hospital queda a ${decimal(m.hospital_km)} km: antes de atraer gente hay que asegurar el acceso.`
           : 'Tiene sitio para acoger a más gente.')
     default:
-      return `Llegarían unas ${miles(r.llegan)} personas y caben ${miles(r.caben)}. Crece poco y tiene poco margen.`
+      return `Llegarían unas ${miles(r.llegan)} personas y caben ${caben(r.caben)}${sin}. Crece poco y tiene poco margen.`
   }
+}
+
+/** «Al límite hoy»: por qué no cabe nadie sin ampliar (municipios con caben = 0). */
+function textoAlLimite(x: NonNullable<ReturnType<typeof alLimite>>, m: Municipio): string {
+  const cuanto = x.exceso < 0.001 ? 'justo en el límite' : `un ${pct(x.exceso, 1)} por encima`
+  if (x.recurso === 'sanidad') {
+    return `Al límite hoy: su zona de salud (${m.capacidad!.zbs_nombre}) ya atiende a ${miles(x.hoy)} personas y el límite es ${miles(x.limite)} (${cuanto}). ` +
+      'Cualquier llegada necesita ampliar.'
+  }
+  const centros = x.nivel === 'primaria'
+    ? (x.centros === 1 ? 'su colegio de primaria ya tiene' : 'sus colegios de primaria ya tienen')
+    : (x.centros === 1 ? 'su instituto ya tiene' : 'sus institutos ya tienen')
+  return `Al límite hoy: ${centros} unos ${miles(x.hoy)} niños${x.centros === 1 ? '' : ' por centro'} y el límite para los de su tamaño es ${miles(x.limite)} (${cuanto}). ` +
+    'Cualquier llegada necesita ampliar.'
 }
 
 function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umbrales, inv: Inversion): string {

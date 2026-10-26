@@ -12,6 +12,24 @@ export const ANIO_BASE = 2025
 export const CRECIMIENTO_DECADA = 134_426
 /** Escenario por defecto: seguir al ritmo de la última década. */
 export const RITMO_ANUAL = CRECIMIENTO_DECADA / 10
+/** Lo que ganó toda la Comunidad en 2015-2025 y su población a 1/1/2025 (Padrón, INE). */
+export const CRECIMIENTO_DECADA_CM = 700_035
+export const POBLACION_CM = 7_137_031
+/** Previsión de la Comunidad (nota de prensa del 17/02/2025): de 7.001.715 habitantes en 2024 a 8 millones en 2039. */
+export const PREVISION_CM = { anio: 2039, poblacion: 8_000_000, desdeAnio: 2024, desdePoblacion: 7_001_715 }
+
+/**
+ * Lo que les tocaría a los 155 hasta `anio` con la previsión de la Comunidad, si se llevan la misma parte
+ * que en la última década (19 %). Dos cuentas: desde la cifra de 2024 de la nota y desde el Padrón de 2025.
+ */
+export function segunPrevision(anio: number) {
+  const parte = CRECIMIENTO_DECADA / CRECIMIENTO_DECADA_CM
+  const p = PREVISION_CM
+  const alAnioDesdeNota = (p.poblacion - p.desdePoblacion) / (p.anio - p.desdeAnio)
+  const alAnioDesdePadron = (p.poblacion - POBLACION_CM) / (p.anio - ANIO_BASE)
+  const anios = anio - ANIO_BASE
+  return { parte, alAnioDesdeNota, alAnioDesdePadron, minimo: parte * alAnioDesdePadron * anios, maximo: parte * alAnioDesdeNota * anios }
+}
 /** Para no marcar "en tensión" por un puñado de personas. */
 export const MARGEN_MINIMO = 25
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
@@ -198,6 +216,25 @@ export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
     niveles.reduce((a, b) => (caben(a) <= caben(b) ? a : b)).n++
   }
   return niveles.map((x) => ({ ...x, libres: x.n * x.limite - x.ninos, caben: caben(x) }))
+}
+
+/**
+ * Si no cabe nadie por colegios o por sanidad: cuánta carga tiene hoy ese recurso, su límite y cuánto se pasa.
+ * En colegios, el nivel que más se pasa (hasta que no baje de su límite no hay sitio). null = tiene sitio.
+ */
+export function alLimite(r: ResultadoMunicipio, m: Municipio, u: Umbrales, inv = SIN_INVERSION) {
+  if (r.caben >= 1) return null
+  if (r.limitante === 'colegios') {
+    const x = nivelesColegio(m, u, inv.colegios)
+      .map((n) => ({ ...n, hoy: n.ninos / n.n }))
+      .reduce((a, b) => (a.hoy / a.limite >= b.hoy / b.limite ? a : b))
+    return { recurso: 'colegios' as const, nivel: x.nombre, centros: x.n, hoy: x.hoy, limite: x.limite, exceso: x.hoy / x.limite - 1 }
+  }
+  if (r.limitante === 'sanidad') {
+    const hoy = m.capacidad!.zbs_poblacion
+    return { recurso: 'sanidad' as const, nivel: null, centros: 1, hoy, limite: u.zonaSalud, exceso: hoy / u.zonaSalud - 1 }
+  }
+  return null
 }
 
 /** Coste de lo que se decide construir en un municipio, en euros. */

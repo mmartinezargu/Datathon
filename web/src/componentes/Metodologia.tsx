@@ -5,7 +5,7 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, RITMO_ANUAL } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { Escenario, Perfil, Recurso } from '../tipos'
@@ -16,8 +16,12 @@ import { Icono } from './Iconos'
 /** Mismo valor que K_SUAVIZADO en etl/preparar.py. */
 const K_SUAVIZADO = 5_000
 
+/** Suelo pendiente de desarrollar sin cifra de viviendas en el planeamiento, en los 155 (AUDITORIA.md, punto 1). */
+const SUELO_SIN_CIFRA_HA = 7_053
+
 const FUENTES = [
   { nombre: 'Padrón continuo: población por municipio, 2005–2025', quien: 'INE (tabla 2881)', para: 'Cuánta gente vive en cada municipio y cómo ha crecido', url: 'https://www.ine.es/jaxiT3/Tabla.htm?t=2881' },
+  { nombre: 'Previsión de población: 8 millones en 2039 (nota de prensa del 17/02/2025)', quien: 'Comunidad de Madrid', para: 'Comparar la cifra por defecto con la previsión de la Comunidad', url: 'https://www.comunidad.madrid/node/71411' },
   { nombre: 'Censo 2021: viviendas principales y no principales', quien: 'INE (tabla 59525)', para: 'Viviendas vacías o de segunda residencia', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59525&L=0' },
   { nombre: 'Censo 2021: hogares por tamaño', quien: 'INE (tabla 59543)', para: 'Personas por hogar, para pasar de viviendas a personas', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0' },
   { nombre: 'Municipios de la Comunidad de Madrid', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Zona estadística y superficie', url: 'https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d' },
@@ -32,6 +36,7 @@ const NOMBRE_RECURSO: Record<Recurso, string> = { colegios: 'colegios', sanidad:
 
 export function Metodologia({ escenario, validacion }: { escenario: Escenario; validacion: DatosValidacion }) {
   const anios = escenario.anio - ANIO_BASE
+  const prevision = segunPrevision(escenario.anio)
   const nuestro = validacion.modelos.at(-1)!
   const tendencia = validacion.modelos.find((m) => m.modelo.startsWith('Extrapolar')) ?? validacion.modelos[1]
 
@@ -63,6 +68,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <div>
             <h2>Cuánta gente cabe</h2>
             <p>Miramos cuatro cosas y <b>manda la que se queda más corta</b>, porque de nada sirve tener casas si no hay sitio en el colegio.</p>
+            <p>
+              «Caben» quiere decir <b>caben sin ampliar servicios</b>: sin construir colegios ni centros de salud. Un 0 quiere decir que
+              ese pueblo <b>ya está por encima del límite hoy</b>. Los colegios se comparan con los de municipios de tamaño parecido (con una
+              curva que sube poco a poco con el tamaño, sin tramos), y la sanidad, con todas las zonas de salud de la Comunidad.
+            </p>
             <ul className="cuatro-cosas">
               <li><Icono nombre="vivienda" tamano={20} />Casas</li>
               <li><Icono nombre="colegios" tamano={20} />Colegios</li>
@@ -140,12 +150,16 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
       </section>
 
       <section className="val-tarjeta">
-        <h2>Lo que el modelo no sabe</h2>
+        <h2>Limitaciones: lo que el modelo no sabe</h2>
         <ul className="limitaciones">
           <li><b>El planeamiento no es una licencia.</b> Que un suelo tenga viviendas previstas no quiere decir que se vayan a construir, ni cuándo. Por eso solo se cuenta una parte ({pct(escenario.pctSuelo, 0)}).</li>
           <li><b>«No principal» no es «vacía».</b> El Censo junta las viviendas vacías con las segundas residencias, y muchas no están en venta ni en alquiler. Por eso solo se cuenta un {pct(escenario.pctVivienda, 0)}.</li>
-          <li><b>Contamos colegios, no plazas.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro, ni cuántos alumnos van a estudiar a otro municipio.</li>
-          <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona que cubre más superficie suya, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
+          <li><b>No hay datos abiertos de plazas escolares.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro, ni cuántos alumnos van a estudiar a otro municipio: cada municipio se compara con los de tamaño parecido.</li>
+          <li><b>Los niños se estiman.</b> Los niños de edad de primaria y de secundaria salen de grupos de 5 años del Censo anual, y se supone que quien llega trae la misma proporción de niños que el municipio.</li>
+          <li><b>Todos los colegios cuentan igual:</b> públicos, concertados y privados.</li>
+          <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona de salud que cubre más superficie de su término, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
+          <li><b>Suelo sin cifra de viviendas.</b> El suelo pendiente que no trae cifra de viviendas en el planeamiento cuenta como 0 ({miles(SUELO_SIN_CIFRA_HA)} ha en los 155), así que la capacidad de vivienda es prudente.</li>
+          <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
           <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos niños como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso se equivoca en un {pct(nuestro.wape)} de las personas.</li>
           <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
@@ -172,6 +186,17 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
               que ganaron estos municipios en la última década, unas {miles(RITMO_ANUAL)} al año. Ahora mismo está elegido:
               <b> {miles(escenario.personas)} personas hasta {escenario.anio}</b>.
             </p>
+            <p>
+              <b>Comparado con la previsión de la Comunidad.</b> En 2015–2025 la Comunidad ganó {miles(CRECIMIENTO_DECADA_CM)} personas
+              (Padrón del INE) y estos 155 municipios se llevaron el {pct(prevision.parte, 1)}. La Comunidad prevé pasar de{' '}
+              {miles(PREVISION_CM.desdePoblacion)} habitantes en {PREVISION_CM.desdeAnio} a {miles(PREVISION_CM.poblacion)} en {PREVISION_CM.anio}{' '}
+              (<a href="https://www.comunidad.madrid/node/71411" target="_blank" rel="noreferrer">nota de prensa del 17/02/2025</a>):
+              unas {miles(prevision.alAnioDesdeNota)} personas al año. Contando desde el Padrón de {ANIO_BASE} ({miles(POBLACION_CM)}),
+              quedan unas {miles(prevision.alAnioDesdePadron)} al año. Con la misma parte, a estos municipios les tocarían entre{' '}
+              {miles(prevision.minimo)} y {miles(prevision.maximo)} personas hasta {escenario.anio}, algo menos que seguir el ritmo de la
+              última década ({miles(RITMO_ANUAL * anios)}).
+            </p>
+            <p className="formula">les toca = {pct(prevision.parte, 1)} × personas al año que gana la Comunidad × {anios} años</p>
           </section>
 
           <section>

@@ -171,4 +171,103 @@ Los 36: Cabanillas de la Sierra, Ribatejada, Santorcaz, Chinchón, Moraleja de E
 3. **`THIRD_PARTY.md`**: añadir `@types/node`.
 4. **Texto del deslizador** (parte 2, punto 3): en lugar de «más de 1 millón hasta 2039 (unas 71.000 al año)», poner algo que cuadre con la nota. Por ejemplo: «La Comunidad prevé llegar a 8 millones en 2039, más de un millón en 15 años. En la última década estos 155 municipios se llevaron el 19 % de lo que creció la Comunidad: si sigue así, unas 134.000 personas hasta 2035».
 
-Los saltos entre tramos (punto 5) y los ceros por muy poco (punto 4) son del método, no de los datos. Se podrían suavizar, por ejemplo con límites interpolados entre tramos, pero eso cambia el modelo: queda para después de la final si lo decides.
+Los saltos entre tramos (punto 5) y los ceros por muy poco (punto 4) se han tratado como errores del método y se han corregido (ver «Decisiones»).
+
+## Decisiones (26/10/2026)
+
+Se aplican los arreglos 1–3 y, además, se corrige el método de los límites de colegios y sanidad: los saltos entre tramos se tratan como errores. En sanidad el límite era circular (cada zona se comparaba con las de su tamaño, y el tamaño es justo lo que se mide), y en colegios saltaba ×4,8 y ×8,4 en el corte de 1.000 habitantes. Ya no hay tramos.
+
+### Qué se ha cambiado
+
+1. **Planeamiento sin repetir** (`etl/capacidad.py`). Se agrupa por municipio, nombre del ámbito y clase de suelo. La capa no trae un código de ámbito: `CD_UNI` es distinto en cada polígono. Si todos los polígonos de un grupo traen la misma cifra de viviendas, se cuenta una vez; la superficie se suma siempre. En las zonas pendientes hay 224 grupos con varios polígonos: 136 traen la misma cifra, 84 no traen ninguna y **4 traen cifras distintas**: «P-1 LAS HUERTAS» y «P-6 CARMONA» (Becerril de la Sierra), «S-1 ENSANCHE» (El Escorial) y «S-R8 LOS HUEROS» (Villalbilla). En esos 4 se suman las cifras distintas, cada una una vez. Si se sumaran todos los polígonos, en Villalbilla las 2.832 viviendas se contarían 3 veces. Viviendas previstas en los 155: 217.761 → **152.527**.
+2. **Colegios por tipo exacto** (`TIPO_EXT`, lista cerrada en `capacidad.py`). Quedan fuera educación de adultos, aulas hospitalarias y enseñanzas artísticas. En los 155 solo cambia San Lorenzo de El Escorial (5 → 4 institutos).
+3. **`THIRD_PARTY.md`**: `@types/node` 22.20.5 (MIT).
+4. **Colegios: niños por colegio, con una curva en lugar de tramos** (`web/src/motor.ts`).
+   - **Niños estimados.** De `cm_poblacion_por_edad_censo_anual.csv` (2025; nacionalidad y sexo «Total»): primaria ≈ 0,8 × «5–9» + 0,4 × «10–14»; secundaria ≈ 0,6 × «10–14» + 0,6 × «15–19». Se toma la proporción del Censo anual y se aplica al Padrón 2025, porque el total del Censo anual (7.113.886) no es el del Padrón (7.137.031). Columnas `ninos_primaria` y `ninos_secundaria`, marcadas [est.] en el diccionario.
+   - **Límite.** Recta de log(niños por colegio) sobre log(población) con los 155 que tienen colegio de ese nivel, más el percentil «exigencia» de los residuos. Con la exigencia media, el límite de primaria pasa de 137 niños por colegio en un pueblo de 1.000 vecinos a 498 en uno de 10.000; el de secundaria, de 197 a 694.
+   - **Plazas libres** = colegios × límite − niños. **Personas que caben** = plazas libres ÷ proporción de niños del municipio. Un colegio nuevo suma «límite» plazas.
+5. **Sanidad: un único límite para todas las zonas** (opción C2): el percentil «exigencia» de la población de las 286 zonas (38.891 con la exigencia media).
+   - **Por qué no sirvió C1.** El Observatorio de Resultados del SERMAS (`resultados_ap_2024.csv`) trae, por centro de salud, la población asignada y la presión asistencial ajustada de medicina de familia (262 centros). Pero no tiene ningún centro para 12 de las 45 zonas de los 155, entre ellas El Escorial, San Lorenzo de El Escorial, Moralzarzal, Alpedrete, Arroyomolinos, Valdemorillo, Villanueva del Pardillo, Collado Mediano, Daganzo de Arriba, Fuente el Saz, Sevilla la Nueva y Morata de Tajuña. Cubre el **78,1 %** de la población de los 155, por debajo del 95 % pedido.
+6. **Fuera `TRAMOS_MUNICIPIO` y `TRAMOS_ZONA`.** Se han actualizado `umbralesDe`, «Ver la cuenta», la metodología, los textos de exigencia, `tipos.ts`, `preparar.py` y el diccionario. `mudanza.ts` no los usaba.
+7. **Validación 2015→2025: 44,4 %** (no cambia, porque solo usa la presión).
+
+### Cifras antes y después
+
+«Antes» es `main` (74a1d92); «después», esta rama. Escenario por defecto: 2035, 134.426 personas.
+
+**Exigencia media (por defecto, 0,9)**
+
+| | Antes | Después |
+|---|---:|---:|
+| Caben sin ampliar servicios | 53.239 | 60.785 |
+| Sin sitio | 81.187 | 73.641 |
+| En tensión | 73 | 67 |
+| Polos | 38 | 41 |
+| Oportunidades | 38 | 37 |
+| Consolidación | 6 | 10 |
+| Oportunidades condicionadas | 25 | 24 |
+| Caben = 0 (por recurso) | 33 (19 colegios, 14 sanidad) | 30 (19 colegios, 11 sanidad) |
+| … de ellos, a menos de un 5 % de su límite | 18 | 4 |
+| Reubicadas a 25 km | 32.161 | 38.010 |
+| Traslados | 85 | 93 |
+| Municipios que reciben | 45 | 48 |
+| Km de media por persona | 9,0 | 10,2 |
+| Siguen sin sitio tras reubicar | 49.025 | 35.631 |
+
+**Exigencia flexible (0,97)**
+
+| | Antes | Después |
+|---|---:|---:|
+| Caben sin ampliar servicios | 88.362 | 79.907 |
+| Sin sitio | 46.064 | 54.519 |
+| En tensión | 62 | 59 |
+| Polos | 44 | 46 |
+| Oportunidades | 36 | 33 |
+| Consolidación | 13 | 17 |
+| Oportunidades condicionadas | 25 | 22 |
+| Caben = 0 (por recurso) | 10 (10 colegios, 0 sanidad) | 10 (7 colegios, 3 sanidad) |
+| … de ellos, a menos de un 5 % de su límite | 8 | 8 |
+| Reubicadas a 25 km | 40.928 | 33.468 |
+| Traslados | 105 | 90 |
+| Municipios que reciben | 57 | 53 |
+| Km de media por persona | 9,2 | 10,2 |
+| Siguen sin sitio tras reubicar | 5.137 | 21.051 |
+
+**Exigencia estricta (0,75)**
+
+| | Antes | Después |
+|---|---:|---:|
+| Caben sin ampliar servicios | 33.372 | 34.535 |
+| Sin sitio | 101.054 | 99.891 |
+| En tensión | 94 | 89 |
+| Polos | 24 | 28 |
+| Oportunidades | 36 | 35 |
+| Consolidación | 1 | 3 |
+| Oportunidades condicionadas | 26 | 25 |
+| Caben = 0 (por recurso) | 63 (40 colegios, 23 sanidad) | 53 (37 colegios, 16 sanidad) |
+| … de ellos, a menos de un 5 % de su límite | 17 | 4 |
+| Reubicadas a 25 km | 20.462 | 12.176 |
+| Traslados | 55 | 58 |
+| Municipios que reciben | 28 | 37 |
+| Km de media por persona | 7,1 | 7,2 |
+| Siguen sin sitio tras reubicar | 80.592 | 87.715 |
+
+
+«A menos de un 5 % de su límite» se mide en el recurso que deja el «caben» en 0. En colegios, el nivel que más se pasa, porque hasta que no baje de su límite no hay sitio.
+
+### Los 10 municipios que más cambian (exigencia media)
+
+| Municipio | Caben antes → después | Manda antes → después | Tipo antes → después | Motivo |
+|---|---:|---|---|---|
+| Paracuellos de Jarama | 199 → 9.509 (+9.310) | colegios → ritmo | tensión → polo | Colegios 199 → 17.916: antes se contaban vecinos por colegio y salía casi lleno; contando niños tiene sitio. Además, la vivienda baja de 21.110 a 10.358 por el planeamiento sin repetir |
+| El Escorial | 0 → 5.855 (+5.855) | colegios → vivienda | tensión → oportunidad | Colegios 0 → 8.229: estaba un 18,9 % por encima del límite del tramo de 10.000 a 20.000, que era más bajo que el del tramo de 5.000 a 10.000 |
+| Valdemorillo | 24 → 1.849 (+1.825) | colegios → vivienda | tensión → tensión | Colegios 24 → 5.511, por el salto entre tramos |
+| Robledo de Chavela | 0 → 1.470 (+1.470) | colegios → vivienda | tensión → polo | Colegios 0 → 1.917: estaba un 8,6 % por encima del límite de su tramo |
+| Humanes de Madrid | 5.740 → 4.525 (−1.215) | vivienda → vivienda | oportunidad → oportunidad | Planeamiento sin repetir |
+| Meco | 5.476 → 4.302 (−1.174) | ritmo → vivienda | polo → polo | Planeamiento sin repetir: la vivienda baja de 12.923 a 4.302 |
+| Los Molinos | 0 → 1.143 (+1.143) | colegios → vivienda | tensión → oportunidad | Colegios 0 → 2.790: estaba un 7,8 % por encima del límite de su tramo |
+| Moraleja de Enmedio | 1.082 → 0 (−1.082) | vivienda → colegios | oportunidad → tensión | Colegios 2.301 → 0: tiene muchos niños para su único colegio (380, con un límite de 359) |
+| San Martín de la Vega | 2.265 → 3.255 (+991) | sanidad → vivienda | consolidación → consolidación | Sanidad 2.265 → 17.881: su zona (21.010 personas) ya no se compara con el límite de las de 10.000 a 25.000 (23.275), sino con el de todas (38.891) |
+| Becerril de la Sierra | 1.144 → 159 (−985) | colegios → colegios | polo → tensión | Colegios 1.144 → 159: muchos niños por colegio para su tamaño |
+
+En total cambian de tipo 24 municipios, y en 49 cambia el recurso que manda.

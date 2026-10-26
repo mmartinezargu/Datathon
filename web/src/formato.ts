@@ -16,6 +16,11 @@ export function decimal(n: number, decimales = 1): string {
   return n.toFixed(decimales).replace('.', ',')
 }
 
+/** Personas que caben: 0 se escribe «0 (al límite)», porque quiere decir que ya está por encima del límite hoy. */
+export function caben(n: number): string {
+  return n < 1 ? '0 (al límite)' : miles(n)
+}
+
 /** Euros en millones: 9500000 -> "9,5 M€"; 16000000 -> "16 M€". */
 export function millones(n: number): string {
   return (n / 1e6).toFixed(1).replace(/\.0$/, '').replace('.', ',') + ' M€'

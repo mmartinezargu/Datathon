@@ -19,7 +19,7 @@ import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, quedanSinSitio, resumenReubicacion } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
-import { miles, millones, pct } from './formato'
+import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
@@ -115,7 +115,7 @@ export default function App() {
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
+      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${caben(r.caben)} sin ampliar`,
     }])),
     [resultados, porIne],
   )
@@ -197,7 +197,7 @@ export default function App() {
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
-                  (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
+                  (invertido ? ', contando lo que has invertido' : ' sin ampliar servicios') +
                   (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
@@ -259,7 +259,7 @@ export default function App() {
               <>
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
-                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
+                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto ampliado={invertido > 0}
                     notaLibre={reequilibrio
                       ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
                       : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
@@ -410,7 +410,10 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
         {top.map((r) => (
           <li key={r.ine}>
             <button onClick={() => onElegir(r.ine)}>
-              <span className="r-nombre">{porIne.get(r.ine)?.nombre}</span>
+              <span className="r-nombre">
+                {porIne.get(r.ine)?.nombre}
+                {r.caben < 1 && <small className="r-limite">caben {caben(r.caben)}</small>}
+              </span>
               <span className="r-barra"><span style={{ width: `${(config.valor(r) / max) * 100}%`, background: config.color(r) }} /></span>
               <span className="r-valor">{config.texto(r)}</span>
             </button>

@@ -24,6 +24,7 @@ PLANEAMIENTO = ("IDEM, Planeamiento urbanístico refundido 2025",
                 "https://idem.comunidad.madrid/recursos_cat_geo/Catalogo/recursos/Planeamiento/Refundido/vpla_ref_25_gpkg.zip")
 EDAD = ("Portal de Datos Abiertos de la Comunidad de Madrid, Población censada por edad (Censo anual) y Padrón (INE)",
         "https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402")
+ESCENARIO = ("Cálculo de CABIDA en la web (web/src/motor.ts) con el escenario elegido; se descarga desde «Llévate los datos»", "")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 
 # archivo -> [(columna, descripción, unidad, (fuente, url))]
@@ -64,6 +65,35 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("hospital_km", "Distancia en línea recta desde el núcleo del municipio (mediana de sus colegios; si no tiene, "
          "centroide del término) hasta el hospital general público más cercano de la Comunidad de Madrid", "km", SANITARIOS),
         ("hospital_municipio", "Municipio en el que está ese hospital", "texto", SANITARIOS),
+    ],
+    # Lo genera la web (web/src/descarga.ts), no el ETL: si cambian sus columnas, cámbialas también aquí.
+    # Separador «;» y decimales con coma, para abrirlo en Excel en español.
+    "cabida_escenario_AAAA.csv": [
+        ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),
+        ("municipio", "Nombre del municipio", "texto", PADRON),
+        ("zona", "Zona estadística de la Comunidad de Madrid (NUTS4)", "texto", MUNICIPIOS),
+        ("poblacion_2025", "Población a 1/1/2025", "personas", PADRON),
+        ("llegan_hasta_AAAA", "Presión: personas que le llegarían hasta el año del escenario (AAAA), si sigue la tendencia", "personas", ESCENARIO),
+        ("caben", "Capacidad: personas que caben sin ampliar servicios (el menor de los cuatro límites). "
+         "0 = ya está por encima del límite hoy", "personas", ESCENARIO),
+        ("margen", "caben − llegan, con las dos cifras ya redondeadas (negativo = no caben)", "personas", ESCENARIO),
+        ("crecimiento_pct", "llegan ÷ poblacion_2025 × 100", "%", ESCENARIO),
+        ("caben_por_vivienda", "Personas que caben según la vivienda (vacía o secundaria y prevista en el planeamiento)", "personas", ESCENARIO),
+        ("caben_por_colegios", "Personas que caben según los colegios (el nivel con menos sitio). "
+         "Vacío = no tiene colegio de ese nivel: sus alumnos van a otro municipio y el límite no aplica", "personas", ESCENARIO),
+        ("caben_por_sanidad", "Personas que caben según su zona básica de salud, por la parte de la zona que son sus vecinos", "personas", ESCENARIO),
+        ("caben_por_ritmo", "Personas que caben sin crecer más del ritmo máximo al año", "personas", ESCENARIO),
+        ("limita", "El recurso que pone el límite (el de menos sitio)", "texto", ESCENARIO),
+        ("tipo", "Tensión, polo de crecimiento, oportunidad o consolidación", "texto", ESCENARIO),
+        ("condicionada", "Oportunidad con el hospital general público más cercano a más de 25 km en línea recta", "sí/no", ESCENARIO),
+        ("hospital_km", "Distancia en línea recta al hospital general público más cercano (ver tabla_maestra.csv)", "km", SANITARIOS),
+        ("reubicados_recibe", "Con «Reubicar en pueblos cercanos»: personas que no caben en otros pueblos y vienen aquí", "personas", ESCENARIO),
+        ("reubicados_envia", "Con «Reubicar en pueblos cercanos»: personas que no caben aquí y van a pueblos cercanos", "personas", ESCENARIO),
+        ("recibe_de", "De qué pueblos vienen: «Municipio (personas; km)», separados por «|»", "texto", ESCENARIO),
+        ("envia_a", "A qué pueblos van: «Municipio (personas; km)», separados por «|»", "texto", ESCENARIO),
+        ("colegios_nuevos", "Colegios nuevos simulados en «¿Y si invertimos aquí?»", "centros", ESCENARIO),
+        ("centros_salud_nuevos", "Centros de salud nuevos simulados", "centros", ESCENARIO),
+        ("coste_inversion_eur", "Coste aproximado de lo simulado (unos 9,5 M€ por colegio y 8 M€ por centro de salud)", "euros", ESCENARIO),
     ],
     "validacion_municipios.csv": [
         ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),
