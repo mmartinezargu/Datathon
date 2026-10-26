@@ -8,7 +8,7 @@ import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
 import { Mudanza } from './componentes/Mudanza'
-import { Repartir } from './componentes/Repartir'
+import { Atraer } from './componentes/Atraer'
 import { Metodologia } from './componentes/Metodologia'
 import { Plan } from './componentes/Plan'
 import { Inicio, type Destino, type Totales } from './componentes/Inicio'
@@ -29,17 +29,20 @@ import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
-type Pestana = 'inicio' | 'mapa' | 'plan' | 'mudanza' | 'reparto' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'plan' | 'mudanza' | 'atraer' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 type VistaMovil = 'escenario' | 'mapa' | 'resultado'
 type Paneles = { escenario: boolean; resultado: boolean } // true = plegado
 
 // Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
-const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', plan: 'plan', mudanza: 'vivir', reparto: 'repartir', metodologia: 'como' }
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', plan: 'plan', mudanza: 'vivir', atraer: 'atraer', metodologia: 'como' }
 // El antiguo enlace de «¿Es fiable?» lleva a la sección «¿Acierta?», al final de «Cómo funciona»
 const ENLACE_ACIERTA = '#fiable'
+// «Atraer» se llamó «Repartir» (#repartir): el enlace antiguo lleva allí
+const ENLACE_REPARTIR = '#repartir'
 const pestanaDelEnlace = (): Pestana =>
   window.location.hash === ENLACE_ACIERTA ? 'metodologia'
+    : window.location.hash === ENLACE_REPARTIR ? 'atraer'
     : (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
 
 // Paneles plegados del mapa: se recuerdan en el navegador (puede fallar en modo privado: entonces, abiertos)
@@ -58,7 +61,7 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'plan', texto: 'Plan', icono: 'plan' },
   { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
-  { id: 'reparto', texto: 'Repartir', icono: 'repartir' },
+  { id: 'atraer', texto: 'Atraer', icono: 'repartir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
 
@@ -136,7 +139,7 @@ export default function App() {
     () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones, { tiposConPlan: obras.length > 0 }) : []),
     [municipios, zonas, escenario, inversiones, obras.length],
   )
-  // Lo mismo sin el plan, para que «Repartir» enseñe cuántos más caben gracias a las obras
+  // Lo mismo sin el plan, para que «Atraer» enseñe cuántos más caben gracias a las obras
   const resultadosSinPlan = useMemo(
     () => (municipios && zonas && obras.length ? calcular(municipios, zonas, escenario) : resultados),
     [municipios, zonas, escenario, obras.length, resultados],
@@ -247,12 +250,11 @@ export default function App() {
             filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
             onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
-      ) : pestana === 'reparto' ? (
+      ) : pestana === 'atraer' ? (
         <main className="pagina">
-          <Repartir resultados={resultados} resultadosSinPlan={resultadosSinPlan} porIne={porIne} escenario={escenario}
+          <Atraer resultados={resultados} resultadosSinPlan={resultadosSinPlan} porIne={porIne} escenario={escenario}
             mezcla={mezcla} onMezcla={setMezcla} filtros={filtrosReparto} onFiltros={setFiltrosReparto}
-            obras={obras} onObras={setObras} umbrales={umbrales} parametros={parametrosPlan}
-            onIrAlPlan={() => setPestana('plan')} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
+            obras={obras} onIrAlPlan={() => setPestana('plan')} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (
         <main className={`cuerpo vista-${vistaMovil}${sel ? ' con-ficha' : ''}` +

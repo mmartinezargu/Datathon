@@ -144,13 +144,14 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           <b>Dónde vivir.</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
         </p>
         <p>
-          <b>Repartir.</b> Coge a toda la gente que llega y la reparte según quiénes son (familias, personas mayores, teletrabajo),
-          como si se pudiera elegir a dónde va cada uno: cada grupo va a los pueblos que mejor le encajan y cada pueblo recibe hasta
-          llenarse. Se compara con lo que cabe si cada uno va donde le lleva la tendencia.
+          <b>Atraer.</b> Es la otra palanca, además de construir: ¿a qué pueblos conviene atraer a cada tipo de vecino (familias,
+          personas mayores, teletrabajo)? Reparte a toda la gente que llega como si se pudiera orientar a dónde va cada uno: cada
+          grupo va a los pueblos que mejor le encajan y cada pueblo recibe hasta llenarse. Se compara con lo que cabe si cada uno
+          va donde le lleva la tendencia.
         </p>
         <p>
           <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («somos 4 y trabajo en Getafe» en «Dónde vivir»,
-          «llevadlos a pueblos pequeños con hospital cerca» en «Repartir») y lo convierte en filtros, que luego puedes cambiar.
+          «atraed a las familias a pueblos pequeños» en «Atraer») y lo convierte en filtros, que luego puedes cambiar.
           La IA no calcula nada, ni ordena ni reparte los pueblos: los resultados
           salen del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
         </p>
@@ -332,7 +333,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           </section>
 
           <section>
-            <h3>4. Invertir, dónde vivir y repartir</h3>
+            <h3>4. Invertir, dónde vivir y atraer</h3>
             <p>
               <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
               edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
@@ -341,7 +342,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
-              <b>Dónde vivir y repartir.</b> Cada perfil ordena los pueblos por el sitio que les queda en colegios, centro de salud y vivienda
+              <b>Dónde vivir y atraer.</b> Cada perfil ordena los pueblos por el sitio que les queda en colegios, centro de salud y vivienda
               <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos, con un peso distinto para cada grupo:
             </p>
             <ul className="perfiles-metodo">
@@ -358,7 +359,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               general público a esa distancia o menos, en línea recta; viene marcada para las personas mayores.
             </p>
             <p>
-              En «Repartir», los grupos llenan los pueblos en ese orden, por turnos y a la par (cada grupo, en proporción a cuántos son), hasta lo que le cabe a cada uno (el menor de sus
+              En «Atraer», los grupos llenan los pueblos en ese orden, por turnos y a la par (cada grupo, en proporción a cuántos son), hasta lo que le cabe a cada uno (el menor de sus
               cuatro límites). Las familias solo van a pueblos con colegio y las personas mayores, a pueblos con un hospital general
               público a menos de {HOSPITAL_LEJOS_KM} km en línea recta. Qué parte de los que llegan es de cada grupo es un supuesto
               que se puede cambiar.

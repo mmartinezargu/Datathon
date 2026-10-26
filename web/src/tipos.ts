@@ -222,7 +222,7 @@ export interface ResumenZonas {
   dif_abs_mediana: number
 }
 
-/** Pestaña «Repartir»: dónde se puede llevar a la gente (se aplica a todos los perfiles). */
+/** Pestaña «Atraer»: dónde se puede llevar a la gente (se aplica a todos los perfiles). */
 export interface FiltrosReparto {
   zona: string | null // zona estadística; null = cualquiera
   tamano: Tamano
@@ -230,7 +230,7 @@ export interface FiltrosReparto {
   instituto: boolean // las familias, solo a pueblos con instituto
 }
 
-/** Pestaña «Repartir»: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
+/** Pestaña «Atraer»: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
 export interface Reparto {
   pueblos: { ine: string; porPerfil: Record<Perfil, number>; total: number; lleno: boolean }[] // de más a menos recibidos
   colocados: number
