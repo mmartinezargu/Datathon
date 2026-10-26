@@ -12,11 +12,12 @@ import { Metodologia } from './componentes/Metodologia'
 import { Inicio, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
+import { Reubicacion } from './componentes/Reubicacion'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { ANIO_BASE, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
-import { COLOR_APAGADO, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
+import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, quedanSinSitio, resumenReubicacion } from './motor'
+import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, millones, pct } from './formato'
 import './estilo.css'
@@ -50,6 +51,7 @@ export default function App() {
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
   const [resaltado, setResaltado] = useState<Tipo | null>(null)
   const [vistaMovil, setVistaMovil] = useState<VistaMovil>('mapa')
+  const [leyendaAbierta, setLeyendaAbierta] = useState(false) // solo se usa en pantallas estrechas
   const [inversiones, setInversiones] = useState<Inversiones>({})
   const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
   const [comparados, setComparados] = useState<string[]>([])
@@ -104,10 +106,16 @@ export default function App() {
     })),
     [resultados, colorMapa, resaltado],
   )
+  // Rayadas: las oportunidades condicionadas (hospital lejos), solo si se ve el color de su tipo
+  const rayados = useMemo(
+    () => new Set(colorMapa === 'tipo' && (!resaltado || resaltado === 'oportunidad')
+      ? resultados.filter((r) => r.condicionada).map((r) => r.ine) : []),
+    [resultados, colorMapa, resaltado],
+  )
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
+      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
     }])),
     [resultados, porIne],
   )
@@ -116,11 +124,18 @@ export default function App() {
     return <div className="cargando"><Logo /> Cargando los datos de los 155 municipios…</div>
   }
 
-  const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0)
-  const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0)
+  // Con la reubicación, lo que va a pueblos cercanos pasa de «sin sitio» a «caben»
+  const reubicacion = resumenReubicacion(resultados)
+  const dirigidos = reubicacion.personas
+  const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0) + dirigidos
+  const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0) - dirigidos
+  const reequilibrio = escenario.reequilibrio
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
+  const condicionadas = resultados.filter((r) => r.condicionada).length
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
+  // Con la reubicación, los municipios con los que intercambia gente el seleccionado (borde grueso en el mapa)
+  const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
   const selAntes = seleccionado ? resultadosSinInversion.find((r) => r.ine === seleccionado) ?? null : null
   const invertido = Object.values(inversiones).reduce((s, inv) => s + costeInversion(inv), 0)
   const invertir = (ine: string, inv: Inversion) =>
@@ -149,7 +164,7 @@ export default function App() {
       </header>
 
       {pestana === 'inicio' ? (
-        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio })}
+        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio, reequilibrio })}
           onIr={(d) => setPestana(d)} /></main>
       ) : pestana === 'validacion' ? (
         <main className="pagina"><Validacion datos={validacion} /></main>
@@ -177,36 +192,56 @@ export default function App() {
           {/* 2. Mapa */}
           <div className="columna col-mapa">
             <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
-            <Mapa limites={limites} colores={colores} etiquetas={etiquetas}
+            <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados} vecinos={vecinos}
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
               <Cifra valor={miles(dentro)}
-                texto={invertido ? `de las ${miles(escenario.personas)} personas caben, contando lo que has invertido` : `de las ${miles(escenario.personas)} personas caben con los servicios de hoy`} />
-              <Cifra valor={miles(sinSitio)} texto={invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} acento={TIPOS.tension.color} />
-              <Cifra valor={String(cuenta.oportunidad)} texto="municipios con sitio al que no llega gente" acento={TIPOS.oportunidad.color} />
+                texto={`de las ${miles(escenario.personas)} personas caben` +
+                  (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
+                  (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
+              <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
+                texto={reequilibrio
+                  ? `no encuentran sitio cerca${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
+                  : invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} />
+              <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
+                texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
-            <div className="leyenda" aria-label="Leyenda">
-              <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
-              {colorMapa === 'tipo' ? (
-                <>
-                  <div className="leyenda-tipos">
-                    {ORDEN_TIPOS.map((t) => (
-                      <button key={t} className={`tipo-boton${resaltado === t ? ' activo' : ''}${resaltado && resaltado !== t ? ' apagado' : ''}`}
-                        aria-pressed={resaltado === t} title={TIPOS[t].que} onClick={() => setResaltado(resaltado === t ? null : t)}>
-                        <i style={{ background: TIPOS[t].color }} />{TIPOS[t].nombre}<b>{cuenta[t]}</b>
-                      </button>
+            {/* En pantallas estrechas la leyenda va plegada para no tapar el mapa (diseno.css) */}
+            <div className={`leyenda${leyendaAbierta ? ' abierta' : ''}`} aria-label="Leyenda">
+              <button className="leyenda-boton" aria-expanded={leyendaAbierta} onClick={() => setLeyendaAbierta(!leyendaAbierta)}>
+                <span className="leyenda-muestras" aria-hidden="true">
+                  {ORDEN_TIPOS.map((t) => <i key={t} style={{ background: TIPOS[t].color }} />)}
+                </span>
+                {leyendaAbierta ? 'Ocultar leyenda' : 'Leyenda'}
+              </button>
+              <div className="leyenda-cuerpo">
+                <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
+                {colorMapa === 'tipo' ? (
+                  <>
+                    <div className="leyenda-tipos">
+                      {ORDEN_TIPOS.map((t) => (
+                        <button key={t} className={`tipo-boton${resaltado === t ? ' activo' : ''}${resaltado && resaltado !== t ? ' apagado' : ''}`}
+                          aria-pressed={resaltado === t} title={TIPOS[t].que} onClick={() => setResaltado(resaltado === t ? null : t)}>
+                          <i style={{ background: TIPOS[t].color }} />{TIPOS[t].nombre}<b>{cuenta[t]}</b>
+                        </button>
+                      ))}
+                    </div>
+                    {condicionadas > 0 && (!resaltado || resaltado === 'oportunidad') && (
+                      <div className="leyenda-condicionada" title={CONDICIONADA.que}>
+                        <i style={{ background: CONDICIONADA.fondo }} /> Rayado: {CONDICIONADA.nombre.toLowerCase()} (hospital a más de {HOSPITAL_LEJOS_KM} km)<b>{condicionadas}</b>
+                      </div>
+                    )}
+                    <div className="leyenda-pista">{resaltado ? 'Pulsa otra vez para ver todos.' : 'Pulsa un tipo para verlo solo.'}</div>
+                  </>
+                ) : (
+                  <div className="leyenda-barra">
+                    {ESCALA_CRECIMIENTO.map((t) => (
+                      <span key={t.color} style={{ background: t.color, color: textoSobre(t.color) }}>{t.texto}</span>
                     ))}
                   </div>
-                  <div className="leyenda-pista">{resaltado ? 'Pulsa otra vez para ver todos.' : 'Pulsa un tipo para verlo solo.'}</div>
-                </>
-              ) : (
-                <div className="leyenda-barra">
-                  {ESCALA_CRECIMIENTO.map((t) => (
-                    <span key={t.color} style={{ background: t.color, color: textoSobre(t.color) }}>{t.texto}</span>
-                  ))}
-                </div>
-              )}
-              <div className="leyenda-fuera"><i /> Más de 50.000 habitantes (fuera del reto)</div>
+                )}
+                <div className="leyenda-fuera"><i /> Más de 50.000 habitantes (fuera del reto)</div>
+              </div>
             </div>
           </div>
 
@@ -217,7 +252,7 @@ export default function App() {
                 <div className="resultado-barra">
                   <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
                 </div>
-                <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales}
+                <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} porIne={porIne} escenario={escenario} umbrales={umbrales}
                   inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} />
               </>
             ) : (
@@ -225,10 +260,13 @@ export default function App() {
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
                   <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
-                    notaLibre="pero en municipios a los que no va la gente: ahí apunta el reequilibrio."
-                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} />} />
+                    notaLibre={reequilibrio
+                      ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
+                      : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
+                    origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} reequilibrio={reequilibrio} />} />
                 </section>
-                <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
+                {reequilibrio && <Reubicacion resumen={reubicacion} sinSitio={sinSitio} porIne={porIne} onElegir={elegir} />}
+                <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} reubicar={reequilibrio} onElegir={elegir} />
               </>
             )}
           </aside>
@@ -247,7 +285,7 @@ export default function App() {
 
 /** Cifras de la portada. Son sumas de lo que ya han calculado Python y el motor. */
 function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], anio: number,
-  vaso: { capacidad: number; dentro: number; fuera: number }): Totales {
+  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean }): Totales {
   const suma = (lista: Municipio[], anioPob: number) => lista.reduce((s, m) => s + (m.poblacion[String(anioPob)] ?? 0), 0)
   const universo = municipios.filter((m) => m.universo)
   return {
@@ -308,22 +346,34 @@ function Segmentos({ valor, onCambiar }: { valor: ColorMapa; onCambiar: (v: Colo
 
 type Lista = 'tension' | 'oportunidad' | 'crecimiento'
 
-function Listas({ resultados, porIne, resaltado, onElegir }: {
-  resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; resaltado: Tipo | null; onElegir: (ine: string) => void
+function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
+  resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; resaltado: Tipo | null; reubicar: boolean
+  onElegir: (ine: string) => void
 }) {
   const [lista, setLista] = useState<Lista>('tension')
   const margen = {
     valor: (r: ResultadoMunicipio) => Math.abs(r.margen),
     texto: (r: ResultadoMunicipio) => (r.margen < 0 ? `−${miles(-r.margen)}` : `+${miles(r.margen)}`),
   }
+  // Con «Reubicar» activo, en tensión cuenta lo que sigue sin sitio después de reubicar, no el exceso por tendencia
+  const sinSitio = (filas: ResultadoMunicipio[]) => ({
+    filas: filas.filter((r) => quedanSinSitio(r) >= 1).sort((a, b) => quedanSinSitio(b) - quedanSinSitio(a)),
+    valor: quedanSinSitio,
+    texto: (r: ResultadoMunicipio) => `−${miles(quedanSinSitio(r))}` + (r.envia >= 1 ? ` (envía ${miles(r.envia)})` : ''),
+  })
   // Si se ha pulsado un tipo en la leyenda, la lista enseña solo ese tipo
   const config = resaltado ? {
     titulo: `${TIPOS[resaltado].nombre}: ${TIPOS[resaltado].que}`,
     ayuda: 'Personas que sobran (−) o sitio libre (+).',
     filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(b.margen) - Math.abs(a.margen)),
-    ...margen, color: () => TIPOS[resaltado].color,
+    ...margen,
+    ...(reubicar && resaltado === 'tension' ? sinSitio(resultados.filter((r) => r.tipo === 'tension')) : {}),
+    color: () => TIPOS[resaltado].color,
   } : {
-    tension: {
+    tension: reubicar ? {
+      titulo: 'Donde más gente sigue sin sitio', ayuda: 'Personas, después de reubicar en pueblos cercanos.',
+      ...sinSitio(resultados.filter((r) => r.tipo === 'tension')), color: () => TIPOS.tension.color,
+    } : {
       titulo: 'Donde más gente se queda sin sitio', ayuda: 'Personas, en el escenario elegido.',
       filas: resultados.filter((r) => r.tipo === 'tension').sort((a, b) => a.margen - b.margen),
       ...margen, color: () => TIPOS.tension.color,
@@ -340,6 +390,7 @@ function Listas({ resultados, porIne, resaltado, onElegir }: {
       color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
     },
   }[lista]
+  const conEnvio = reubicar && (resaltado ? resaltado === 'tension' : lista === 'tension')
   const top = config.filas.slice(0, 8)
   const max = top.length ? config.valor(top[0]) || 1 : 1
 
@@ -355,7 +406,7 @@ function Listas({ resultados, porIne, resaltado, onElegir }: {
       <h2>{config.titulo}</h2>
       <p className="ayuda">{config.ayuda} Pulsa uno para ver su ficha.</p>
       {top.length === 0 && <p className="vacio">Ningún municipio en este escenario. Mueve las palancas para ver otros.</p>}
-      <ol>
+      <ol className={conEnvio ? 'con-envio' : undefined}>
         {top.map((r) => (
           <li key={r.ine}>
             <button onClick={() => onElegir(r.ine)}>

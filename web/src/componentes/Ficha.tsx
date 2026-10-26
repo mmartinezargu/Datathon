@@ -1,9 +1,9 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, costeInversion, nivelesColegio, umbralesDe } from '../motor'
-import { LIMITES, TIPOS } from '../colores'
-import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Umbrales } from '../tipos'
-import { miles, millones, pct } from '../formato'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
+import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
+import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
+import { decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
@@ -13,6 +13,7 @@ interface Props {
   r: ResultadoMunicipio
   antes: ResultadoMunicipio // el mismo municipio sin las inversiones simuladas
   m: Municipio
+  porIne: Map<string, Municipio>
   escenario: Escenario
   umbrales: Umbrales
   inversion: Inversion
@@ -21,7 +22,7 @@ interface Props {
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir }: Props) {
+export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
@@ -30,15 +31,22 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
       <div className="ficha-cabeza">
-        <span className="chip" style={{ background: tipo.color }}>{tipo.nombre}</span>
+        <span className="chip" style={{ background: r.condicionada ? CONDICIONADA.fondo : tipo.color }}>
+          {r.condicionada ? CONDICIONADA.nombre : tipo.nombre}
+        </span>
         <h2>{m.nombre}</h2>
         <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos hoy</div>
+        <div className="ayuda ficha-hospital">
+          <Icono nombre="sanidad" tamano={15} />
+          Hospital más cercano: {m.hospital_municipio}, a {decimal(m.hospital_km)} km en línea recta
+        </div>
       </div>
 
       <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
       <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
+      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} />}
 
       <h3>Personas que caben según cada recurso</h3>
       <div className="limites">
@@ -72,6 +80,33 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
   )
 }
 
+/** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
+function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number }) {
+  const exceso = Math.max(0, -r.margen)
+  const quedan = quedanSinSitio(r)
+  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => {
+    const nombres = traslados.slice(0, 5).map((t) => `${porIne.get(t[campo])?.nombre} (${miles(t.personas)}, ${miles(t.km)} km)`)
+    return nombres.join(', ') + (traslados.length > 5 ? ' y otros' : '')
+  }
+  let texto
+  if (r.envia >= 1) {
+    texto = <>Envía <b>{miles(r.envia)}</b> personas a: {lista(r.envios, 'destino')}.
+      {quedan >= 1 && <> <b>{miles(quedan)}</b> se quedan sin sitio.</>}</>
+  } else if (r.recibe >= 1) {
+    texto = <>Recibe <b>{miles(r.recibe)}</b> de: {lista(r.llegadas, 'origen')}.</>
+  } else if (exceso >= 1) {
+    texto = <>No hay ningún pueblo con sitio a menos de {radioKm} km: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
+  } else {
+    return null
+  }
+  return (
+    <p className="ficha-reequilibrio">
+      {texto}
+      {(r.envia >= 1 || r.recibe >= 1) && <span className="ayuda"> En el mapa, con borde discontinuo.</span>}
+    </p>
+  )
+}
+
 function frase(r: ResultadoMunicipio, m: Municipio, anio: number): string {
   const l = LIMITES[r.limitante].frase
   switch (r.tipo) {
@@ -80,7 +115,10 @@ function frase(r: ResultadoMunicipio, m: Municipio, anio: number): string {
     case 'polo':
       return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${miles(r.caben)}: puede crecer sin desbordarse.`
     case 'oportunidad':
-      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. Tiene sitio para acoger a más gente.`
+      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. ` +
+        (r.condicionada
+          ? `Tiene sitio, pero el hospital queda a ${decimal(m.hospital_km)} km: antes de atraer gente hay que asegurar el acceso.`
+          : 'Tiene sitio para acoger a más gente.')
     default:
       return `Llegarían unas ${miles(r.llegan)} personas y caben ${miles(r.caben)}. Crece poco y tiene poco margen.`
   }
@@ -128,10 +166,10 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
     <>
       <h3>¿Y si invertimos aquí?</h3>
       <div className="invertir">
-        <Contador nombre="Colegios nuevos" coste={COSTE_COLEGIO} valor={inversion.colegios}
+        <Contador nombre="Colegios nuevos" coste={COSTE_COLEGIO} plazo={PLAZO_COLEGIO_ANIOS} valor={inversion.colegios}
           onCambiar={(colegios) => onInvertir({ ...inversion, colegios })}
           aviso={sinColegio ? 'No tiene colegio propio: sus alumnos van a otro municipio.' : undefined} />
-        <Contador nombre="Centros de salud nuevos" coste={COSTE_CENTRO_SALUD} valor={inversion.centros}
+        <Contador nombre="Centros de salud nuevos" coste={COSTE_CENTRO_SALUD} plazo={PLAZO_CENTRO_SALUD_ANIOS} valor={inversion.centros}
           onCambiar={(centros) => onInvertir({ ...inversion, centros })} />
       </div>
       {hay && (
@@ -140,6 +178,7 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
             Con <b>{millones(costeInversion(inversion))}</b> caben <b>{miles(r.caben)}</b> personas
             {ganan >= 1 ? <> ({miles(ganan)} más que antes)</> : <>, las mismas que antes</>}.
           </p>
+          <p>Estaría listo en <b>unos {plazoInversion(inversion)} años</b> <span className="estimacion">estimación</span></p>
           {r.tipo !== antes.tipo ? (
             <p>
               Pasa de <span className="chip" style={{ background: TIPOS[antes.tipo].color }}>{TIPOS[antes.tipo].nombre}</span> a{' '}
@@ -156,14 +195,16 @@ function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
   )
 }
 
-function Contador({ nombre, coste, valor, onCambiar, aviso }: {
-  nombre: string; coste: number; valor: number; onCambiar: (v: number) => void; aviso?: string
+function Contador({ nombre, coste, plazo, valor, onCambiar, aviso }: {
+  nombre: string; coste: number; plazo: number; valor: number; onCambiar: (v: number) => void; aviso?: string
 }) {
   return (
     <div className="contador">
       <div>
         <span className="c-nombre">{nombre}</span>
-        <span className="ayuda">{aviso ?? `unos ${millones(coste)} cada uno`}</span>
+        <span className="ayuda">
+          {aviso ?? <>unos {millones(coste)} cada uno; abre en unos {plazo} años <span className="estimacion">estimación</span></>}
+        </span>
       </div>
       <div className="c-botones">
         <button onClick={() => onCambiar(valor - 1)} disabled={valor === 0} aria-label={`Quitar uno: ${nombre.toLowerCase()}`}>−</button>

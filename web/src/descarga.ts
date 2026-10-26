@@ -5,7 +5,7 @@
 
 import { LIMITES, TIPOS } from './colores'
 import { SIN_INVERSION, costeInversion } from './motor'
-import type { Escenario, Inversiones, Municipio, ResultadoMunicipio } from './tipos'
+import type { Escenario, Inversiones, Municipio, ResultadoMunicipio, Traslado } from './tipos'
 
 export function csvEscenario(
   resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, esc: Escenario, inversiones: Inversiones,
@@ -13,7 +13,7 @@ export function csvEscenario(
   const cabecera = [
     'ine', 'municipio', 'zona', 'poblacion_2025', `llegan_hasta_${esc.anio}`, 'caben', 'margen',
     'crecimiento_pct', 'caben_por_vivienda', 'caben_por_colegios', 'caben_por_sanidad', 'caben_por_ritmo',
-    'limita', 'tipo', 'colegios_nuevos', 'centros_salud_nuevos', 'coste_inversion_eur',
+    'limita', 'tipo', 'reubicados_recibe', 'reubicados_envia', 'recibe_de', 'envia_a', 'colegios_nuevos', 'centros_salud_nuevos', 'coste_inversion_eur',
   ]
   const filas = [...resultados]
     .sort((a, b) => a.ine.localeCompare(b.ine))
@@ -24,7 +24,8 @@ export function csvEscenario(
         r.ine, m?.nombre ?? '', m?.zona ?? '', entero(r.poblacion), entero(r.llegan), entero(r.caben), entero(r.margen),
         decimal(r.crecimiento * 100), entero(r.limites.vivienda), entero(r.limites.colegios),
         entero(r.limites.sanidad), entero(r.limites.ritmo),
-        LIMITES[r.limitante].nombre, TIPOS[r.tipo].nombre, String(inv.colegios), String(inv.centros), entero(costeInversion(inv)),
+        LIMITES[r.limitante].nombre, TIPOS[r.tipo].nombre, entero(r.recibe), entero(r.envia),
+        traslados(r.llegadas, 'origen', porIne), traslados(r.envios, 'destino', porIne), String(inv.colegios), String(inv.centros), entero(costeInversion(inv)),
       ]
     })
   return '﻿' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
@@ -39,6 +40,11 @@ export function descargar(nombre: string, texto: string) {
   a.click()
   // Se libera un poco después: si se libera en el mismo instante, Firefox y Safari cancelan la descarga
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+/** «Humanes de Madrid (2676 personas; 6,2 km) | Algete (…)»: con la reubicación activa. */
+function traslados(lista: Traslado[], campo: 'origen' | 'destino', porIne: Map<string, Municipio>): string {
+  return lista.map((t) => `${porIne.get(t[campo])?.nombre ?? t[campo]} (${entero(t.personas)} personas; ${decimal(t.km)} km)`).join(' | ')
 }
 
 function entero(n: number | null): string {

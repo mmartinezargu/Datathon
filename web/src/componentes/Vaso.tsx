@@ -44,6 +44,12 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: 
   const azul = TIPOS.oportunidad.color
   const xEtiqueta = X_VASO + ANCHO_VASO + 16
 
+  const etiquetas: EtiquetaVaso[] = [
+    { y: rebosa ? techo : Math.max(SUELO - altoAgua, borde + 46), titulo: 'Llegan', valor: miles(llegan), color: '#15233B' },
+    ...(rebosa ? [{ y: borde - altoRojo / 2, titulo: 'No caben', valor: miles(fuera), color: rojo, fuerte: true, medio: true }] : []),
+    { y: rebosa ? borde + altoVaso / 2 : borde, titulo: rebosa ? 'Caben' : 'Caben en total', valor: miles(rebosa ? dentro : capacidad), color: azul, medio: rebosa },
+  ]
+
   const resumen = rebosa
     ? `Llegan ${miles(llegan)} personas: caben ${miles(dentro)} y ${miles(fuera)} se quedan sin sitio.`
     : `Llegan ${miles(llegan)} personas y caben todas: sobra sitio para ${miles(libre)} más.`
@@ -71,11 +77,8 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: 
           strokeWidth="4" strokeLinejoin="round" />
         <line x1={X_VASO - 8} y1={borde} x2={X_VASO + ANCHO_VASO + 8} y2={borde} stroke="#15233B" strokeWidth="4" strokeLinecap="round" />
 
-        {/* Etiquetas a la derecha, cada una a la altura de lo que señala */}
-        <Etiqueta x={xEtiqueta} y={rebosa ? techo : Math.max(SUELO - altoAgua, borde + 46)} titulo="Llegan" valor={miles(llegan)} color="#15233B" />
-        {rebosa && <Etiqueta x={xEtiqueta} y={borde - altoRojo / 2} titulo="No caben" valor={miles(fuera)} color={rojo} fuerte medio />}
-        <Etiqueta x={xEtiqueta} y={rebosa ? borde + altoVaso / 2 : borde} titulo={rebosa ? 'Caben' : 'Caben en total'}
-          valor={miles(rebosa ? dentro : capacidad)} color={azul} medio={rebosa} />
+        {/* Etiquetas a la derecha, cada una a la altura de lo que señala (sin pisarse) */}
+        {colocar(etiquetas).map(({ yTexto, ...e }) => <Etiqueta key={e.titulo} x={xEtiqueta} yTexto={yTexto} {...e} />)}
         <line x1={X_VASO - 8} y1={SUELO + 2} x2={X_VASO + ANCHO_VASO + 8} y2={SUELO + 2} stroke="#15233B" strokeWidth="2" opacity="0.25" />
       </svg>
 
@@ -95,12 +98,37 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: 
   )
 }
 
-/** Etiqueta con una rayita que apunta a su altura. `medio`: centrada en esa altura. */
-function Etiqueta({ x, y, titulo, valor, color, fuerte, medio }: {
-  x: number; y: number; titulo: string; valor: string; color: string; fuerte?: boolean; medio?: boolean
-}) {
-  // Que no se salga por arriba ni se pegue al suelo
-  const yTexto = Math.min(Math.max(y + (medio ? 0 : 6), 20), SUELO - 20)
+interface EtiquetaVaso {
+  y: number // altura que señala la rayita
+  titulo: string
+  valor: string
+  color: string
+  fuerte?: boolean
+  medio?: boolean // centrada en esa altura
+}
+
+const HUECO_ETIQUETAS = 44 // alto de una etiqueta (título y cifra) más un poco de aire
+
+/**
+ * Dónde va el texto de cada etiqueta: a la altura de lo que señala, pero sin pisarse
+ * (si dos quedan muy cerca, se separan) y sin salirse por arriba ni pegarse al suelo.
+ */
+function colocar(etiquetas: EtiquetaVaso[]): (EtiquetaVaso & { yTexto: number })[] {
+  const lista = etiquetas.map((e) => ({ ...e, yTexto: e.y + (e.medio ? 0 : 6) })).sort((a, b) => a.yTexto - b.yTexto)
+  // De arriba abajo: cada una, al menos un hueco por debajo de la anterior
+  lista.forEach((e, i) => { if (i > 0) e.yTexto = Math.max(e.yTexto, lista[i - 1].yTexto + HUECO_ETIQUETAS) })
+  // Si la última se pasa del suelo, se suben todas lo que haga falta, de abajo arriba
+  for (let i = lista.length - 1; i >= 0; i--) {
+    const tope = i === lista.length - 1 ? SUELO - 20 : lista[i + 1].yTexto - HUECO_ETIQUETAS
+    lista[i].yTexto = Math.min(lista[i].yTexto, tope)
+  }
+  // Y que la de arriba no se salga (el dibujo tiene sitio para las tres)
+  lista.forEach((e, i) => { e.yTexto = Math.max(e.yTexto, i === 0 ? 20 : lista[i - 1].yTexto + HUECO_ETIQUETAS) })
+  return lista
+}
+
+/** Etiqueta con una rayita que apunta a su altura y el texto donde haya sitio. */
+function Etiqueta({ x, y, yTexto, titulo, valor, color, fuerte }: EtiquetaVaso & { x: number; yTexto: number }) {
   return (
     <g>
       <line x1={x - 12} y1={y} x2={x - 3} y2={y} stroke={color} strokeWidth="2" />

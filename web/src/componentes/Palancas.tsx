@@ -44,6 +44,21 @@ export function Palancas({ escenario, onCambiar }: Props) {
         texto={miles(escenario.personas)} min={0} max={maximo} paso={1000}
         pista={`Ritmo de la última década: ${miles(RITMO_ANUAL * anios)} hasta ${escenario.anio}`}
         onCambiar={(v) => cambiar({ personas: v })} />
+      <label className="control interruptor">
+        <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />
+        <span className="interruptor-texto">
+          <b>Reubicar en pueblos cercanos con sitio</b>
+          <span className="pista">
+            Quien no cabe en su municipio va al pueblo con sitio más cercano, a menos de {escenario.radioKm} km y con hospital cerca.
+            Si no hay ninguno, se queda sin sitio. Los colores del mapa no cambian.
+          </span>
+        </span>
+      </label>
+      {escenario.reequilibrio && (
+        <Deslizador etiqueta="Distancia máxima" valor={escenario.radioKm} texto={`${escenario.radioKm} km`}
+          min={10} max={50} paso={5} pista="En línea recta entre los centros de los pueblos."
+          onCambiar={(v) => cambiar({ radioKm: v })} />
+      )}
 
       <button className="desplegar" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
         <span>Supuestos del cálculo</span>
