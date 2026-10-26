@@ -1,4 +1,4 @@
-// Pestaña «Repartir»: coge la gente que el modelo prevé que llega y la reparte entre los pueblos según
+// Pestaña «Atraer»: coge la gente que el modelo prevé que llega y la reparte entre los pueblos según
 // quién es, como si se pudiera dirigir a dónde va cada uno.
 // Cada pueblo tiene un hueco: todo lo que le cabe (`caben`, el menor de sus límites). Como en el modelo,
 // cada persona ocupa sitio en todos los recursos a la vez, así que el hueco es uno solo para todos.

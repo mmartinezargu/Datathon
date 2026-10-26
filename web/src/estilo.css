@@ -395,3 +395,12 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
   .sim-entradas, .sim-resumen { grid-template-columns: 1fr; }
 }
 .sim-reiniciar { margin-top: 12px; }
+
+/* ---------- Atraer: dónde promocionar a cada grupo ---------- */
+.atraer-grupos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 8px; }
+.atraer-grupo { border: 1px solid var(--linea); border-radius: 12px; padding: 10px 14px; }
+.atraer-grupo h3 { font-size: 14px; margin: 0 0 6px; }
+.atraer-grupo ol { margin: 0; padding-left: 18px; font-size: 13px; }
+.atraer-grupo li { margin: 3px 0; }
+.atraer-grupo li span { color: var(--tinta2); margin-left: 6px; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .atraer-grupos { grid-template-columns: 1fr; } }

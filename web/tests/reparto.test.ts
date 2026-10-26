@@ -1,8 +1,8 @@
 // Tests de la pestaña «Repartir» (src/reparto.ts) con los datos reales. Se ejecutan con «npm test».
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { HOSPITAL_LEJOS_KM, calcular, escenarioPorDefecto } from '../src/motor'
-import { TAMANOS } from '../src/mudanza'
+import { HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, calcular, escenarioPorDefecto } from '../src/motor'
+import { FILTROS_INICIALES, TAMANOS, rankingMudanza } from '../src/mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../src/reparto'
 import type { FiltrosReparto, Municipio, ZonaSalud } from '../src/tipos'
 
@@ -65,5 +65,32 @@ describe('repartir a los que llegan', () => {
     expect(rp.colocados).toBeGreaterThan(cabenSinDirigir(r))
     expect(rp.colocados).toBeLessThanOrEqual(capacidad)
     expect(cabenSinDirigir(r)).toBe(56_796) // la misma cifra de cabecera que el mapa
+  })
+})
+
+describe('«Atraer» y «Dónde vivir» con la medida en minutos en coche', () => {
+  const conHospital: FiltrosReparto = { ...FILTROS_REPARTO, hospitalCerca: true }
+  const cercaKm = (m: Municipio) => m.hospital_km <= HOSPITAL_LEJOS_KM
+  const cercaMin = (m: Municipio) => m.hospital_min <= HOSPITAL_LEJOS_MIN
+
+  it('«hospital cerca» usa los minutos (OSRM) y no los km', () => {
+    const rp = repartir(r, porIne, llegan, conHospital, 'min')
+    expect(rp.pueblos.length).toBeGreaterThan(0)
+    for (const p of rp.pueblos) expect(cercaMin(porIne.get(p.ine)!)).toBe(true)
+    // Algún pueblo lejos en km pero no en minutos recibe gente: la medida cambia el reparto
+    expect(rp.pueblos.some((p) => !cercaKm(porIne.get(p.ine)!))).toBe(true)
+  })
+
+  it('con km sale lo mismo que sin decir la medida', () => {
+    expect(repartir(r, porIne, llegan, conHospital, 'km')).toEqual(repartir(r, porIne, llegan, conHospital))
+  })
+
+  it('«Dónde vivir»: la casilla del hospital filtra con la medida elegida', () => {
+    const filtros = { ...FILTROS_INICIALES, colegio: false, sitioLibre: false, hospitalCerca: true }
+    const min = rankingMudanza(r, porIne, filtros, 'min').map((c) => porIne.get(c.ine)!)
+    const km = rankingMudanza(r, porIne, filtros, 'km').map((c) => porIne.get(c.ine)!)
+    expect(min.every(cercaMin)).toBe(true)
+    expect(km.every(cercaKm)).toBe(true)
+    expect(min.map((m) => m.ine).sort()).not.toEqual(km.map((m) => m.ine).sort())
   })
 })
