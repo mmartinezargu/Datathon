@@ -5,8 +5,8 @@
 export interface IngredientesCapacidad {
   viv_principales: number
   viv_no_principales: number // vacías o de segunda residencia (Censo 2021)
-  viv_vacias: number // vacías según el consumo eléctrico (Censo 2021, INE 59531); sin ese dato, las no principales
-  viv_vacias_sin_dato: boolean // el INE no da las vacías del municipio: viv_vacias son las no principales
+  viv_vacias: number // vacías según el consumo eléctrico (Censo 2021, INE 59531); sin ese dato, estimadas con su zona
+  viv_vacias_sin_dato: boolean // el INE no da las vacías del municipio: viv_vacias es una estimación con su zona estadística
   personas_hogar: number
   viv_previstas: number // viviendas previstas en suelo aún sin desarrollar (planeamiento 2025)
   suelo_pendiente_ha: number

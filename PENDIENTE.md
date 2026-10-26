@@ -34,17 +34,17 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 ## Cifras para las diapositivas (escenario por defecto: 2035)
 - 155 municipios, 997.059 vecinos; crecieron un 15,6 % en 2015-2025 (la Comunidad, un 10,9 %).
 - Llegan **134.426** personas (el ritmo de la última década). Ojo: la maqueta usaba 170.000.
-- Datos de partida (26/10, rama `mejora/datos-exactos`): viviendas **vacías** reales del INE (consumo eléctrico) y **alumnos matriculados** de ALMUDENA en vez de niños estimados por edad. Ningún pueblo con el hospital a más de 25 km recibe gente al reubicar.
-- Caben sin ampliar servicios **55.243**; **79.183** se quedan sin sitio.
-- 83 municipios en tensión, 33 polos, 35 oportunidades y 4 en consolidación.
-- De las 35 oportunidades, **22 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sitio libre en las oportunidades (caben − llegan): 17.122 personas; sin las condicionadas, 16.122.
-- Con «Reubicar en pueblos cercanos» a 25 km, se reubican **22.305** personas en 32 municipios, de media a 9 km. Siguen sin sitio **56.878**. A 50 km sale lo mismo: a 25 km ya se llenan todos los pueblos con sitio y el hospital cerca.
+- Datos de partida (26/10, rama `mejora/datos-exactos`): viviendas **vacías** reales del INE (consumo eléctrico; en los 44 pueblos sin dato, estimadas con su zona) y **alumnos matriculados** de ALMUDENA para las plazas libres (las plazas se pasan a personas con los niños que viven en cada municipio). Ningún pueblo con el hospital a más de 25 km recibe gente al reubicar.
+- Caben sin ampliar servicios **54.236**; **80.190** se quedan sin sitio.
+- 88 municipios en tensión, 31 polos, 29 oportunidades y 7 en consolidación.
+- De las 29 oportunidades, **14 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sitio libre en las oportunidades (caben − llegan): 17.391 personas; sin las condicionadas, 17.059.
+- Con «Reubicar en pueblos cercanos» a 25 km, se reubican **21.998** personas en 31 municipios, de media a 9 km. Siguen sin sitio **58.193**. A 50 km sale lo mismo: a 25 km ya se llenan todos los pueblos con sitio y el hospital cerca.
 - 31 municipios no tienen sitio para nadie sin ampliar (18 por colegios y 13 por sanidad); solo 4 están a menos de un 5 % de su límite.
 - Validación 2015 -> 2025: acierta dónde va **77 de cada 100 personas** (89 por zonas); la tendencia sola, 67. Es decir, coloca en otro municipio al 22,6 % (11,4 % en otra zona; la tendencia sola, 32,7 % y 20,3 %).
 - El WAPE (44,4 %, frente al 64,1 % de la tendencia) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. Se enseña igual en la web.
 - Plan de inversión (`uv run plan_inversion.py`; colegio o centro de salud donde limitan, hasta que manda la vivienda o el ritmo; obras desde 2027 [supuesto]):
-  - Sin reubicar: **39 colegios y 21 centros de salud** en 49 municipios, **538 M€**; lo último abre en 2030. Siguen sin sitio **26.653** (de 79.183), casi todos por vivienda.
-  - Reubicando a 25 km: **13 colegios y 11 centros** en 21 municipios, **212 M€**; lo último abre en 2030. Siguen sin sitio **13.184** (de 56.878), casi todos por vivienda.
+  - Sin reubicar: **39 colegios y 21 centros de salud** en 48 municipios, **538 M€**; lo último abre en 2030. Siguen sin sitio **27.206** (de 80.190), casi todos por vivienda.
+  - Reubicando a 25 km: **13 colegios y 12 centros** en 22 municipios, **220 M€**; lo último abre en 2030. Siguen sin sitio **13.835** (de 58.193), casi todos por vivienda.
 - Población de las zonas de salud frente al Censo 2021 (IECM): se aparta un 2,6 % de media en las 286 zonas (1,9 % en las 45 de los pueblos del reto); correlación 0,997.
 
 ## Cómo arrancarla

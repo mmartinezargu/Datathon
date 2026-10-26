@@ -169,7 +169,8 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
       const estimados = c.alumnos_estimados ? ' (estimación: no hay dato de matrícula)' : ''
       return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} con ${miles(x.alumnos)} alumnos de ${nivel}${estimados}: ${miles(x.alumnos / x.n)} por centro. ` +
         `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.alumnos)} = ${miles(Math.max(0, x.libres))}. ` +
-        `Como hay ${decimal(x.proporcion * 100, 1)} alumnos de ${nivel} por cada 100 vecinos, caben ${miles(x.caben)} personas.`
+        `En ${m.nombre} viven ${decimal(x.ninosPorVecino * 100, 1)} niños ${x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'} por cada 100 vecinos (estimación): ` +
+        `si quien llega trae los mismos, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
       // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
@@ -186,7 +187,7 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
     }
     case 'vivienda':
       return (c.viv_vacias_sin_dato
-        ? `${miles(c.viv_vacias)} viviendas vacías o secundarias (el INE no da las vacías de un pueblo tan pequeño) × `
+        ? `${miles(c.viv_vacias)} viviendas vacías (estimación: el INE no da las de un pueblo tan pequeño, se calculan con su zona) × `
         : `${miles(c.viv_vacias)} viviendas vacías × `) + `${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas × ${pct(esc.pctSuelo, 0)}, ` +
         `por ${c.personas_hogar.toFixed(2).replace('.', ',')} personas por hogar = ${miles(r.caben)} personas.`
     default:

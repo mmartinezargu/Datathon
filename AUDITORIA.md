@@ -286,8 +286,8 @@ Efecto solo de este cambio: a 25 km se reubican 36.167 en vez de 38.010.
 
 Antes se usaban las viviendas no principales del Censo 2021 (tabla 59525), que juntan las vacías con las segundas residencias. Ahora se usan las **vacías** según el consumo eléctrico (Censo 2021, tabla 59531, https://www.ine.es/jaxi/Tabla.htm?tpx=59531). La palanca pasa a llamarse «Vivienda vacía que se ocupa» y sigue en el 15 %.
 
-- El INE no publica las vacías de los municipios más pequeños: faltan **44 de los 155**, todos con unos 1.000 habitantes o menos (18.712 vecinos en total). En esos se siguen usando las no principales, y se marcan en la columna `viv_vacias_sin_dato`.
-- En los 111 con dato hay 41.212 vacías, frente a 104.506 no principales: un 39 %. En los 155, el modelo cuenta ahora 51.819 viviendas, frente a 115.113.
+- El INE no publica las vacías de los municipios más pequeños: faltan **44 de los 155**, todos con unos 1.000 habitantes o menos (18.712 vecinos en total). En esos se estiman: no principales × (vacías ÷ no principales) de su zona estadística, calculada con los municipios de la zona que sí tienen dato. Se marcan en la columna `viv_vacias_sin_dato`. Están en Sierra Norte (31, con un 29,1 % de vacías), Sudeste (9, 74,0 %), Nordeste (2, 32,7 %) y Sierra Sur (2, 34,5 %). Salen 4.279 vacías, frente a sus 10.607 no principales. Contar solo los municipios del reto daría lo mismo, porque en esas zonas no hay ninguno de 50.000 habitantes o más.
+- En los 111 con dato hay 41.212 vacías, frente a 104.506 no principales: un 39 %. En los 155, el modelo cuenta ahora 45.491 viviendas, frente a 115.113.
 - Donde más se nota es en los pueblos de segunda residencia de la sierra: por ejemplo, Guadarrama pasa de 3.875 a 660.
 
 ### 3. Sanidad: población de las zonas de salud frente al Censo 2021 (solo validación)
@@ -326,23 +326,25 @@ Qué cambia:
 
 - **Antes**, la carga de los colegios eran los niños que viven en el municipio, estimados a partir de grupos de 5 años: de 6 a 11 años en primaria y de 12 a 17 en secundaria, que incluye el bachillerato. **Ahora** son los alumnos matriculados en sus centros, vivan donde vivan: lo que de verdad llena el colegio.
 - La curva de «alumnos por colegio según el tamaño» se ajusta con datos reales. El límite de cada colegio baja: en un municipio como Paracuellos de Jarama pasa de 881 a 603 en primaria.
-- Para pasar plazas a personas se usan los alumnos por vecino del municipio. Si muchos niños estudian fuera, una plaza libre «vale» más personas.
+- Las **plazas libres** salen de la matrícula: colegios × límite − alumnos. Para **pasar plazas a personas** se usan los niños que viven en el municipio por vecino (Censo anual: de 6 a 11 años y de 12 a 17), no los alumnos por vecino. Quien llega trae los hijos que trae, estudien donde estudien. (En la primera versión de esta rama se usaban los alumnos por vecino, y Manzanares el Real salía a unas 158 personas por plaza de ESO.)
 - Hay 4 municipios con colegio en el registro de centros pero sin alumnos en ALMUDENA: Navalafuente en primaria; Navacerrada, Perales de Tajuña y Villamanta en ESO. Ahí se usan los niños estimados por la relación alumnos ÷ niños de los demás (0,98 en primaria y 0,70 en ESO), y se marcan en `alumnos_estimados`.
-- ⚠️ Manzanares el Real tiene un instituto con 61 alumnos de ESO. Con tan pocos, su límite de colegios sale enorme y manda la vivienda.
+- Manzanares el Real: su instituto tiene 61 alumnos de ESO, pero viven 724 chicos de 12 a 17 años. Ahora le quedan 424 plazas de ESO, a unas 13 personas por plaza: 5.653 personas. Por primaria, 4.064. Por colegios caben 4.064 (hay test) y manda la vivienda (1.599).
+- ⚠️ En secundaria, la matrícula es solo la ESO (de 12 a 15 años), pero los niños residentes son de 12 a 17. Así se cuentan más chicos por persona que llega, y el límite de ESO sale prudente.
 
 ### Antes y después (escenario por defecto)
 
 | | Antes (main) | 1. Hospital | 1 + 2. Vacías | Después (1 + 2 + 4) |
 |---|---:|---:|---:|---:|
-| Caben sin ampliar servicios | 60.785 | 60.785 | 53.953 | **55.243** |
-| Sin sitio | 73.641 | 73.641 | 80.473 | **79.183** |
-| Tensión / polo / oportunidad / consolidación | 67 / 41 / 37 / 10 | 67 / 41 / 37 / 10 | 75 / 36 / 37 / 7 | **83 / 33 / 35 / 4** |
-| Oportunidades condicionadas | 24 | 24 | 22 | **22** |
-| Reubicadas a 25 km (a cuántos municipios) / siguen sin sitio | 38.010 (48) / 35.631 | 36.167 (37) / 37.475 | 30.857 (36) / 49.616 | **22.305 (32) / 56.878** |
-| Reubicadas a 50 km / siguen sin sitio | 41.445 / 32.197 | 38.542 / 35.099 | 32.489 / 47.983 | **22.305 / 56.878** |
+| Caben sin ampliar servicios | 60.785 | 60.785 | 53.395 | **54.236** |
+| Sin sitio | 73.641 | 73.641 | 81.031 | **80.190** |
+| Tensión / polo / oportunidad / consolidación | 67 / 41 / 37 / 10 | 67 / 41 / 37 / 10 | 81 / 34 / 33 / 7 | **88 / 31 / 29 / 7** |
+| Oportunidades condicionadas | 24 | 24 | 15 | **14** |
+| Reubicadas a 25 km (a cuántos municipios) / siguen sin sitio | 38.010 (48) / 35.631 | 36.167 (37) / 37.475 | 30.709 (35) / 50.322 | **21.998 (31) / 58.193** |
+| Reubicadas a 50 km / siguen sin sitio | 41.445 / 32.197 | 38.542 / 35.099 | 32.342 / 48.690 | **21.998 / 58.193** |
 | Caben = 0 (colegios / sanidad) | 30 (19 / 11) | | | **31 (18 / 13)** |
+| Sitio libre en las oportunidades (caben − llegan) / sin las condicionadas | 24.570 / 22.347 | | | **17.391 / 17.059** |
 
-Después de los cambios, a 25 km ya se llenan los 32 pueblos con sitio y el hospital cerca (22.305 plazas, todas usadas). Por eso a 50 km sale lo mismo.
+Después de los cambios, a 25 km ya se llenan los 31 pueblos con sitio y el hospital cerca (21.998 plazas, todas usadas). Por eso a 50 km sale lo mismo. Hay menos oportunidades condicionadas (24 → 14) porque, con las vacías estimadas, varios pueblos de la Sierra Norte con el hospital lejos tienen menos sitio y pasan a consolidación.
 
 La validación 2015→2025 no cambia, porque solo usa la presión: 22,6 % en otro municipio, 11,4 % en otra zona y un WAPE del 44,4 %.
 
@@ -350,8 +352,8 @@ Plan de inversión (`uv run plan_inversion.py`):
 
 | | Antes | Después |
 |---|---|---|
-| Sin reubicar | 34 colegios + 22 centros de salud en 41 municipios, 499 M€; siguen sin sitio 17.706 | 39 colegios + 21 centros en 49 municipios, 538 M€; siguen sin sitio 26.653 |
-| Reubicando a 25 km | 6 + 4 en 7 municipios, 89 M€; siguen sin sitio 3.802 | 13 + 11 en 21 municipios, 212 M€; siguen sin sitio 13.184 |
+| Sin reubicar | 34 colegios + 22 centros de salud en 41 municipios, 499 M€; siguen sin sitio 17.706 | 39 colegios + 21 centros en 48 municipios, 538 M€; siguen sin sitio 27.206 |
+| Reubicando a 25 km | 6 + 4 en 7 municipios, 89 M€; siguen sin sitio 3.802 | 13 + 12 en 22 municipios, 220 M€; siguen sin sitio 13.835 |
 
 En los dos casos, lo último abriría en 2030 (supuesto: obras desde 2027). Lo que sigue sin sitio es casi todo por vivienda.
 
@@ -359,15 +361,15 @@ En los dos casos, lo último abriría en 2030 (supuesto: obras desde 2027). Lo q
 
 | Municipio | Caben antes → después | Manda | Tipo | Por qué |
 |---|---:|---|---|---|
-| Paracuellos de Jarama | 9.509 → 4.231 (−5.278) | ritmo → colegios | polo → tensión | Primaria: el límite por colegio de su tamaño baja de 881 a 603 alumnos con la matrícula real, y sus colegios tienen 523 |
-| El Escorial | 5.855 → 2.468 (−3.387) | vivienda → colegios | oportunidad → oportunidad | Primaria: límite 675 → 488, con 427 alumnos por colegio. La vivienda también baja (5.855 → 4.970), por las vacías reales |
-| Cobeña | 2.638 → 305 (−2.333) | ritmo → colegios | oportunidad → tensión | Primaria: 328 alumnos por colegio con un límite de 341 (antes, 301 niños con un límite de 429) |
-| Soto del Real | 1.993 → 0 (−1.993) | vivienda → colegios | oportunidad → tensión | Su instituto tiene 509 alumnos de ESO por centro (antes se estimaban 332), por encima del límite de 480: le llegan alumnos de fuera |
-| Manzanares el Real | 0 → 1.599 (+1.599) | colegios → vivienda | tensión → oportunidad | Antes su instituto parecía lleno (724 chicos de 12 a 17 años); matriculados en ESO hay 61 |
-| Collado Mediano | 0 → 1.570 (+1.570) | colegios → vivienda | tensión → oportunidad | Su colegio tiene 216 alumnos de primaria, no los 449 niños estimados: muchos estudian fuera |
+| Paracuellos de Jarama | 9.509 → 4.141 (−5.368) | ritmo → colegios | polo → tensión | Primaria: el límite por colegio de su tamaño baja de 881 a 603 alumnos con la matrícula real, y sus colegios tienen 523 |
+| El Escorial | 5.855 → 2.308 (−3.547) | vivienda → colegios | oportunidad → oportunidad | Primaria: límite 675 → 488, con 427 alumnos por colegio. La vivienda también baja (5.855 → 4.970), por las vacías reales |
+| Cobeña | 2.638 → 332 (−2.306) | ritmo → colegios | oportunidad → tensión | Primaria: 328 alumnos por colegio con un límite de 341 (antes, 301 niños con un límite de 429) |
+| Soto del Real | 1.993 → 0 (−1.993) | vivienda → colegios | oportunidad → tensión | Su instituto tiene 509 alumnos de ESO por centro, por encima del límite de 480: le llegan alumnos de fuera |
+| Manzanares el Real | 0 → 1.599 (+1.599) | colegios → vivienda | tensión → oportunidad | Antes su instituto parecía lleno (724 chicos de 12 a 17 años); matriculados en ESO hay 61. Por colegios caben 4.064 y manda la vivienda |
+| Collado Mediano | 0 → 1.570 (+1.570) | colegios → vivienda | tensión → oportunidad | Su colegio tiene 216 alumnos de primaria, no los 449 niños que viven allí: muchos estudian fuera |
 | Guadarrama | 1.620 → 276 (−1.344) | vivienda → vivienda | tensión → tensión | Vivienda: 660 vacías reales frente a 3.875 no principales (muchas segundas residencias) |
-| Cercedilla | 1.205 → 54 (−1.151) | vivienda → colegios | consolidación → tensión | Su instituto tiene 443 alumnos con un límite de 446. La vivienda también baja (1.205 → 506) |
-| Becerril de la Sierra | 159 → 1.300 (+1.141) | colegios → vivienda | tensión → polo | Primaria: 268 alumnos matriculados frente a 390 niños estimados |
-| Guadalix de la Sierra | 0 → 1.053 (+1.053) | colegios → colegios | tensión → oportunidad | Primaria: 284 alumnos matriculados frente a 408 niños estimados |
+| Cercedilla | 1.205 → 52 (−1.153) | vivienda → colegios | consolidación → tensión | Su instituto tiene 443 alumnos con un límite de 446. La vivienda también baja (1.205 → 506) |
+| La Cabrera | 978 → 0 (−978) | vivienda → colegios | oportunidad → tensión | Su instituto tiene 540 alumnos de ESO (le llegan de los pueblos de alrededor) con un límite de 304; antes se contaban 204 chicos del pueblo |
+| Hoyo de Manzanares | 0 → 892 (+892) | colegios → sanidad | tensión → tensión | Primaria: 282 alumnos matriculados frente a 532 niños que viven allí: ya no está por encima del límite, y ahora manda el centro de salud |
 
-Cambian de tipo 30 municipios, y en 32 cambia el recurso que manda. Los cambios más frecuentes son de polo a tensión (10) y de oportunidad a tensión (9).
+Cambian de tipo 35 municipios, y en 37 cambia el recurso que manda. Los cambios más frecuentes son de polo a tensión (11) y de oportunidad a tensión (10).

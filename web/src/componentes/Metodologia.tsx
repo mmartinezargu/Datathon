@@ -168,9 +168,9 @@ export function Metodologia({ escenario, validacion, sinDatoVacias }: {
         <ul className="limitaciones">
           <li><b>El planeamiento no es una licencia.</b> Que un suelo tenga viviendas previstas no quiere decir que se vayan a construir, ni cuándo. Por eso solo se cuenta una parte ({pct(escenario.pctSuelo, 0)}).</li>
           <li><b>Una vivienda vacía no está en venta ni en alquiler.</b> El INE la cuenta como vacía cuando casi no gasta luz, pero puede ser una herencia, una casa en obras o un piso que su dueño no quiere alquilar. Por eso solo se cuenta un {pct(escenario.pctVivienda, 0)}.</li>
-          <li><b>En {sinDatoVacias} pueblos pequeños no hay cifra de vacías.</b> El INE no la publica en los municipios más pequeños; ahí se usan las viviendas no principales, que juntan las vacías con las segundas residencias, así que su límite de vivienda puede salir alto.</li>
+          <li><b>En {sinDatoVacias} pueblos pequeños las vacías se estiman.</b> El INE no publica la cifra en los municipios más pequeños. Ahí se toman sus viviendas no principales (vacías más segundas residencias) y se les aplica la parte que son vacías en los pueblos de su zona que sí tienen dato.</li>
           <li><b>No hay datos abiertos de plazas escolares.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro: cada municipio se compara con los de tamaño parecido, contando los alumnos que tiene hoy.</li>
-          <li><b>Alumnos de hoy, no plazas.</b> Sabemos cuántos alumnos de primaria y de ESO tiene cada municipio (último curso publicado, aún provisional), pero no cuántas plazas. Se supone que quien llega trae los mismos alumnos por vecino que el municipio. Donde hay colegio pero no dato de matrícula, se estima por la edad de los vecinos.</li>
+          <li><b>Alumnos de hoy, no plazas.</b> Sabemos cuántos alumnos de primaria y de ESO tiene cada municipio (último curso publicado, aún provisional), pero no cuántas plazas. Se supone que quien llega trae los mismos niños por vecino que los que ya viven en el municipio, y los niños se estiman con grupos de 5 años del Censo anual. Donde hay colegio pero no dato de matrícula, se estima por la edad de los vecinos.</li>
           <li><b>Todos los colegios cuentan igual:</b> públicos, concertados y privados.</li>
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona de salud que cubre más superficie de su término, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
           <li><b>Suelo sin cifra de viviendas.</b> El suelo pendiente que no trae cifra de viviendas en el planeamiento cuenta como 0 ({miles(SUELO_SIN_CIFRA_HA)} ha en los 155), así que la capacidad de vivienda es prudente.</li>
@@ -224,7 +224,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias }: {
               <dt>Vivienda</dt>
               <dd>
                 <p className="formula">(viviendas vacías × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
-                <p className="ayuda">Vacías: las que casi no gastan luz según el Censo 2021 (INE, a partir del consumo eléctrico). En los {sinDatoVacias} municipios en los que el INE no da esa cifra, las no principales (vacías más segundas residencias).</p>
+                <p className="ayuda">Vacías: las que casi no gastan luz según el Censo 2021 (INE, a partir del consumo eléctrico). En los {sinDatoVacias} municipios en los que el INE no da esa cifra: no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí tienen dato.</p>
               </dd>
               <dt>Colegios</dt>
               <dd>
@@ -235,8 +235,8 @@ export function Metodologia({ escenario, validacion, sinDatoVacias }: {
                   {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño. Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
                 </p>
                 <p className="formula">log(alumnos por colegio) = a + b × log(vecinos), con a y b de una recta ajustada a los 155; el límite es esa recta subida hasta el percentil {pct(escenario.exigencia, 0)} de lo que se aparta cada municipio</p>
-                <p className="formula">plazas libres = colegios × límite − alumnos de hoy; personas que caben = plazas libres ÷ alumnos de ese nivel por vecino del municipio</p>
-                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica. Alumnos: los matriculados en los centros del municipio, vivan donde vivan (ALMUDENA, IECM). Donde hay colegio pero no dato, niños de esa edad (grupos de 5 años del Censo anual) por la relación alumnos ÷ niños de los demás.</p>
+                <p className="formula">plazas libres = colegios × límite − alumnos de hoy; personas que caben = plazas libres ÷ niños de esa edad que viven en el municipio por vecino</p>
+                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica. Las plazas libres salen de los alumnos matriculados en los centros del municipio, vivan donde vivan (ALMUDENA, IECM); donde hay colegio pero no dato, de los niños de esa edad por la relación alumnos ÷ niños de los demás. Para pasar plazas a personas se usan los niños que viven en el municipio (de 6 a 11 años y de 12 a 17, estimados con grupos de 5 años del Censo anual): quien llega trae los hijos que trae, estudien donde estudien.</p>
               </dd>
               <dt>Sanidad</dt>
               <dd>

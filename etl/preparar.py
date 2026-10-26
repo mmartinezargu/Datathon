@@ -101,13 +101,19 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
             .merge(sanidad, on="ine", how="left"))
     df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
         df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))
-    # Viviendas vacías (consumo eléctrico, INE 59531). Si el INE no da la cifra del municipio,
-    # se usan las no principales (vacías + secundarias) y se marca en viv_vacias_sin_dato
+    # Viviendas vacías (consumo eléctrico, INE 59531). Si el INE no da la cifra del municipio, se estiman:
+    # no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí
+    # tienen dato. Se marca en viv_vacias_sin_dato
     df["viv_vacias_sin_dato"] = df["viv_vacias_ine"].isna()
-    df["viv_vacias"] = df["viv_vacias_ine"].fillna(df["viv_no_principales"])
+    con = df[~df["viv_vacias_sin_dato"]].groupby("zona")[["viv_vacias_ine", "viv_no_principales"]].sum()
+    vacias_zona = con["viv_vacias_ine"] / con["viv_no_principales"]
+    estimadas = (df["viv_no_principales"] * df["zona"].map(vacias_zona)).round()
+    df["viv_vacias"] = df["viv_vacias_ine"].fillna(estimadas)
     sin = df[df["universo"] & df["viv_vacias_sin_dato"]]
-    print(f"Viviendas vacías: sin dato del INE en {len(sin)} de los {int(df['universo'].sum())} municipios del reto "
-          "(se usan las no principales)")
+    print(f"Viviendas vacías: sin dato del INE en {len(sin)} de los {int(df['universo'].sum())} municipios del reto; "
+          f"se estiman con su zona: {miles(sin['viv_vacias'].sum())} (no principales: {miles(sin['viv_no_principales'].sum())})")
+    if df.loc[df["universo"], "viv_vacias"].isna().any():
+        raise SystemExit("Hay municipios del reto sin viviendas vacías: su zona no tiene ningún municipio con dato")
     # Alumnos matriculados (ALMUDENA). Si tiene colegio de un nivel pero ALMUDENA no le da alumnos
     # (colegio nuevo o dato que falta), se usan los niños estimados por edad, pasados a alumnos con la
     # relación alumnos ÷ niños de los demás municipios del reto, y se marca en alumnos_estimados

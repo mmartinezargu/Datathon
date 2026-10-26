@@ -47,9 +47,10 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "tanto por uno al año", PADRON),
         ("viv_principales", "Viviendas principales (donde vive un hogar habitualmente)", "viviendas", VIVIENDAS),
         ("viv_no_principales", "Viviendas no principales: vacías o de segunda residencia", "viviendas", VIVIENDAS),
-        ("viv_vacias", "Viviendas vacías según su consumo eléctrico (Censo 2021). Si el INE no da la cifra del municipio, "
-         "las no principales (vacías + segunda residencia): ver viv_vacias_sin_dato", "viviendas", VACIAS),
-        ("viv_vacias_sin_dato", "True si el INE no publica las viviendas vacías del municipio y viv_vacias son las no principales",
+        ("viv_vacias", "Viviendas vacías según su consumo eléctrico (Censo 2021). Si el INE no da la cifra del municipio, se estima: "
+         "no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí tienen dato "
+         "(ver viv_vacias_sin_dato)", "viviendas", VACIAS),
+        ("viv_vacias_sin_dato", "True si el INE no publica las viviendas vacías del municipio y viv_vacias es una estimación con su zona",
          "sí/no", VACIAS),
         ("personas_hogar", "Personas por hogar: población 2021 ÷ hogares del Censo 2021", "personas por hogar", HOGARES),
         ("viv_previstas", "Viviendas previstas en suelo aún pendiente de desarrollar (urbanizable o urbano no consolidado). "

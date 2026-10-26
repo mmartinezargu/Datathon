@@ -159,11 +159,11 @@ export function calcularLimites(m: Municipio, esc: Escenario, anios: number, u: 
   const c = m.capacidad!
   const p = m.poblacion[String(ANIO_BASE)]
 
-  // Vivienda: parte de las vacías (consumo eléctrico; sin ese dato, las no principales) + parte de las previstas, por personas por hogar
+  // Vivienda: parte de las vacías (consumo eléctrico; sin ese dato, estimadas con su zona) + parte de las previstas, por personas por hogar
   const vivienda = (c.viv_vacias * esc.pctVivienda + c.viv_previstas * esc.pctSuelo) * c.personas_hogar
 
-  // Colegios: plazas libres hasta el límite de alumnos por colegio de los de su tamaño, pasadas a personas
-  // con los alumnos matriculados por vecino del municipio (se supone que quien llega trae los mismos).
+  // Colegios: plazas libres (límite de alumnos por colegio de los de su tamaño − alumnos matriculados), pasadas a personas
+  // con los niños de esa edad que viven en el municipio por vecino: quien llega trae los hijos que trae, estudien donde estudien.
   // Si no tiene colegio de ese nivel, sus alumnos van a otro municipio: ese límite no aplica.
   const porNivel = nivelesColegio(m, u, inv.colegios).map((x) => x.caben)
   const colegios = porNivel.length ? Math.min(...porNivel) : null
@@ -210,14 +210,17 @@ export function limiteColegio(curva: CurvaColegio, poblacion: number): number {
 /**
  * Colegios de cada nivel (primaria, secundaria) con su límite y el sitio que dejan, contando los que se construyan.
  * Solo los niveles que ya tiene el municipio. Cada colegio nuevo suma «límite» plazas y va al nivel con menos sitio.
+ * - Plazas libres: con los alumnos matriculados (ALMUDENA), que es lo que llena los colegios.
+ * - De plazas a personas: con los niños residentes de esa edad por vecino (Censo anual), no con los alumnos por vecino.
+ *   Si no, un instituto con pocos alumnos porque la mayoría estudia fuera daría cientos de personas por plaza.
  */
 export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
   const c = m.capacidad!
   const p = m.poblacion[String(ANIO_BASE)]
   const niveles = (['primaria', 'secundaria'] as const)
     .filter((nombre) => c[`colegios_${nombre}`] > 0 && c[`alumnos_${nombre}`] > 0)
-    .map((nombre) => ({ nombre, n: c[`colegios_${nombre}`], limite: limiteColegio(u[nombre], p), alumnos: c[`alumnos_${nombre}`], proporcion: c[`alumnos_${nombre}`] / p }))
-  const caben = (x: (typeof niveles)[number]) => Math.max(0, x.n * x.limite - x.alumnos) / x.proporcion
+    .map((nombre) => ({ nombre, n: c[`colegios_${nombre}`], limite: limiteColegio(u[nombre], p), alumnos: c[`alumnos_${nombre}`], ninosPorVecino: c[`ninos_${nombre}`] / p }))
+  const caben = (x: (typeof niveles)[number]) => Math.max(0, x.n * x.limite - x.alumnos) / x.ninosPorVecino
   for (let k = 0; k < nuevos && niveles.length; k++) {
     niveles.reduce((a, b) => (caben(a) <= caben(b) ? a : b)).n++
   }

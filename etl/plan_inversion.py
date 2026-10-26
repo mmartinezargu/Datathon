@@ -71,12 +71,12 @@ def limites(m: dict, u: dict, colegios_nuevos: int, centros_nuevos: int) -> dict
     vivienda = (c["viv_vacias"] * ESCENARIO["pct_vivienda"]
                 + c["viv_previstas"] * ESCENARIO["pct_suelo"]) * c["personas_hogar"]
 
-    niveles = [{"n": c[f"colegios_{x}"], "alumnos": c[f"alumnos_{x}"], "proporcion": c[f"alumnos_{x}"] / p,
+    niveles = [{"n": c[f"colegios_{x}"], "alumnos": c[f"alumnos_{x}"], "ninos_por_vecino": c[f"ninos_{x}"] / p,
                 "limite": math.exp(u[x]["a"] + u[x]["b"] * math.log(p) + u[x]["ajuste"])}
                for x in NIVELES if c[f"colegios_{x}"] > 0 and c[f"alumnos_{x}"] > 0]
 
     def caben(x: dict) -> float:
-        return max(0, x["n"] * x["limite"] - x["alumnos"]) / x["proporcion"]
+        return max(0, x["n"] * x["limite"] - x["alumnos"]) / x["ninos_por_vecino"]
     for _ in range(colegios_nuevos if niveles else 0):
         min(niveles, key=caben)["n"] += 1  # el colegio nuevo va al nivel con menos sitio
     colegios = min(caben(x) for x in niveles) if niveles else None
