@@ -152,7 +152,7 @@ function textoAlLimite(x: NonNullable<ReturnType<typeof alLimite>>, m: Municipio
   const centros = x.nivel === 'primaria'
     ? (x.centros === 1 ? 'su colegio de primaria ya tiene' : 'sus colegios de primaria ya tienen')
     : (x.centros === 1 ? 'su instituto ya tiene' : 'sus institutos ya tienen')
-  return `Al límite hoy: ${centros} unos ${miles(x.hoy)} niños${x.centros === 1 ? '' : ' por centro'} y el límite para los de su tamaño es ${miles(x.limite)} (${cuanto}). ` +
+  return `Al límite hoy: ${centros} unos ${miles(x.hoy)} alumnos${x.centros === 1 ? '' : ' por centro'} y el límite para los de su tamaño es ${miles(x.limite)} (${cuanto}). ` +
     'Cualquier llegada necesita ampliar.'
 }
 
@@ -165,10 +165,12 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
       // El nivel que manda es el de menos sitio
       const x = nivelesColegio(m, u, inv.colegios).sort((a, b) => a.caben - b.caben)[0]
       const nuevos = inv.colegios ? ` (con ${inv.colegios === 1 ? 'el nuevo' : `los ${inv.colegios} nuevos`})` : ''
-      const edad = x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'
-      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} para unos ${miles(x.ninos)} niños ${edad} (estimación): ${miles(x.ninos / x.n)} por centro. ` +
-        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.ninos)} = ${miles(Math.max(0, x.libres))}. ` +
-        `Como un ${pct(x.proporcion, 1)} de sus vecinos tiene esa edad, caben ${miles(x.caben)} personas.`
+      const nivel = x.nombre === 'primaria' ? 'primaria' : 'ESO'
+      const estimados = c.alumnos_estimados ? ' (estimación: no hay dato de matrícula)' : ''
+      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} con ${miles(x.alumnos)} alumnos de ${nivel}${estimados}: ${miles(x.alumnos / x.n)} por centro. ` +
+        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.alumnos)} = ${miles(Math.max(0, x.libres))}. ` +
+        `En ${m.nombre} viven ${decimal(x.ninosPorVecino * 100, 1)} niños ${x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'} por cada 100 vecinos (estimación): ` +
+        `si quien llega trae los mismos, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
       // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
@@ -184,7 +186,11 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
           : `Quedan ${miles(umb.zona - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${total}`}.`) + nuevos
     }
     case 'vivienda':
-      return `${miles(c.viv_no_principales)} viviendas vacías o secundarias × ${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas × ${pct(esc.pctSuelo, 0)}, ` +
+      return (c.viv_vacias_sin_dato
+        ? `${miles(c.viv_vacias)} viviendas vacías (estimación: el INE no da las de un pueblo tan pequeño, se calculan con su zona) × `
+        : `${miles(c.viv_vacias)} viviendas vacías × `) + `${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas` +
+        (c.viv_previstas_con_estimacion ? ` (${miles(c.viv_previstas_estimadas)} estimadas: suelo sin cifra en el planeamiento)` : '') +
+        ` × ${pct(esc.pctSuelo, 0)}, ` +
         `por ${c.personas_hogar.toFixed(2).replace('.', ',')} personas por hogar = ${miles(r.caben)} personas.`
     default:
       return `Aunque tenga sitio, no conviene crecer más de un ${pct(esc.ritmoMax, 1)} al año: ${miles(p)} × ((1 + ${pct(esc.ritmoMax, 1)})^${esc.anio - ANIO_BASE} − 1) = ${miles(r.caben)} personas.`

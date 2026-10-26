@@ -1,7 +1,7 @@
 // Tests del motor con los datos reales (web/public/datos). Se ejecutan con «npm test».
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { calcular, calcularUmbrales, escenarioPorDefecto, resumenReubicacion } from '../src/motor'
+import { HOSPITAL_LEJOS_KM, calcular, calcularUmbrales, escenarioPorDefecto, nivelesColegio, resumenReubicacion } from '../src/motor'
 import type { Municipio, ResultadoMunicipio, ZonaSalud } from '../src/tipos'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
@@ -21,15 +21,15 @@ describe('escenario por defecto (2035, sin inversiones)', () => {
   const r = calcular(municipios, zonas, esc)
 
   it('mantiene las cifras de cabecera y los tipos', () => {
-    expect(Math.round(caben(r))).toBe(60_785)
-    expect(Math.round(esc.personas - caben(r))).toBe(73_641)
-    expect(cuenta(r)).toEqual({ tension: 67, polo: 41, oportunidad: 37, consolidacion: 10 })
+    expect(Math.round(caben(r))).toBe(56_796)
+    expect(Math.round(esc.personas - caben(r))).toBe(77_630)
+    expect(cuenta(r)).toEqual({ tension: 78, polo: 37, oportunidad: 33, consolidacion: 7 })
   })
 
   it('mantiene la reubicación a 25 km', () => {
     const re = resumenReubicacion(calcular(municipios, zonas, { ...esc, reequilibrio: true }))
-    expect(Math.round(re.personas)).toBe(38_010)
-    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(35_631)
+    expect(Math.round(re.personas)).toBe(26_856)
+    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(50_774)
   })
 })
 
@@ -55,7 +55,41 @@ describe('invertir en un centro de salud', () => {
     expect(cambian.map((x) => x.ine)).toEqual([navalcarnero.ine])
     expect(sin.find((x) => x.ine === navalcarnero.ine)!.tipo).toBe('tension')
     expect(cambian[0].tipo).toBe('polo')
-    expect(cuenta(con).oportunidad).toBe(37)
-    expect(cuenta(con).consolidacion).toBe(10)
+    expect(cuenta(con).oportunidad).toBe(33)
+    expect(cuenta(con).consolidacion).toBe(7)
+  })
+})
+
+describe('reubicación y hospital', () => {
+  const bustarviejo = municipios.find((m) => m.nombre === 'Bustarviejo')!
+
+  it.each([25, 50])('ningún pueblo con el hospital lejos recibe gente, sea del tipo que sea (a %i km)', (radioKm) => {
+    const r = calcular(municipios, zonas, { ...esc, reequilibrio: true, radioKm })
+    const b = r.find((x) => x.ine === bustarviejo.ine)!
+    expect(bustarviejo.hospital_km).toBeGreaterThan(HOSPITAL_LEJOS_KM)
+    expect(b.tipo).toBe('polo') // no es una oportunidad condicionada, y aun así no recibe
+    expect(b.margen).toBeGreaterThan(0) // tiene sitio
+    expect(b.recibe).toBe(0)
+    expect(b.llegadas).toEqual([])
+    const lejos = new Set(municipios.filter((m) => m.hospital_km > HOSPITAL_LEJOS_KM).map((m) => m.ine))
+    expect(resumenReubicacion(r).traslados.filter((t) => lejos.has(t.destino))).toEqual([])
+  })
+})
+
+describe('colegios: plazas con la matrícula, personas con los niños que viven en el municipio', () => {
+  const manzanares = municipios.find((m) => m.nombre === 'Manzanares el Real')!
+  const c = manzanares.capacidad!
+
+  it('un instituto con pocos alumnos (la mayoría estudia fuera) no da cientos de personas por plaza', () => {
+    const u = calcularUmbrales(municipios.filter((m) => m.universo), zonas, esc.exigencia)
+    expect(c.alumnos_secundaria).toBeLessThan(c.ninos_secundaria / 10) // 61 alumnos de ESO frente a 724 chicos de 12 a 17 años
+    const eso = nivelesColegio(manzanares, u).find((x) => x.nombre === 'secundaria')!
+    const porPlaza = eso.caben / eso.libres
+    expect(porPlaza).toBeCloseTo(manzanares.poblacion['2025'] / c.ninos_secundaria, 6) // un chico de 12 a 17 años por cada ~13 vecinos
+    expect(porPlaza).toBeLessThan(20)
+
+    const r = calcular(municipios, zonas, esc).find((x) => x.ine === manzanares.ine)!
+    expect(Math.round(r.limites.colegios!)).toBe(4_064) // manda primaria; ESO daría 5.653
+    expect(r.limitante).toBe('vivienda')
   })
 })

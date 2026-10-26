@@ -132,6 +132,10 @@ export default function App() {
     [municipios, zonas, escenario.exigencia],
   )
   const porIne = useMemo(() => new Map((municipios ?? []).map((m) => [m.ine, m])), [municipios])
+  const sueloEstimado = useMemo(() => {
+    const con = (municipios ?? []).filter((m) => m.universo && m.capacidad?.viv_previstas_con_estimacion)
+    return { municipios: con.length, viviendas: con.reduce((s, m) => s + m.capacidad!.viv_previstas_estimadas, 0) }
+  }, [municipios])
   // Color de cada municipio; si se ha pulsado un tipo en la leyenda, los demás se apagan
   const colores = useMemo(
     () => Object.fromEntries(resultados.map((r) => {
@@ -213,7 +217,9 @@ export default function App() {
         <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio, reequilibrio })}
           onIr={(d: Destino) => (d === 'acierta' ? irAAcierta() : setPestana(d))} /></main>
       ) : pestana === 'metodologia' ? (
-        <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
+        <main className="pagina"><Metodologia escenario={escenario} validacion={validacion}
+          sinDatoVacias={municipios.filter((m) => m.universo && m.capacidad?.viv_vacias_sin_dato).length}
+          sueloEstimado={sueloEstimado} /></main>
       ) : pestana === 'mudanza' ? (
         <main className="pagina">
           <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}

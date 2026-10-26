@@ -46,15 +46,32 @@ FUENTES = {
         "ine_59525_viviendas_censo2021.csv",
         "https://www.ine.es/jaxi/files/tpx/es/csv_bdsc/59525.csv",
     ),
+    "vacias": (
+        "ine_59531_viviendas_vacias_censo2021.csv",
+        "https://www.ine.es/jaxi/files/tpx/es/csv_bdsc/59531.csv",
+    ),
     "hogares": (
         "ine_59543_hogares_censo2021.csv",
         "https://www.ine.es/jaxi/files/tpx/es/csv_bdsc/59543.csv",
+    ),
+    "zonas_salud_censo": (
+        "iecm_censo2021_zonas_basicas_salud.zip",
+        "https://web.comunidad.madrid/iestadis/fijas/estructu/demograficas/censos/descarga/cpvp21_salud_zbasicas.zip",
     ),
     "edades": (
         "cm_poblacion_por_edad_censo_anual.csv",
         "https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402/resource/"
         "bab16922-8df1-49b5-9791-aed4edf8ced1/download/"
         "poblacion-censada-por-edad-nacionalidad-y-sexo.-censo-anual.-municipios.csv",
+    ),
+    # ALMUDENA (banco de datos municipal del IECM): alumnos matriculados por municipio, 1994-2024
+    "alumnos_primaria": (
+        "iecm_almudena_501032_alumnos_primaria.csv",
+        "https://gestiona.comunidad.madrid/desvan/almudena/GenerarCsvUnTema.icm?codTema=501032",
+    ),
+    "alumnos_eso": (
+        "iecm_almudena_501033_alumnos_eso.csv",
+        "https://gestiona.comunidad.madrid/desvan/almudena/GenerarCsvUnTema.icm?codTema=501033",
     ),
     "planeamiento": (
         "idem_planeamiento_refundido_2025.zip",
