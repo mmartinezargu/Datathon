@@ -26,4 +26,6 @@ function asistenteLocal(): Plugin {
 export default defineConfig({
   plugins: [react(), asistenteLocal()],
   base: './',
+  // Solo la web: que npm run dev no lea la copia sin internet (offline/CABIDA.html lleva todo el código dentro)
+  optimizeDeps: { entries: ['index.html'] },
 })
