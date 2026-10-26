@@ -49,7 +49,9 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
         <p className="ficha-reequilibrio">
           {r.recibe >= 1
             ? <>Recibe <b>{miles(r.recibe)}</b> personas que no caben en otros municipios.</>
-            : <><b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios.</>}
+            : -r.margen - r.ceden >= 1
+              ? <>Unas <b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios y unas <b>{miles(-r.margen - r.ceden)}</b> se quedan sin sitio.</>
+              : <>Unas <b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios.</>}
         </p>
       )}
 

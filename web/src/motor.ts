@@ -74,7 +74,8 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
 /**
  * Reequilibrio: lo que no cabe en los municipios llenos se reparte entre los que tienen sitio,
  * en proporción al sitio libre de cada uno. No se dirige a nadie a una oportunidad condicionada
- * (hospital lejos). Si no hay sitio para todos, cada uno se llena y el resto se queda sin sitio.
+ * (hospital lejos). Si no hay sitio para todos, los que tienen sitio se llenan y cada municipio lleno
+ * cede la misma parte de su exceso (sitio libre total ÷ exceso total); el resto se queda sin sitio.
  * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade `recibe` y `ceden`.
  */
 export function reequilibrar(resultados: ResultadoMunicipio[]): ResultadoMunicipio[] {
@@ -82,7 +83,9 @@ export function reequilibrar(resultados: ResultadoMunicipio[]): ResultadoMunicip
   const exceso = resultados.reduce((s, r) => s + Math.max(0, r.llegan - r.caben), 0)
   const sumaLibre = libre.reduce((s, l) => s + l, 0)
   const parte = sumaLibre > 0 ? Math.min(1, exceso / sumaLibre) : 0
-  return resultados.map((r, i) => ({ ...r, recibe: libre[i] * parte, ceden: Math.max(0, r.llegan - r.caben) }))
+  // Si no hay sitio para todos, de cada municipio lleno solo se dirige la misma parte de su exceso
+  const salen = exceso > 0 ? Math.min(1, sumaLibre / exceso) : 0
+  return resultados.map((r, i) => ({ ...r, recibe: libre[i] * parte, ceden: Math.max(0, r.llegan - r.caben) * salen }))
 }
 
 /** Personas que caben según cada recurso. null = ese límite no aplica a este municipio. */
