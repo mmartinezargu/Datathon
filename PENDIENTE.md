@@ -34,17 +34,18 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 ## Cifras para las diapositivas (escenario por defecto: 2035)
 - 155 municipios, 997.059 vecinos; crecieron un 15,6 % en 2015-2025 (la Comunidad, un 10,9 %).
 - Llegan **134.426** personas (el ritmo de la última década). Ojo: la maqueta usaba 170.000.
-- Datos de partida (26/10, rama `mejora/datos-exactos`): viviendas **vacías** reales del INE (consumo eléctrico; en los 44 pueblos sin dato, estimadas con su zona) y **alumnos matriculados** de ALMUDENA para las plazas libres (las plazas se pasan a personas con los niños que viven en cada municipio). Ningún pueblo con el hospital a más de 25 km recibe gente al reubicar.
-- Caben sin ampliar servicios **54.236**; **80.190** se quedan sin sitio.
-- 88 municipios en tensión, 31 polos, 29 oportunidades y 7 en consolidación.
-- De las 29 oportunidades, **14 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sitio libre en las oportunidades (caben − llegan): 17.391 personas; sin las condicionadas, 17.059.
-- Con «Reubicar en pueblos cercanos» a 25 km, se reubican **21.998** personas en 31 municipios, de media a 9 km. Siguen sin sitio **58.193**. A 50 km sale lo mismo: a 25 km ya se llenan todos los pueblos con sitio y el hospital cerca.
+- Datos de partida (26/10, rama `mejora/datos-exactos`): viviendas **vacías** reales del INE (consumo eléctrico; en los 44 pueblos sin dato, estimadas con su zona) y **alumnos matriculados** de ALMUDENA para las plazas libres (las plazas se pasan a personas con los niños que viven en cada municipio). El suelo residencial pendiente sin cifra de viviendas se estima con la densidad de los ámbitos que sí la traen: **52.652 viviendas** más en 49 municipios. Ningún pueblo con el hospital a más de 25 km recibe gente al reubicar.
+- Caben sin ampliar servicios **56.796**; **77.630** se quedan sin sitio.
+- 78 municipios en tensión, 37 polos, 33 oportunidades y 7 en consolidación. Limita la vivienda en 77, colegios en 38, sanidad en 21 y el ritmo en 19.
+- «Vivienda vacía que se ocupa» (15 %) es un supuesto sin dato oficial: al 30 % caben 60.286 (71 en tensión); al 50 %, 63.277 (66 en tensión). Tabla completa en `AUDITORIA.md`. **Decidir el valor por defecto.**
+- De las 33 oportunidades, **17 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sitio libre en las oportunidades (caben − llegan): 20.300 personas; sin las condicionadas, 19.172.
+- Con «Reubicar en pueblos cercanos» a 25 km, se reubican **26.856** personas en 37 municipios, de media a 9 km. Siguen sin sitio **50.774**. A 50 km sale lo mismo: a 25 km ya se llenan todos los pueblos con sitio y el hospital cerca.
 - 31 municipios no tienen sitio para nadie sin ampliar (18 por colegios y 13 por sanidad); solo 4 están a menos de un 5 % de su límite.
 - Validación 2015 -> 2025: acierta dónde va **77 de cada 100 personas** (89 por zonas); la tendencia sola, 67. Es decir, coloca en otro municipio al 22,6 % (11,4 % en otra zona; la tendencia sola, 32,7 % y 20,3 %).
 - El WAPE (44,4 %, frente al 64,1 % de la tendencia) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. Se enseña igual en la web.
 - Plan de inversión (`uv run plan_inversion.py`; colegio o centro de salud donde limitan, hasta que manda la vivienda o el ritmo; obras desde 2027 [supuesto]):
-  - Sin reubicar: **39 colegios y 21 centros de salud** en 48 municipios, **538 M€**; lo último abre en 2030. Siguen sin sitio **27.206** (de 80.190), casi todos por vivienda.
-  - Reubicando a 25 km: **13 colegios y 12 centros** en 22 municipios, **220 M€**; lo último abre en 2030. Siguen sin sitio **13.835** (de 58.193), casi todos por vivienda.
+  - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
+  - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
 - Población de las zonas de salud frente al Censo 2021 (IECM): se aparta un 2,6 % de media en las 286 zonas (1,9 % en las 45 de los pueblos del reto); correlación 0,997.
 
 ## Cómo arrancarla

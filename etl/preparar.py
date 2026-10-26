@@ -84,7 +84,8 @@ def redondear_coordenadas(geo: dict, decimales: int) -> None:
 
 
 COLUMNAS_CAPACIDAD = [
-    "viv_principales", "viv_no_principales", "viv_vacias", "viv_vacias_sin_dato", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
+    "viv_principales", "viv_no_principales", "viv_vacias", "viv_vacias_sin_dato", "personas_hogar", "viv_previstas", "viv_previstas_estimadas",
+    "viv_previstas_con_estimacion", "suelo_pendiente_ha",
     "colegios_primaria", "colegios_secundaria", "ninos_primaria", "ninos_secundaria",
     "alumnos_primaria", "alumnos_secundaria", "alumnos_estimados", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
 ]
@@ -93,14 +94,16 @@ COLUMNAS_CAPACIDAD = [
 def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Une vivienda, planeamiento, colegios y sanidad (ver capacidad.py). Devuelve también las zonas de salud."""
     sanidad, zonas = capacidad.leer_sanidad(pob)
+    ambitos = capacidad.leer_ambitos_pendientes()
     df = (df.merge(capacidad.leer_viviendas(), on="ine", how="left")
-            .merge(capacidad.leer_planeamiento(), on="ine", how="left")
+            .merge(capacidad.leer_planeamiento(ambitos), on="ine", how="left")
             .merge(capacidad.leer_colegios(), on="ine", how="left")
             .merge(capacidad.leer_ninos(pob), on="ine", how="left")
             .merge(capacidad.leer_alumnos()[0], on="ine", how="left")
             .merge(sanidad, on="ine", how="left"))
     df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
         df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))
+    df = estimar_suelo_sin_cifra(df, ambitos)
     # Viviendas vacías (consumo eléctrico, INE 59531). Si el INE no da la cifra del municipio, se estiman:
     # no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí
     # tienen dato. Se marca en viv_vacias_sin_dato
@@ -130,6 +133,44 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
     # Personas por hogar del municipio (Censo 2021): sirve para pasar viviendas a personas
     df["personas_hogar"] = (df[2021] / df["hogares_2021"]).round(3)
     return df, zonas
+
+
+def estimar_suelo_sin_cifra(df: pd.DataFrame, ambitos: pd.DataFrame) -> pd.DataFrame:
+    """Viviendas del suelo residencial pendiente que el planeamiento deja sin cifra.
+
+    Se estiman con la densidad (viviendas/ha) de los ámbitos residenciales que sí la traen:
+    1. los del mismo municipio y clase de suelo (viviendas ÷ hectáreas de todos ellos);
+    2. si no hay, la mediana de los de su zona estadística;
+    3. si tampoco, la mediana de toda la Comunidad.
+    El suelo industrial, terciario, de equipamientos, etc. no se cuenta. Se suman a viv_previstas;
+    viv_previstas_estimadas dice cuántas son estimadas y viv_previstas_con_estimacion marca el municipio.
+    """
+    res = ambitos[ambitos["residencial"]].merge(df[["ine", "zona"]], on="ine", how="left")
+    con = res[res["viviendas"].notna() & (res["ha"] > 0)].assign(densidad=lambda d: d["viviendas"] / d["ha"])
+    por_clase = con.groupby(["ine", "clase"])[["viviendas", "ha"]].sum()
+    por_clase = (por_clase["viviendas"] / por_clase["ha"]).rename("d_municipio")
+    sin = (res[res["viviendas"].isna()]
+           .merge(por_clase, left_on=["ine", "clase"], right_index=True, how="left")
+           .merge(con.groupby("zona")["densidad"].median().rename("d_zona"), left_on="zona", right_index=True, how="left"))
+    sin["densidad"] = sin["d_municipio"].fillna(sin["d_zona"]).fillna(con["densidad"].median())
+    sin["origen"] = np.select([sin["d_municipio"].notna(), sin["d_zona"].notna()], ["municipio", "zona"], "comunidad")
+    sin["estimadas"] = sin["densidad"] * sin["ha"]
+
+    estimadas = sin.groupby("ine")["estimadas"].sum().round()
+    df["viv_previstas_estimadas"] = df["ine"].map(estimadas).fillna(0)
+    df["viv_previstas"] = df["viv_previstas"] + df["viv_previstas_estimadas"]
+    df["viv_previstas_con_estimacion"] = df["viv_previstas_estimadas"] > 0
+
+    del_reto = df.loc[df["universo"], "ine"]
+    reto = sin[sin["ine"].isin(del_reto)]
+    no_res = ambitos[~ambitos["residencial"] & ambitos["viviendas"].isna() & ambitos["ine"].isin(del_reto)]
+    print(f"Suelo residencial sin cifra de viviendas en los municipios del reto: {len(reto)} ámbitos "
+          f"({miles(reto['ha'].sum())} ha) → {miles(reto['estimadas'].sum())} viviendas estimadas en "
+          f"{int(df.loc[df['universo'], 'viv_previstas_con_estimacion'].sum())} municipios (densidad del municipio "
+          f"en {(reto['origen'] == 'municipio').sum()}, de la zona en {(reto['origen'] == 'zona').sum()}, "
+          f"de la Comunidad en {(reto['origen'] == 'comunidad').sum()}). Sin cifra y no residencial, no se cuenta: "
+          f"{len(no_res)} ámbitos ({miles(no_res['ha'].sum())} ha)")
+    return df
 
 
 def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:

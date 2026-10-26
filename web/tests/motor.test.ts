@@ -21,15 +21,15 @@ describe('escenario por defecto (2035, sin inversiones)', () => {
   const r = calcular(municipios, zonas, esc)
 
   it('mantiene las cifras de cabecera y los tipos', () => {
-    expect(Math.round(caben(r))).toBe(54_236)
-    expect(Math.round(esc.personas - caben(r))).toBe(80_190)
-    expect(cuenta(r)).toEqual({ tension: 88, polo: 31, oportunidad: 29, consolidacion: 7 })
+    expect(Math.round(caben(r))).toBe(56_796)
+    expect(Math.round(esc.personas - caben(r))).toBe(77_630)
+    expect(cuenta(r)).toEqual({ tension: 78, polo: 37, oportunidad: 33, consolidacion: 7 })
   })
 
   it('mantiene la reubicación a 25 km', () => {
     const re = resumenReubicacion(calcular(municipios, zonas, { ...esc, reequilibrio: true }))
-    expect(Math.round(re.personas)).toBe(21_998)
-    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(58_193)
+    expect(Math.round(re.personas)).toBe(26_856)
+    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(50_774)
   })
 })
 
@@ -55,7 +55,7 @@ describe('invertir en un centro de salud', () => {
     expect(cambian.map((x) => x.ine)).toEqual([navalcarnero.ine])
     expect(sin.find((x) => x.ine === navalcarnero.ine)!.tipo).toBe('tension')
     expect(cambian[0].tipo).toBe('polo')
-    expect(cuenta(con).oportunidad).toBe(29)
+    expect(cuenta(con).oportunidad).toBe(33)
     expect(cuenta(con).consolidacion).toBe(7)
   })
 })

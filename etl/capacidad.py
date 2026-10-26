@@ -35,11 +35,15 @@ def leer_viviendas() -> pd.DataFrame:
     return out.reset_index()
 
 
-def leer_planeamiento() -> pd.DataFrame:
-    """Viviendas previstas en suelo aún pendiente de desarrollar (planeamiento refundido 2025, IDEM).
+def leer_ambitos_pendientes() -> pd.DataFrame:
+    """Ámbitos de suelo aún pendiente de desarrollar (planeamiento refundido 2025, IDEM), uno por fila.
 
     Pendiente = suelo urbanizable, apto para urbanizar, de reserva o urbano no consolidado,
     también si está "aplazado". Se excluye lo ya "incorporado" a la ciudad y el no urbanizable.
+    - viviendas: NaN si el ámbito no trae cifra (ningún polígono la tiene).
+    - clase: la clase de suelo sin «(APLAZADO)».
+    - residencial: su uso predominante (DS_US_PRED) es residencial, unifamiliar o multifamiliar.
+      Si un ámbito tiene polígonos con usos distintos, manda el de más superficie.
     """
     a = pyogrio.read_dataframe(RAW / "vpla_ref_25_gpkg.gpkg", layer="VPLA_AMBITOS_REF", read_geometry=False)
     clase = a["DS_CLAS_SUE"].fillna("")
@@ -50,9 +54,19 @@ def leer_planeamiento() -> pd.DataFrame:
     )
     a = a[pendiente].copy()
     a["ine"] = "28" + a["CD_MUNICIPIO"].str[-3:]
+    a = a.sort_values("NM_AREA", ascending=False)
     ambitos = a.groupby(["ine", "DS_NOMB_AMB", "DS_CLAS_SUE"]).agg(
-        viv_previstas=("NM_VIV_TOT", viviendas_ambito), suelo_pendiente_ha=("NM_AREA", lambda s: s.sum() / 1e4))
-    return ambitos.groupby("ine").sum().reset_index()
+        viviendas=("NM_VIV_TOT", lambda v: viviendas_ambito(v) if v.notna().any() else float("nan")),
+        ha=("NM_AREA", lambda s: s.sum() / 1e4), uso=("DS_US_PRED", "first")).reset_index()
+    ambitos["clase"] = ambitos["DS_CLAS_SUE"].str.replace(" (APLAZADO)", "", regex=False)
+    ambitos["residencial"] = ambitos["uso"].fillna("").str.startswith("Residencial")
+    return ambitos
+
+
+def leer_planeamiento(ambitos: pd.DataFrame) -> pd.DataFrame:
+    """Viviendas previstas (con cifra en el planeamiento) y suelo pendiente de cada municipio."""
+    return (ambitos.groupby("ine")
+            .agg(viv_previstas=("viviendas", "sum"), suelo_pendiente_ha=("ha", "sum")).reset_index())
 
 
 def viviendas_ambito(v: pd.Series) -> float:

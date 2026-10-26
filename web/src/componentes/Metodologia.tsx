@@ -19,7 +19,6 @@ import { Icono } from './Iconos'
 const K_SUAVIZADO = 5_000
 
 /** Suelo pendiente de desarrollar sin cifra de viviendas en el planeamiento, en los 155 (AUDITORIA.md, punto 1). */
-const SUELO_SIN_CIFRA_HA = 7_053
 
 const FUENTES = [
   { nombre: 'Padrón continuo: población por municipio, 2005–2025', quien: 'INE (tabla 2881)', para: 'Cuánta gente vive en cada municipio y cómo ha crecido', url: 'https://www.ine.es/jaxiT3/Tabla.htm?t=2881' },
@@ -39,10 +38,12 @@ const FUENTES = [
 
 const NOMBRE_RECURSO: Record<Recurso, string> = { colegios: 'colegios', sanidad: 'centro de salud', vivienda: 'vivienda' }
 
-export function Metodologia({ escenario, validacion, sinDatoVacias }: {
+export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimado }: {
   escenario: Escenario; validacion: DatosValidacion
-  /** Municipios del reto sin cifra de viviendas vacías del INE (se usan las no principales). */
+  /** Municipios del reto sin cifra de viviendas vacías del INE (se estiman con su zona). */
   sinDatoVacias: number
+  /** Municipios del reto con suelo residencial sin cifra de viviendas, y cuántas se estiman en total. */
+  sueloEstimado: { municipios: number; viviendas: number }
 }) {
   const anios = escenario.anio - ANIO_BASE
   const prevision = segunPrevision(escenario.anio)
@@ -167,13 +168,13 @@ export function Metodologia({ escenario, validacion, sinDatoVacias }: {
         <h2>Limitaciones: lo que el modelo no sabe</h2>
         <ul className="limitaciones">
           <li><b>El planeamiento no es una licencia.</b> Que un suelo tenga viviendas previstas no quiere decir que se vayan a construir, ni cuándo. Por eso solo se cuenta una parte ({pct(escenario.pctSuelo, 0)}).</li>
-          <li><b>Una vivienda vacía no está en venta ni en alquiler.</b> El INE la cuenta como vacía cuando casi no gasta luz, pero puede ser una herencia, una casa en obras o un piso que su dueño no quiere alquilar. Por eso solo se cuenta un {pct(escenario.pctVivienda, 0)}.</li>
+          <li><b>Una vivienda vacía no está en venta ni en alquiler.</b> El INE la cuenta como vacía cuando casi no gasta luz, pero puede ser una herencia, una casa en obras o un piso que su dueño no quiere alquilar. Cuántas llegan a ocuparse es un supuesto, sin dato oficial: por defecto, un {pct(escenario.pctVivienda, 0)}. Se puede mover en «Supuestos».</li>
           <li><b>En {sinDatoVacias} pueblos pequeños las vacías se estiman.</b> El INE no publica la cifra en los municipios más pequeños. Ahí se toman sus viviendas no principales (vacías más segundas residencias) y se les aplica la parte que son vacías en los pueblos de su zona que sí tienen dato.</li>
           <li><b>No hay datos abiertos de plazas escolares.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro: cada municipio se compara con los de tamaño parecido, contando los alumnos que tiene hoy.</li>
           <li><b>Alumnos de hoy, no plazas.</b> Sabemos cuántos alumnos de primaria y de ESO tiene cada municipio (último curso publicado, aún provisional), pero no cuántas plazas. Se supone que quien llega trae los mismos niños por vecino que los que ya viven en el municipio, y los niños se estiman con grupos de 5 años del Censo anual. Donde hay colegio pero no dato de matrícula, se estima por la edad de los vecinos.</li>
           <li><b>Todos los colegios cuentan igual:</b> públicos, concertados y privados.</li>
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona de salud que cubre más superficie de su término, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
-          <li><b>Suelo sin cifra de viviendas.</b> El suelo pendiente que no trae cifra de viviendas en el planeamiento cuenta como 0 ({miles(SUELO_SIN_CIFRA_HA)} ha en los 155), así que la capacidad de vivienda es prudente.</li>
+          <li><b>Suelo sin cifra de viviendas.</b> En {sueloEstimado.municipios} municipios hay suelo residencial pendiente sin cifra de viviendas en el planeamiento. Se estiman con la densidad de los ámbitos que sí la traen: {miles(sueloEstimado.viviendas)} viviendas en total. El suelo industrial, terciario o de equipamientos sin cifra no cuenta.</li>
           <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
           <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos alumnos como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso pone en otro municipio a {Math.round(nuestro.fuera_municipio * 100)} de cada 100 personas.</li>
@@ -225,6 +226,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias }: {
               <dd>
                 <p className="formula">(viviendas vacías × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
                 <p className="ayuda">Vacías: las que casi no gastan luz según el Censo 2021 (INE, a partir del consumo eléctrico). En los {sinDatoVacias} municipios en los que el INE no da esa cifra: no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí tienen dato.</p>
+                <p className="ayuda">Previstas: las que el planeamiento da a su suelo pendiente (urbanizable o urbano no consolidado). En el suelo residencial sin cifra, hectáreas × viviendas por hectárea de los ámbitos que sí la traen: del mismo municipio y clase de suelo; si no hay, la mediana de su zona estadística; si tampoco, la de la Comunidad. Residencial = su uso predominante es residencial, unifamiliar o multifamiliar.</p>
               </dd>
               <dt>Colegios</dt>
               <dd>

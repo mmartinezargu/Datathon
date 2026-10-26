@@ -54,18 +54,25 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "sí/no", VACIAS),
         ("personas_hogar", "Personas por hogar: población 2021 ÷ hogares del Censo 2021", "personas por hogar", HOGARES),
         ("viv_previstas", "Viviendas previstas en suelo aún pendiente de desarrollar (urbanizable o urbano no consolidado). "
-         "Un ámbito partido en varios polígonos se cuenta una sola vez",
+         "Un ámbito partido en varios polígonos se cuenta una sola vez. Incluye las estimadas (viv_previstas_estimadas)",
          "viviendas", PLANEAMIENTO),
+        ("viv_previstas_estimadas", "[est.] Parte de viv_previstas en suelo residencial que el planeamiento deja sin cifra de "
+         "viviendas: hectáreas × viviendas por hectárea de los ámbitos residenciales con cifra del mismo municipio y clase "
+         "de suelo; si no hay, la mediana de su zona estadística; si no, la de la Comunidad. Residencial = uso predominante "
+         "(DS_US_PRED) residencial, unifamiliar o multifamiliar; el industrial, terciario, etc. sin cifra no cuenta",
+         "viviendas", PLANEAMIENTO),
+        ("viv_previstas_con_estimacion", "True si el municipio tiene suelo residencial pendiente sin cifra de viviendas "
+         "(viv_previstas_estimadas > 0)", "sí/no", PLANEAMIENTO),
         ("suelo_pendiente_ha", "Superficie de ese suelo pendiente de desarrollar", "hectáreas", PLANEAMIENTO),
         ("colegios_primaria", "Centros educativos en funcionamiento que dan primaria (colegios públicos, concertados y privados; "
          "sin educación de adultos, aulas hospitalarias ni enseñanzas artísticas)", "centros", COLEGIOS),
         ("colegios_secundaria", "Centros educativos en funcionamiento que dan secundaria", "centros", COLEGIOS),
         ("ninos_primaria", "[est.] Niños en edad de primaria (6-11 años) en 2025: 0,8 × «5-9 años» + 0,4 × «10-14 años» "
-         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. El modelo usa alumnos_* en su lugar "
-         "(solo entra donde alumnos_estimados)", "personas", EDAD),
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. Pasa plazas de colegio a personas "
+         "(niños por vecino) y estima los alumnos donde alumnos_estimados", "personas", EDAD),
         ("ninos_secundaria", "[est.] Niños en edad de secundaria (12-17 años) en 2025: 0,6 × «10-14 años» + 0,6 × «15-19 años» "
-         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. El modelo usa alumnos_* en su lugar "
-         "(solo entra donde alumnos_estimados)", "personas", EDAD),
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. Pasa plazas de colegio a personas "
+         "(niños por vecino) y estima los alumnos donde alumnos_estimados", "personas", EDAD),
         ("alumnos_primaria", "Alumnos matriculados en educación primaria en los colegios del municipio (vivan donde vivan). "
          "Es lo que usa el límite de colegios", "alumnos", ALUMNOS),
         ("alumnos_secundaria", "Alumnos matriculados en ESO en los centros del municipio", "alumnos", ALUMNOS),

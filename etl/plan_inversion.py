@@ -1,6 +1,7 @@
 """Plan de inversión para el escenario por defecto (para una diapositiva; sin interfaz).
 
 Uso (desde etl/):  uv run plan_inversion.py
+                   uv run plan_inversion.py --vivienda 0.3   (otra «Vivienda vacía que se ocupa»)
 
 Con el escenario por defecto (2035, ritmo de la última década), con y sin
 «Reubicar en pueblos cercanos»: en cada municipio donde falta sitio y manda
@@ -13,6 +14,7 @@ Lee los datos que usa la web (web/public/datos) y repite las cuentas de
 web/src/motor.ts, que es donde vive el modelo. Si cambias el motor, cambia
 esto también: al arrancar se comprueba que salen las cifras de la web.
 """
+import argparse
 import json
 import math
 
@@ -171,6 +173,12 @@ def planificar(universo: list[dict], u: dict, reubicar: bool) -> tuple[dict, lis
 
 
 def main() -> None:
+    args = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    args.add_argument("--vivienda", type=float, default=ESCENARIO["pct_vivienda"],
+                      help="parte de las viviendas vacías que se ocupa (0-1); por defecto, la de la web")
+    ESCENARIO["pct_vivienda"] = args.parse_args().vivienda
+    if ESCENARIO["pct_vivienda"] != 0.15:
+        print(f"Vivienda vacía que se ocupa: {ESCENARIO['pct_vivienda']:.0%} (la web usa 15 %)")
     municipios = json.loads((WEB_DATOS / "municipios.json").read_text(encoding="utf-8"))
     zonas = json.loads((WEB_DATOS / "zonas_salud.json").read_text(encoding="utf-8"))
     universo = [m for m in municipios if m["universo"] and m["capacidad"]]

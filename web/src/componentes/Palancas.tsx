@@ -83,7 +83,7 @@ export function Palancas({ escenario, onCambiar }: Props) {
             min={0} max={1} paso={0.05} pista="Del suelo urbanizable que el planeamiento deja pendiente."
             onCambiar={(v) => cambiar({ pctSuelo: v })} />
           <Deslizador etiqueta="Vivienda vacía que se ocupa" valor={escenario.pctVivienda} texto={pct(escenario.pctVivienda, 0)}
-            min={0} max={0.5} paso={0.05} pista="Viviendas vacías del Censo 2021, según su consumo de luz."
+            min={0} max={0.5} paso={0.05} pista="Es un supuesto: no hay dato oficial de cuántas vacías llegan a ocuparse. Las vacías salen del Censo 2021, según su consumo de luz. Muévelo para ver qué cambia."
             onCambiar={(v) => cambiar({ pctVivienda: v })} />
           <Deslizador etiqueta="Crecimiento máximo al año" valor={escenario.ritmoMax} texto={pct(escenario.ritmoMax, 1)}
             min={0.01} max={0.06} paso={0.005} pista="Más rápido que esto, un municipio no absorbe gente sin colapsar."

@@ -8,11 +8,13 @@ export interface IngredientesCapacidad {
   viv_vacias: number // vacías según el consumo eléctrico (Censo 2021, INE 59531); sin ese dato, estimadas con su zona
   viv_vacias_sin_dato: boolean // el INE no da las vacías del municipio: viv_vacias es una estimación con su zona estadística
   personas_hogar: number
-  viv_previstas: number // viviendas previstas en suelo aún sin desarrollar (planeamiento 2025)
+  viv_previstas: number // viviendas previstas en suelo aún sin desarrollar (planeamiento 2025), con las estimadas
+  viv_previstas_estimadas: number // parte de viv_previstas estimada: suelo residencial sin cifra × densidad de los ámbitos con cifra
+  viv_previstas_con_estimacion: boolean // tiene suelo residencial sin cifra de viviendas en el planeamiento
   suelo_pendiente_ha: number
   colegios_primaria: number
   colegios_secundaria: number
-  ninos_primaria: number // niños de 6 a 11 años en 2025 [est.], a partir de grupos de 5 años del Censo anual (ya no entra en el modelo)
+  ninos_primaria: number // niños de 6 a 11 años en 2025 [est.], a partir de grupos de 5 años del Censo anual: pasan plazas de colegio a personas
   ninos_secundaria: number // de 12 a 17 años [est.]
   alumnos_primaria: number // alumnos matriculados en primaria en los colegios del municipio (ALMUDENA, IECM)
   alumnos_secundaria: number // en ESO
