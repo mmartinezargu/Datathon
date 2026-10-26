@@ -17,6 +17,7 @@ CABIDA usa estas dependencias directas. La licencia se ha comprobado en lo que h
 | Paquete | Versión instalada | Licencia | Web |
 |---|---|---|---|
 | @eslint/js | 9.39.5 | MIT | https://eslint.org |
+| @types/node | 22.20.5 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | @types/react | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | @types/react-dom | 19.3.0 | MIT | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | @vitejs/plugin-react | 4.7.0 | MIT | https://github.com/vitejs/vite-plugin-react |

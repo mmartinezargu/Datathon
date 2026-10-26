@@ -129,8 +129,8 @@ def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
 
     c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
     c = c[(c["SITUACIÓN"] == "ALTA") & c["UTM_X"].notna() & c["UTM_Y"].notna()]
-    tipo = c["TIPO_ABRV"].fillna("")
-    c = c[tipo.str.contains("PRI|SEC") | tipo.isin(["IES", "CPR ES"])]  # mismos colegios que capacidad.py
+    tipo = c["TIPO_EXT"].str.strip()
+    c = c[tipo.isin(capacidad.TIPOS_PRIMARIA | capacidad.TIPOS_SECUNDARIA)]  # mismos colegios que capacidad.py
     c["ine"] = "28" + c["CDMUNI"].str.zfill(3)
     nucleo = c.assign(x=c["UTM_X"].astype(float), y=c["UTM_Y"].astype(float)).groupby("ine")[["x", "y"]].median()
     centro = mun.set_index("ine").centroid

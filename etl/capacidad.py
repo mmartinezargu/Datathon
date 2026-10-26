@@ -42,23 +42,51 @@ def leer_planeamiento() -> pd.DataFrame:
         & ~clase.str.contains("No Urbanizable")
         & ~clase.str.contains("INCORPORADO")
     )
-    a = a[pendiente]
+    a = a[pendiente].copy()
     a["ine"] = "28" + a["CD_MUNICIPIO"].str[-3:]
-    return (a.groupby("ine")
-             .agg(viv_previstas=("NM_VIV_TOT", "sum"), suelo_pendiente_ha=("NM_AREA", lambda s: s.sum() / 1e4))
-             .reset_index())
+    ambitos = a.groupby(["ine", "DS_NOMB_AMB", "DS_CLAS_SUE"]).agg(
+        viv_previstas=("NM_VIV_TOT", viviendas_ambito), suelo_pendiente_ha=("NM_AREA", lambda s: s.sum() / 1e4))
+    return ambitos.groupby("ine").sum().reset_index()
+
+
+def viviendas_ambito(v: pd.Series) -> float:
+    """Un ámbito partido en varios polígonos repite sus viviendas en cada uno: si todos traen
+    la misma cifra se cuenta una vez; si traen cifras distintas, se suman las distintas
+    (4 ámbitos en la capa de 2025, p. ej. «S-R8 LOS HUEROS» de Villalbilla: 2.832 ×3 y 3.802)."""
+    return v.dropna().drop_duplicates().sum()
 
 
 # ---------- Colegios ----------
+
+# Tipos de centro (TIPO_EXT) que cuentan como colegio de cada nivel. Fuera: educación de adultos,
+# aulas hospitalarias y centros de enseñanzas artísticas, aunque den algún curso de primaria o secundaria.
+TIPOS_PRIMARIA = {
+    "COLEGIO DE EDUCACIÓN PRIMARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL Y PRIMARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL Y PRIMARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+}
+TIPOS_SECUNDARIA = {
+    "INSTITUTO DE EDUCACIÓN SECUNDARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN SECUNDARIA",
+    "CENTRO PRIVADO DE INFANTIL Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+}
+
 
 def leer_colegios() -> pd.DataFrame:
     """Centros educativos en alta (portal de la CM) que dan primaria o secundaria."""
     c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
     c = c[c["SITUACIÓN"] == "ALTA"]
     c["ine"] = "28" + c["CDMUNI"].str.zfill(3)
-    tipo = c["TIPO_ABRV"].fillna("")
-    c["primaria"] = tipo.str.contains("PRI")                      # CP INF-PRI, CPR INF-PRI-SEC…
-    c["secundaria"] = tipo.str.contains("SEC") | tipo.isin(["IES", "CPR ES"])
+    tipo = c["TIPO_EXT"].str.strip()
+    c["primaria"] = tipo.isin(TIPOS_PRIMARIA)
+    c["secundaria"] = tipo.isin(TIPOS_SECUNDARIA)
     return (c.groupby("ine")[["primaria", "secundaria"]].sum()
              .rename(columns={"primaria": "colegios_primaria", "secundaria": "colegios_secundaria"})
              .reset_index())
