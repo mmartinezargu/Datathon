@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*
+
+# Copia sin internet (se genera con npm run offline)
+offline/
+.vite
