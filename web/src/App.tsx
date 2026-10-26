@@ -224,8 +224,8 @@ export default function App() {
         </main>
       ) : pestana === 'reparto' ? (
         <main className="pagina">
-          <Simulador resultados={resultados} porIne={porIne} escenario={escenario}
-            onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
+          <Simulador resultados={resultados} resultadosSinInversion={resultadosSinInversion} porIne={porIne} escenario={escenario}
+            inversiones={inversiones} onInvertir={invertir} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (
         <main className={`cuerpo vista-${vistaMovil}${sel ? ' con-ficha' : ''}` +

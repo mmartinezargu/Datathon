@@ -312,7 +312,17 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .sim-tabla { margin: 8px 0; }
 .sim-tabla .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sim-tabla .enlace { font-size: 13.5px; text-align: left; }
-.sim-lleno { font-size: 11.5px; font-weight: 700; color: var(--teja); white-space: nowrap; }
+.sim-de { color: var(--tinta2); font-weight: 400; font-size: 12px; }
+.sim-llena { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--teja); white-space: nowrap; }
+.sim-invertir { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.sim-invertir button { border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.sim-mas { border: 1px solid var(--cielo); background: #fff; color: var(--cielo); }
+.sim-mas:hover { background: var(--cielo-claro); }
+.sim-hecho { border: 1px solid var(--cielo); background: var(--cielo); color: #fff; }
+.sim-inversion { background: var(--cielo-claro); border-radius: 12px; padding: 10px 14px; font-size: 13.5px; margin: 4px 0 16px; }
+.simulador h2 + .ayuda { margin-top: 4px; }
+.simulador h2 { margin-top: 18px; }
+.simulador h2:first-child { margin-top: 0; }
 @media (max-width: 640px) {
   .sim-entradas, .sim-resumen { grid-template-columns: 1fr; }
 }
