@@ -267,3 +267,20 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .traslados button:hover { background: var(--fondo); }
 .t-ruta { font-weight: 600; }
 .t-cifra { color: var(--tinta2); font-variant-numeric: tabular-nums; }
+.ranking ol.con-envio li button { grid-template-columns: 22px 1fr 48px auto; }
+.ranking ol.con-envio .r-valor { white-space: nowrap; }
+
+/* Leyenda plegable en pantallas estrechas: cerrada, solo un botón con los 4 colores */
+.leyenda-boton { display: none; }
+@media (max-width: 899px) {
+  .leyenda { left: 8px; right: auto; bottom: 8px; max-width: calc(100% - 64px); padding: 6px 8px; }
+  .leyenda.abierta { right: 56px; max-height: 60%; overflow-y: auto; }
+  .leyenda:not(.abierta) .leyenda-cuerpo { display: none; }
+  .leyenda.abierta .leyenda-cuerpo { margin-top: 6px; }
+  .leyenda-boton {
+    display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px; cursor: pointer;
+    font-size: 13px; font-weight: 650; color: var(--tinta);
+  }
+  .leyenda-muestras { display: flex; gap: 3px; }
+  .leyenda-muestras i { width: 10px; height: 10px; border-radius: 3px; }
+}

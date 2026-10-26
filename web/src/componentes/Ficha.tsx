@@ -1,6 +1,6 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, umbralesDe } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
 import { decimal, miles, millones, pct } from '../formato'
@@ -83,7 +83,7 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
 /** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
 function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number }) {
   const exceso = Math.max(0, -r.margen)
-  const quedan = exceso - r.envia
+  const quedan = quedanSinSitio(r)
   const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => {
     const nombres = traslados.slice(0, 5).map((t) => `${porIne.get(t[campo])?.nombre} (${miles(t.personas)}, ${miles(t.km)} km)`)
     return nombres.join(', ') + (traslados.length > 5 ? ' y otros' : '')

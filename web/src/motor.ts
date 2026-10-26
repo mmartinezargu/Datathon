@@ -117,6 +117,11 @@ export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio
   })
 }
 
+/** Personas que llegan y siguen sin sitio en el municipio, después de reubicar las que se puedan. */
+export function quedanSinSitio(r: ResultadoMunicipio): number {
+  return Math.max(0, -r.margen) - r.envia
+}
+
 /** Resumen de la reubicación para los 155: cuántos se mueven, a cuántos pueblos y a qué distancia media. */
 export function resumenReubicacion(resultados: ResultadoMunicipio[]) {
   const traslados = resultados.flatMap((r) => r.envios).sort((p, q) => q.personas - p.personas)
