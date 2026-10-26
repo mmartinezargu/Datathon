@@ -14,6 +14,7 @@ const INSTRUCCIONES = `Ayudas a buscar municipio para mudarse en la Comunidad de
 Lee la frase del vecino y responde SOLO con un objeto JSON, sin texto alrededor, con estos campos:
 - "perfil": "familia" (hay hijos, un bebé en camino o son 3 o más), "mayor" (jubilado o persona mayor), "teletrabajo" (trabaja desde casa) o null si no se sabe.
 - "instituto": true si tiene hijos en edad de instituto (12 a 18 años, ESO, bachillerato); si no, false.
+- "hospital": true si pide tener un hospital, médico o urgencias cerca, o lo necesita por salud; si no, false.
 - "tamano": "pueblo" (quiere algo pequeño, tranquilo, con campo o naturaleza), "mediano", "grande" (quiere ciudad o muchos servicios) o null. Solo si dice cómo quiere que sea el sitio donde va a vivir: trabajar en una ciudad grande no cuenta.
 - "municipio": el nombre del municipio donde trabaja o cerca del que quiere vivir, tal como lo escribe, o null.
 - "zona": una de estas zonas, solo si la nombra o la describe claramente; no la deduzcas del municipio; si no, null: {ZONAS}.
@@ -82,10 +83,11 @@ function esquema(zonas: string[]) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['perfil', 'instituto', 'tamano', 'municipio', 'zona'],
+    required: ['perfil', 'instituto', 'hospital', 'tamano', 'municipio', 'zona'],
     properties: {
       perfil: { type: ['string', 'null'], enum: ['familia', 'mayor', 'teletrabajo', null] },
       instituto: { type: 'boolean' },
+      hospital: { type: 'boolean' },
       tamano: { type: ['string', 'null'], enum: ['pueblo', 'mediano', 'grande', null] },
       municipio: { type: ['string', 'null'] },
       zona: { type: ['string', 'null'], enum: [...zonas, null] },

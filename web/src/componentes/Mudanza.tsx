@@ -6,7 +6,8 @@ import { TIPOS } from '../colores'
 import { leerFrase } from '../asistente'
 import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
 import type { Candidato, Escenario, FiltrosMudanza, LecturaFrase, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
-import { miles, pct } from '../formato'
+import { decimal, miles, pct } from '../formato'
+import { HOSPITAL_LEJOS_KM } from '../motor'
 import { Icono } from './Iconos'
 
 const MAX_COMPARAR = 3
@@ -62,6 +63,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
           <Casilla texto="Que tenga colegio" valor={filtros.colegio} onCambiar={(colegio) => cambiar({ colegio })} />
           <Casilla texto="Que tenga instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
           <Casilla texto="Que no se llene con la gente que llega" valor={filtros.sitioLibre} onCambiar={(sitioLibre) => cambiar({ sitioLibre })} />
+          <Casilla texto={`Con hospital a menos de ${HOSPITAL_LEJOS_KM} km`} valor={filtros.hospitalCerca} onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
         </div>
         <div className="filtros-fila">
           <label className="control">
@@ -111,6 +113,9 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
                   </div>
                   <BarrasSitio c={c} poblacion={r.poblacion} />
                   <p className="cand-frase">{frase(c, escenario.anio)}</p>
+                  <p className="ayuda cand-hospital">
+                    <Icono nombre="sanidad" tamano={14} /> Hospital más cercano: {m.hospital_municipio}, a {decimal(m.hospital_km)} km en línea recta
+                  </p>
                   <div className="cand-acciones">
                     <span className="encaje" title="Lo bien que encaja con tu perfil, comparado con los demás que cumplen lo que pides">
                       <span className="encaje-pista"><span style={{ width: `${c.puntos}%` }} /></span>
@@ -246,6 +251,7 @@ function Comparador({ elegidos, porIne, porIneRes, anio, onQuitar, onVerEnMapa }
     { nombre: 'Colegios / institutos', valor: (c) => { const k = porIne.get(c.ine)!.capacidad!; return `${k.colegios_primaria} / ${k.colegios_secundaria}` } },
     { nombre: 'Sitio en colegios', valor: (c) => sitio(c.sitio.colegios) },
     { nombre: 'Sitio en el centro de salud', valor: (c) => sitio(c.sitio.sanidad) },
+    { nombre: 'Hospital más cercano', valor: (c) => { const m = porIne.get(c.ine)!; return `${decimal(m.hospital_km)} km (${m.hospital_municipio})` } },
     { nombre: 'Casa para', valor: (c) => sitio(c.sitio.vivienda) },
     { nombre: 'Tipo', valor: (c) => TIPOS[porIneRes.get(c.ine)!.tipo].nombre },
   ]

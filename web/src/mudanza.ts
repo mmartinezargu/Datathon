@@ -4,6 +4,7 @@
 
 import type { Candidato, FiltrosMudanza, LecturaFrase, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from './tipos'
 import { miles } from './formato'
+import { HOSPITAL_LEJOS_KM } from './motor'
 
 export const PERFILES: Record<Perfil, { nombre: string; que: string; pesos: Record<Recurso, number> }> = {
   familia: { nombre: 'Familia con hijos', que: 'Colegios con sitio, centro de salud y casa.', pesos: { colegios: 0.45, sanidad: 0.25, vivienda: 0.3 } },
@@ -18,11 +19,11 @@ export const TAMANOS: Record<Tamano, { nombre: string; desde: number; hasta: num
   grande: { nombre: 'Grande', desde: 20_000, hasta: Infinity },
 }
 
-export const FILTROS_INICIALES: FiltrosMudanza = { perfil: 'familia', colegio: true, instituto: false, sitioLibre: true, zona: null, tamano: 'todos' }
+export const FILTROS_INICIALES: FiltrosMudanza = { perfil: 'familia', colegio: true, instituto: false, sitioLibre: true, hospitalCerca: false, zona: null, tamano: 'todos' }
 
-/** Al cambiar de perfil: una familia quiere colegio; los demás, por defecto, no lo piden. */
+/** Al cambiar de perfil: una familia quiere colegio y una persona mayor, el hospital cerca; los demás, por defecto, no lo piden. */
 export function cambiarPerfil(f: FiltrosMudanza, perfil: Perfil): FiltrosMudanza {
-  return { ...f, perfil, colegio: perfil === 'familia', instituto: perfil === 'familia' && f.instituto }
+  return { ...f, perfil, colegio: perfil === 'familia', instituto: perfil === 'familia' && f.instituto, hospitalCerca: perfil === 'mayor' }
 }
 
 const RECURSOS: Recurso[] = ['colegios', 'sanidad', 'vivienda']
@@ -38,6 +39,7 @@ export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMud
   return (!f.colegio || c.colegios_primaria > 0)
     && (!f.instituto || c.colegios_secundaria > 0)
     && (!f.sitioLibre || r.margen >= 0)
+    && (!f.hospitalCerca || m.hospital_km <= HOSPITAL_LEJOS_KM)
     && (!f.zona || m.zona === f.zona)
     && r.poblacion >= t.desde && r.poblacion < t.hasta
 }
@@ -179,7 +181,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
   } else if (!sinHijos && cuantos >= 3) {
     perfil = 'familia'
     entendido.push(`Sois ${miles(cuantos)}: os tratamos como una familia con hijos.`)
-  } else if (/\b(jubilad[oa]s?|pension\w*|abuel[oa]s?|tercera edad|mayor|mayores)\b/.test(t)) {
+  } else if (/\b(jubilad[oa]s?|pension\w*|abuel[oa]s?|tercera edad|mayor|mayores|([6-9]\d|1[01]\d) anos)\b/.test(t)) {
     perfil = 'mayor'
     entendido.push(`${PERFILES.mayor.nombre}: ${PERFILES.mayor.que.toLowerCase()}`)
   } else if (/(teletrabaj|\bremoto\b|desde casa|freelance)/.test(t)) {
@@ -188,6 +190,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
   }
   const filtros = cambiarPerfil(FILTROS_INICIALES, perfil ?? actual.perfil)
   if (instituto) filtros.instituto = true
+  if (/\b(hospital\w*|medic[oa]s?|urgencias)\b/.test(t)) filtros.hospitalCerca = true
 
   // Tamaño y zona: la del municipio que nombra o una zona dicha por su nombre
   const tamano: Tamano | null = /\b(pueblos?|tranquil[oa]|campo)\b/.test(t) ? 'pueblo'
@@ -208,6 +211,7 @@ export function zonasConCandidatos(municipios: Municipio[]): string[] {
 /** Pone el tamaño y la zona en los filtros y lo explica. El municipio nombrado manda sobre la zona. */
 function completar(filtros: FiltrosMudanza, entendido: string[], tamano: Tamano | null, m: Municipio | null,
   zona: string | null, municipios: Municipio[]) {
+  if (filtros.hospitalCerca) entendido.push(`Con el hospital a menos de ${miles(HOSPITAL_LEJOS_KM)} km en línea recta.`)
   if (tamano) {
     filtros.tamano = tamano
     const { desde, hasta } = TAMANOS[tamano]
@@ -248,6 +252,7 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   }
   const filtros = cambiarPerfil(FILTROS_INICIALES, instituto ? 'familia' : perfil ?? actual.perfil)
   if (instituto) filtros.instituto = true
+  if (d.hospital === true) filtros.hospitalCerca = true
 
   const tamano = typeof d.tamano === 'string' && d.tamano in TAMANOS && d.tamano !== 'todos' ? d.tamano as Tamano : null
   const ine = typeof d.municipio === 'string' ? municipioNombrado(normalizar(d.municipio), municipios).ine : null
