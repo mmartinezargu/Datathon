@@ -128,6 +128,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
         <p>
           <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
         </p>
+        <p>
+          <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («somos 4 y trabajo en Getafe») y lo convierte en los
+          filtros de «¿Dónde me mudo?», que luego puedes cambiar. La IA no calcula nada ni ordena los pueblos: los resultados salen
+          del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
+        </p>
       </section>
 
       <section className="val-tarjeta">
