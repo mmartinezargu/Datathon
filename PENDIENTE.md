@@ -7,6 +7,12 @@ Publicada en **https://cabida.vercel.app** (se actualiza sola al fusionar en `ma
 
 Mapa de los 155 municipios con los 4 tipos, cuánta gente llega y cuánta cabe (vivienda, colegios, sanidad, ritmo), palancas y supuestos, ficha con la cuenta, listas y pestaña de validación (error del 44,4 %).
 
+Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
+- ✅ **Oportunidad condicionada**: oportunidad con el hospital general público más cercano a más de 25 km en línea recta (unos 30 min en coche [est.]). Sale rayada en el mapa, y la ficha dice el hospital más cercano.
+- ✅ **Reequilibrio**: interruptor en el escenario, «Dirigir lo que no cabe a los municipios con sitio». Cambian las cifras de cabecera, el vaso y la ficha. Los colores del mapa no cambian.
+- ✅ **Plazo** en «¿y si invertimos aquí?»: colegio, unos 2 años; centro de salud, unos 3 (estimación).
+- ✅ **Datasets entregables**: `data/out/diccionario.csv`, `data/out/README.md` (fuentes, CC BY 4.0 y cómo regenerar) y `THIRD_PARTY.md`. Los datos de partida de menos de 25 MB están en `data/raw/` (solo se descarga el planeamiento).
+
 ## Pendiente
 
 | # | Tarea | Qué es exactamente | Quién | Para |
@@ -30,6 +36,8 @@ Mapa de los 155 municipios con los 4 tipos, cuánta gente llega y cuánta cabe (
 - Llegan **134.426** personas (el ritmo de la última década). Ojo: la maqueta usaba 170.000.
 - Con los servicios de hoy caben **53.239**; **81.187** se quedan sin sitio.
 - 73 municipios en tensión, 38 polos, 38 oportunidades y 6 en consolidación.
+- De las 38 oportunidades, **25 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sin contar esas, el sitio libre es de 32.349 personas (34.363 en total).
+- Con el reequilibrio activo («Dirigir lo que no cabe…»), se dirigen 32.349 personas a municipios con sitio: caben **85.588** y **48.838** no caben en ningún municipio.
 - Validación 2015 -> 2025: error del **44,4 %**, frente al 64 % de seguir la tendencia sin más.
 
 ## Cómo arrancarla

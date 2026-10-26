@@ -51,4 +51,4 @@ uv run preparar.py     # tabla_maestra.csv, diccionario.csv y los datos de la we
 uv run validacion.py   # validacion_municipios.csv
 ```
 
-El planeamiento refundido se descarga en zip (`idem_planeamiento_refundido_2025.zip`). Hay que descomprimir `vpla_ref_25_gpkg.gpkg` en `data/raw/` antes de ejecutar `preparar.py`.
+Los datos de partida de menos de 25 MB ya están en `data/raw/` (ver su `README.md`), así que `descargar.py` solo baja lo que falta: el planeamiento refundido, en zip (`idem_planeamiento_refundido_2025.zip`). Hay que descomprimir `vpla_ref_25_gpkg.gpkg` en `data/raw/` antes de ejecutar `preparar.py`.
