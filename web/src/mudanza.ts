@@ -202,7 +202,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
     ?? Object.entries(ALIAS_ZONA).find(([alias]) => buscar(t, alias).length)?.[1] ?? null
   completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null, zona, municipios, medida)
 
-  return { filtros, entendido, origen: 'palabras' }
+  return { filtros, entendido, origen: 'palabras', perfilDicho: perfil !== null }
 }
 
 /** Zonas donde hay algún municipio del estudio (las que tiene sentido filtrar). */
@@ -261,5 +261,5 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null,
     typeof d.zona === 'string' ? d.zona : null, municipios, medida)
 
-  return entendido.length ? { filtros, entendido, origen: 'ia' } : null
+  return entendido.length ? { filtros, entendido, origen: 'ia', perfilDicho: perfil !== null || instituto } : null
 }

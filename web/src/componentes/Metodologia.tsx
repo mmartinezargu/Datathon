@@ -7,7 +7,9 @@
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
 import { MEDIDAS, radioReubicacion, umbralHospital } from '../medida'
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { ANIO_BASE, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, MARGEN_MINIMO, PARAMETROS_PLAN, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '../fuentesPlan'
+import type { TipoObra } from '../tipos'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { DatosValidacion, Escenario, Perfil, Recurso } from '../tipos'
@@ -129,9 +131,14 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
       <section className="val-tarjeta">
         <h2>Y además</h2>
         <p>
-          <b>¿Y si invertimos aquí?</b> Al añadir un colegio (unos {millones(COSTE_COLEGIO)}) o un centro de salud (unos {millones(COSTE_CENTRO_SALUD)})
-          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe. También se enseña un plazo orientativo hasta que abre:
-          unos {PLAZO_COLEGIO_ANIOS} años un colegio y unos {PLAZO_CENTRO_SALUD_ANIOS} un centro de salud. Son estimaciones, no plazos oficiales.
+          <b>Plan: ¿qué hace falta para que quepan?</b> Una lista de obras (ampliar un colegio, colegio nuevo, instituto o centro de salud)
+          con sus plazas, su coste y el año en que abren. El «plan óptimo» va añadiendo, una a una, la obra que hace caber a más gente por
+          cada euro: en cada pueblo, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
+          por zona cada vez, porque sirve a toda la zona. Lo que gana una obra se cuenta en los 155, no solo en su pueblo: un centro suma
+          lo que da a toda su zona y, reubicando, lo que libera a los pueblos vecinos. Para cuando lo que limita es la vivienda o el ritmo,
+          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Se calcula reubicando en pueblos cercanos y se compara con
+          «cada pueblo con lo suyo». Con un plan cargado, el mapa colorea según lo que falta después de reubicar y con las obras. Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
+          para no pasarse. Todos los valores se pueden cambiar; los de partida y su fuente están en la tabla de abajo.
         </p>
         <p>
           <b>Reubicar en pueblos cercanos.</b> Con el interruptor de las palancas, quien no cabe en su pueblo va al pueblo con sitio
@@ -139,13 +146,55 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           de pueblos más próximas. Si no hay ninguno a esa distancia, se queda sin sitio, y los colores del mapa no cambian.
         </p>
         <p>
-          <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
+          <b>Dónde vivir.</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
         </p>
         <p>
-          <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («somos 4 y trabajo en Getafe») y lo convierte en los
-          filtros de «¿Dónde me mudo?», que luego puedes cambiar. La IA no calcula nada ni ordena los pueblos: los resultados salen
-          del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
+          <b>Repartir.</b> Coge a toda la gente que llega y la reparte según quiénes son (familias, personas mayores, teletrabajo),
+          como si se pudiera elegir a dónde va cada uno: cada grupo va a los pueblos que mejor le encajan y cada pueblo recibe hasta
+          llenarse. Se compara con lo que cabe si cada uno va donde le lleva la tendencia.
         </p>
+        <p>
+          <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («somos 4 y trabajo en Getafe» en «Dónde vivir»,
+          «llevadlos a pueblos pequeños con hospital cerca» en «Repartir») y lo convierte en filtros, que luego puedes cambiar.
+          La IA no calcula nada, ni ordena ni reparte los pueblos: los resultados
+          salen del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
+        </p>
+      </section>
+
+      <section className="val-tarjeta">
+        <h2>Lo que vale cada obra del plan</h2>
+        <div className="tabla-scroll">
+          <table className="fuentes">
+            <thead><tr><th>Obra</th><th>Valor de partida</th><th>De dónde sale</th></tr></thead>
+            <tbody>
+              {(Object.keys(NOMBRE_OBRA) as TipoObra[]).map((t) => {
+                const v = PARAMETROS_PLAN.obras[t]
+                return (
+                  <tr key={t}>
+                    <td><b>{NOMBRE_OBRA[t]}</b><br /><span className="ayuda">{QUE_HACE_OBRA[t]}</span></td>
+                    <td>
+                      {t === 'centro_salud'
+                        ? <>{millones(v.eurosPorPlaza)}; atiende a {miles(v.plazas)} personas</>
+                        : <>{miles(v.plazas)} plazas a {miles(v.eurosPorPlaza)} € por plaza ({millones(v.plazas * v.eurosPorPlaza)})</>}
+                      ; abre a los {v.anios} años
+                    </td>
+                    <td>
+                      {FUENTES_PLAN[t].texto}{' '}
+                      {FUENTES_PLAN[t].enlaces.map((e, k) => (
+                        <span key={e.url}>{k > 0 && '; '}<a href={e.url} target="_blank" rel="noreferrer">{e.texto}</a></span>
+                      ))}.
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr>
+                <td><b>Inicio de las obras</b></td>
+                <td>{PARAMETROS_PLAN.anioInicio}</td>
+                <td>{FUENTE_ANIO_INICIO}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="val-tarjeta">
@@ -294,15 +343,17 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           </section>
 
           <section>
-            <h3>4. Invertir y mudarse</h3>
+            <h3>4. Invertir, dónde vivir y repartir</h3>
             <p>
-              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio y añade tantas plazas como el límite de alumnos por
-              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud; si su zona ya se pasa del límite, primero cubre esa parte. Después se recalcula todo: a veces el límite pasa a otro
-              recurso y hace falta invertir en algo más.
+              <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
+              edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
+              zona las personas que atiende (de partida, la mediana de las zonas); si la zona ya se pasa del límite, primero cubre esa parte,
+              y cada municipio de la zona se lleva su parte según sus vecinos. Después se recalcula todo: a veces el límite pasa a otro
+              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
-              <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda
-              <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos. Cada perfil da un peso distinto:
+              <b>Dónde vivir y repartir.</b> Cada perfil ordena los pueblos por el sitio que les queda en colegios, centro de salud y vivienda
+              <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos, con un peso distinto para cada grupo:
             </p>
             <ul className="perfiles-metodo">
               {(Object.keys(PERFILES) as Perfil[]).map((p) => (
@@ -314,8 +365,14 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               ))}
             </ul>
             <p>
-              La casilla <b>«Con hospital a menos de {umbralHospital(escenario.medida)}{enMin ? ' en coche' : ''}»</b> deja solo los municipios con un hospital general
-              público a esa distancia o menos, {MEDIDAS[escenario.medida].como}. Viene marcada para las personas mayores.
+              En «Dónde vivir», la casilla «Con hospital a menos de {umbralHospital(escenario.medida)}{enMin ? ' en coche' : ''}» deja solo los pueblos con un hospital
+              general público a esa distancia o menos, {MEDIDAS[escenario.medida].como}; viene marcada para las personas mayores.
+            </p>
+            <p>
+              En «Repartir», los grupos llenan los pueblos en ese orden, por turnos y a la par (cada grupo, en proporción a cuántos son), hasta lo que le cabe a cada uno (el menor de sus
+              cuatro límites). Las familias solo van a pueblos con colegio y las personas mayores, a pueblos con un hospital general
+              público a menos de {hospitalLejos}. Qué parte de los que llegan es de cada grupo es un supuesto
+              que se puede cambiar.
             </p>
           </section>
         </div>

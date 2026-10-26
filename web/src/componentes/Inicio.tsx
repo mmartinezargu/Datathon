@@ -17,7 +17,7 @@ export interface Totales {
   reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
-export type Destino = 'mapa' | 'mudanza' | 'acierta' | 'metodologia'
+export type Destino = 'mapa' | 'mudanza' | 'reparto' | 'acierta' | 'metodologia'
 
 const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: string; boton: string }[] = [
   { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan, por qué, y qué pasa si se construye un colegio o un centro de salud.', boton: 'Abrir el mapa' },

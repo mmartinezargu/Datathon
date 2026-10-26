@@ -10,8 +10,9 @@
 const MAX_FRASE = 300
 const MAX_ZONAS = 20
 
-const INSTRUCCIONES = `Ayudas a buscar municipio para mudarse en la Comunidad de Madrid.
-Lee la frase del vecino y responde SOLO con un objeto JSON, sin texto alrededor, con estos campos:
+const INSTRUCCIONES = `Ayudas a decidir dónde vivir, o dónde llevar a la gente que llega, en los pueblos de la Comunidad de Madrid.
+La frase puede ser de un vecino que busca casa o de un gestor público que reparte a quienes llegan ("llevadlos a…", "repartid en…").
+Lee la frase y responde SOLO con un objeto JSON, sin texto alrededor, con estos campos:
 - "perfil": "familia" (hay hijos, un bebé en camino o son 3 o más), "mayor" (jubilado o persona mayor), "teletrabajo" (trabaja desde casa) o null si no se sabe.
 - "instituto": true si tiene hijos en edad de instituto (12 a 18 años, ESO, bachillerato); si no, false.
 - "hospital": true si pide tener un hospital, médico o urgencias cerca, o lo necesita por salud; si no, false.

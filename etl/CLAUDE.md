@@ -12,7 +12,6 @@ Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, 
 | `tiempos.py` | Minutos en coche, sin tráfico (OSRM, servidor público) de cada núcleo al hospital y entre los 155 (≤ 60 min). Escribe `../data/raw/tiempos_osrm.json` (se sube; la caché `osrm_cache/` no) e imprime la comparación con los km. `--simulacro` prueba sin red. Solo hay que repetirlo si cambian los núcleos o los hospitales |
 | `preparar.py` | Genera `../web/public/datos/*.json` y `../data/out/*.csv`. Lee `tiempos_osrm.json` para `hospital_min`, `hospital_min_municipio` y `vecinos_min` |
 | `validacion.py` | Valida el modelo 2015→2025 (WAPE y personas colocadas en otro municipio o zona) y escribe `validacion_municipios.csv` / `validacion.json` |
-| `plan_inversion.py` | Para una diapositiva (`--medida km` por defecto, o `min`): con el escenario por defecto, con y sin reubicar, añade colegios y centros de salud donde limitan y dice cuántos, cuánto cuestan y cuánta gente sigue sin sitio. Repite las cuentas de `web/src/motor.ts` (si cambias el motor, cámbialo aquí; al arrancar comprueba que salen las cifras de la web) |
 
 ## Reglas
 

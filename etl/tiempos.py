@@ -26,7 +26,6 @@ import geopandas as gpd
 import numpy as np
 import requests
 
-import plan_inversion
 from comun import ANIO_BASE, LIMITE_HABITANTES, RAW, WEB_DATOS, leer_poblacion
 from preparar import hospitales, nucleos, terminos_municipales
 
@@ -94,9 +93,8 @@ def recta_km(a: tuple[float, float], b: tuple[float, float]) -> float:
 
 
 def comparar(datos: dict) -> None:
-    """Minutos frente a km: correlación, condicionadas y pueblos que cambian de lado."""
+    """Minutos frente a km: correlación y pueblos que cambian de lado (hospital lejos en una medida y no en la otra)."""
     municipios = json.loads((WEB_DATOS / "municipios.json").read_text(encoding="utf-8"))
-    zonas = json.loads((WEB_DATOS / "zonas_salud.json").read_text(encoding="utf-8"))
     universo = [m for m in municipios if m["universo"] and m["capacidad"]]
     por_ine = {m["ine"]: m for m in universo}
     km = np.array([m["hospital_km"] for m in universo])
@@ -129,15 +127,7 @@ def comparar(datos: dict) -> None:
         print(f"  {titulo}: {len(lista)}")
         for ine in sorted(lista, key=lambda i: por_ine[i]["nombre"]):
             print(linea(ine))
-
-    # El tipo no depende del hospital: se calcula como en la web (escenario por defecto, sin invertir)
-    u = plan_inversion.umbrales(universo, zonas, plan_inversion.ESCENARIO["exigencia"])
-    oportunidades = {f["ine"] for f in plan_inversion.calcular(universo, u, {}, reubicar=False) if f["tipo"] == "oportunidad"}
-    cond_km, cond_min = oportunidades & lejos_km, oportunidades & lejos_min
-    print(f"  Oportunidades condicionadas ({len(oportunidades)} oportunidades, escenario por defecto): "
-          f"{len(cond_km)} con km, {len(cond_min)} con minutos")
-    for titulo, lista in (("Dejan de estar condicionadas", cond_km - cond_min), ("Pasan a estar condicionadas", cond_min - cond_km)):
-        print(f"    {titulo}: {', '.join(sorted(por_ine[i]['nombre'] for i in lista)) or 'ninguna'}")
+    # Las oportunidades condicionadas salen del motor de la web (tipo × hospital lejos): las comprueba web/tests/motor.test.ts
 
 
 def main() -> None:

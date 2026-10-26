@@ -130,9 +130,13 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "según medida, separados por «|»", "texto", ESCENARIO),
         ("envia_a", "A qué pueblos van: «Municipio (personas; min)» o «Municipio (personas; km)», según medida, "
          "separados por «|»", "texto", ESCENARIO),
-        ("colegios_nuevos", "Colegios nuevos simulados en «¿Y si invertimos aquí?»", "centros", ESCENARIO),
-        ("centros_salud_nuevos", "Centros de salud nuevos simulados", "centros", ESCENARIO),
-        ("coste_inversion_eur", "Coste aproximado de lo simulado (unos 9,5 M€ por colegio y 8 M€ por centro de salud)", "euros", ESCENARIO),
+        ("plan_plazas_primaria", "Con el plan de la pestaña «Plan»: plazas de primaria nuevas en el municipio (ampliar un colegio "
+         "o construir uno)", "plazas", ESCENARIO),
+        ("plan_plazas_eso", "Con el plan: plazas de ESO nuevas en el municipio (institutos)", "plazas", ESCENARIO),
+        ("plan_centros_salud", "Con el plan: centros de salud nuevos en su zona básica de salud (un centro sirve a toda la zona, "
+         "esté en el municipio que esté)", "centros", ESCENARIO),
+        ("plan_coste_eur", "Con el plan: coste de las obras que se hacen en este municipio (valores por defecto y su fuente "
+         "en la pestaña «Plan»)", "euros", ESCENARIO),
     ],
     "validacion_municipios.csv": [
         ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),

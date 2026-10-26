@@ -5,7 +5,9 @@ import { useState } from 'react'
 import { normalizar } from '../mudanza'
 import type { Municipio } from '../tipos'
 
-export function Buscador({ municipios, onElegir }: { municipios: Municipio[]; onElegir: (ine: string) => void }) {
+export function Buscador({ municipios, onElegir, texto: indicacion = 'Buscar municipio' }: {
+  municipios: Municipio[]; onElegir: (ine: string) => void; texto?: string
+}) {
   const [texto, setTexto] = useState('')
   const [noEncontrado, setNoEncontrado] = useState(false)
 
@@ -30,8 +32,8 @@ export function Buscador({ municipios, onElegir }: { municipios: Municipio[]; on
       if (m) elegir(m)
       else setNoEncontrado(texto.trim() !== '')
     }}>
-      <input type="search" list="municipios-buscador" value={texto} placeholder="Buscar municipio"
-        aria-label="Buscar un municipio" aria-invalid={noEncontrado}
+      <input type="search" list="municipios-buscador" value={texto} placeholder={indicacion}
+        aria-label={indicacion} aria-invalid={noEncontrado}
         onChange={(e) => {
           setTexto(e.target.value)
           setNoEncontrado(false)
