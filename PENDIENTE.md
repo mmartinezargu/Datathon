@@ -27,7 +27,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 | 8 | **Guion de la demo** | Qué se pulsa y en qué orden: mapa -> mover personas -> ficha de Arroyomolinos -> añadir colegio -> vista ciudadana -> validación. Quién habla en cada parte. | | mar 27 |
 
 ## Extras: solo si todo lo anterior está terminado
-- Asistente que escribe los filtros («somos 4 y trabajo en Getafe») con los créditos de Oracle.
+- ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Falta: poner `GROQ_API_KEY` en Vercel (ver `web/CLAUDE.md`).
 - Tiempos en coche y transporte público a sanidad y educación (endpoint SPARQL de la Cátedra).
 - Plazas escolares reales del endpoint en vez del umbral de habitantes por colegio.
 

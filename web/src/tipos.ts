@@ -111,6 +111,13 @@ export interface FiltrosMudanza {
   tamano: Tamano
 }
 
+/** Lo que se entiende de una frase como «somos 4 y trabajo en Getafe». */
+export interface LecturaFrase {
+  filtros: FiltrosMudanza
+  entendido: string[] // lo que hemos sacado de la frase, en palabras sencillas (vacío = no hemos entendido nada)
+  origen: 'ia' | 'palabras' // la IA (api/asistente.ts) o el asistente de palabras clave (sin internet)
+}
+
 /** Un municipio en el ranking de «¿Dónde me mudo?». */
 export interface Candidato {
   ine: string

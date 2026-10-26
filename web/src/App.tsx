@@ -71,11 +71,14 @@ export default function App() {
   // Cargar los datos que preparó Python
   useEffect(() => {
     const archivos = ['municipios.json', 'zonas_salud.json', 'limites.geojson', 'validacion.json']
-    Promise.all(archivos.map((f) => fetch(`datos/${f}`).then((r) => r.json()))).then(([m, z, l, v]) => {
-      setMunicipios(m)
-      setZonas(z)
-      setLimites(l)
-      setValidacion(v)
+    // En la copia sin internet los datos ya vienen dentro del HTML; si no, se piden al servidor
+    const cargar = (f: string): Promise<unknown> =>
+      window.__DATOS_CABIDA__?.[f] !== undefined ? Promise.resolve(window.__DATOS_CABIDA__[f]) : fetch(`datos/${f}`).then((r) => r.json())
+    Promise.all(archivos.map(cargar)).then(([m, z, l, v]) => {
+      setMunicipios(m as Municipio[])
+      setZonas(z as ZonaSalud[])
+      setLimites(l as GeoJSON.FeatureCollection)
+      setValidacion(v as DatosValidacion)
     })
   }, [])
 

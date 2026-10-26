@@ -25,4 +25,9 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // Funciones de Vercel: se ejecutan en Node, no en el navegador
+    files: ['api/**/*.ts'],
+    languageOptions: { globals: globals.node },
+  },
 )
