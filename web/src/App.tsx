@@ -248,18 +248,18 @@ export default function App() {
               aria-label={mapaLimpio ? 'Ver cifras y leyenda' : 'Mapa limpio: esconder cifras y leyenda'}>
               <Icono nombre="ojo" tamano={17} /><span>{mapaLimpio ? 'Ver cifras y leyenda' : 'Mapa limpio'}</span>
             </button>
-            {/* Las 3 cifras en una línea; la frase entera sale al pasar el ratón */}
+            {/* Las 3 cifras: si no caben en una línea, pasan a dos */}
             <div className="cifras">
-              <Cifra valor={miles(dentro)} texto={`de ${miles(escenario.personas)} caben`}
-                detalle={`de las ${miles(escenario.personas)} personas caben` +
+              <Cifra valor={miles(dentro)}
+                texto={`de las ${miles(escenario.personas)} personas caben` +
                   (invertido ? ', contando lo que has invertido' : ' sin ampliar servicios') +
                   (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
-              <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color} texto={reequilibrio ? 'sin sitio cerca' : 'sin sitio'}
-                detalle={reequilibrio
+              <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
+                texto={reequilibrio
                   ? `no encuentran sitio cerca${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
                   : invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} />
-              <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color} texto="con sitio libre"
-                detalle={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
+              <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
+                texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
             {/* La leyenda va plegada en un botón para no tapar el mapa */}
             <div className={`leyenda${leyendaAbierta ? ' abierta' : ''}`} aria-label="Leyenda">
@@ -399,9 +399,9 @@ function BotonPlegar({ texto, lado, onPlegar }: { texto: string; lado: 'izquierd
   )
 }
 
-function Cifra({ valor, texto, detalle, acento }: { valor: string; texto: string; detalle: string; acento?: string }) {
+function Cifra({ valor, texto, acento }: { valor: string; texto: string; acento?: string }) {
   return (
-    <div className="cifra" title={`${valor} ${detalle}`} style={acento ? { borderLeftColor: acento } : undefined}>
+    <div className="cifra" style={acento ? { borderTopColor: acento } : undefined}>
       <b style={acento ? { color: acento } : undefined}>{valor}</b>
       <span>{texto}</span>
     </div>

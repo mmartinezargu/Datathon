@@ -205,8 +205,6 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 /* Portátiles pequeños: columnas laterales más estrechas */
 @media (max-width: 1360px) {
   .cuerpo { --ancho-escenario: 270px; --ancho-resultado: 350px; }
-  .col-mapa .cifra:nth-child(3) { display: none; }
-  .cuerpo.sin-escenario .col-mapa .cifra:nth-child(3), .cuerpo.sin-resultado .col-mapa .cifra:nth-child(3) { display: flex; }
   .limite { grid-template-columns: 120px 1fr 60px; }
 }
 
@@ -236,7 +234,6 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .inicio-portada, .puertas, .inicio-datos { grid-template-columns: 1fr; }
   .pasos-simples > li { grid-template-columns: 1fr; gap: 8px; padding: 16px; }
   .tipos-simples li { grid-template-columns: 1fr; gap: 3px; }
-  .col-mapa .cifra:nth-child(2) { display: none; }
   .mapa-titulo .titulo-columna span:not(.paso) { display: none; }
   .buscador { flex-basis: 190px; padding: 0 10px; }
   .leyenda { left: 8px; right: 8px; bottom: 8px; max-width: none; }
@@ -293,24 +290,13 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .leyenda.abierta { right: 56px; }
 }
 
-/* ---------- Mapa más limpio: cifras en una línea, leyenda plegada, paneles plegables ---------- */
-/* Las 3 cifras, en una sola línea compacta (la frase entera, al pasar el ratón) */
-.col-mapa .cifras {
-  top: 62px; left: 12px; right: auto; max-width: calc(100% - 180px); flex-wrap: nowrap; gap: 0;
-  background: rgba(255, 255, 255, 0.95); border: 1px solid var(--linea); border-radius: 12px; padding: 5px 4px;
-  pointer-events: auto;
-}
-.col-mapa .cifra {
-  display: flex; align-items: baseline; gap: 5px; flex: 0 1 auto; min-width: 0; max-width: none; white-space: nowrap;
-  background: none; border: 0; border-left: 3px solid var(--tinta); border-radius: 0; padding: 1px 10px 1px 8px;
-}
-.col-mapa .cifra + .cifra { margin-left: 2px; }
-.col-mapa .cifra b { display: inline; font-size: 17px; }
-.col-mapa .cifra span { display: inline; margin: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; }
+/* ---------- Mapa más limpio: botón «Mapa limpio», leyenda plegada, paneles plegables ---------- */
+/* Las 3 cifras, como siempre; dejan sitio a la derecha para «Mapa limpio» y, si no caben, pasan a dos líneas */
+.col-mapa .cifras { right: 160px; }
 
 /* «Mapa limpio»: esconde las cifras y la leyenda */
 .mapa-limpio {
-  position: absolute; top: 62px; right: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 6px;
+  position: absolute; top: 66px; right: 16px; z-index: 1; display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255, 255, 255, 0.95); border: 1px solid var(--linea); border-radius: 12px; padding: 6px 11px;
   font: inherit; font-size: 13px; font-weight: 650; color: var(--tinta); cursor: pointer;
 }
@@ -360,7 +346,8 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .leyenda.abierta { max-height: 60%; }
 }
 @media (max-width: 700px) {
-  .col-mapa .cifras { top: 58px; left: 8px; max-width: calc(100% - 62px); }
+  .col-mapa .cifras { top: 58px; left: 8px; right: 52px; gap: 6px; }
+  .col-mapa .cifra { flex-basis: 140px; max-width: none; padding: 6px 9px; }
   .mapa-limpio { top: 58px; right: 8px; padding: 7px; }
   .mapa-limpio span { display: none; }
 }
