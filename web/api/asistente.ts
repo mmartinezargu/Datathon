@@ -14,9 +14,9 @@ const INSTRUCCIONES = `Ayudas a buscar municipio para mudarse en la Comunidad de
 Lee la frase del vecino y responde SOLO con un objeto JSON, sin texto alrededor, con estos campos:
 - "perfil": "familia" (hay hijos, un bebé en camino o son 3 o más), "mayor" (jubilado o persona mayor), "teletrabajo" (trabaja desde casa) o null si no se sabe.
 - "instituto": true si tiene hijos en edad de instituto (12 a 18 años, ESO, bachillerato); si no, false.
-- "tamano": "pueblo" (quiere algo pequeño, tranquilo, con campo o naturaleza), "mediano", "grande" (quiere ciudad o muchos servicios) o null.
+- "tamano": "pueblo" (quiere algo pequeño, tranquilo, con campo o naturaleza), "mediano", "grande" (quiere ciudad o muchos servicios) o null. Solo si dice cómo quiere que sea el sitio donde va a vivir: trabajar en una ciudad grande no cuenta.
 - "municipio": el nombre del municipio donde trabaja o cerca del que quiere vivir, tal como lo escribe, o null.
-- "zona": una de estas zonas, solo si la nombra o la describe claramente; si no, null: {ZONAS}.
+- "zona": una de estas zonas, solo si la nombra o la describe claramente; no la deduzcas del municipio; si no, null: {ZONAS}.
 No te inventes nada: si la frase no lo dice, pon null o false.`
 
 interface Peticion {
@@ -51,7 +51,7 @@ function respuesta(datos: unknown, estado = 200): Response {
 interface Proveedor {
   url: string
   clave: string
-  modelo: string
+  modelos: string[] // si uno está saturado (429), se prueba el siguiente: cada modelo tiene su propio límite
   extra: Record<string, unknown> // opciones propias de cada proveedor
 }
 
@@ -61,7 +61,7 @@ function proveedor(zonas: string[]): Proveedor | null {
     return {
       url: 'https://api.groq.com/openai/v1/chat/completions',
       clave: env.GROQ_API_KEY,
-      modelo: env.GROQ_MODELO || 'openai/gpt-oss-120b',
+      modelos: [...new Set([env.GROQ_MODELO || 'openai/gpt-oss-120b', 'openai/gpt-oss-20b'])],
       // Groq garantiza que la respuesta sigue este esquema
       extra: { reasoning_effort: 'low', max_tokens: 1000, response_format: { type: 'json_schema', json_schema: { name: 'filtros', strict: true, schema: esquema(zonas) } } },
     }
@@ -70,7 +70,7 @@ function proveedor(zonas: string[]): Proveedor | null {
     return {
       url: `https://inference.generativeai.${(env.OCI_REGION || 'eu-frankfurt-1').toLowerCase()}.oci.oraclecloud.com/20231130/actions/v1/chat/completions`,
       clave: env.OCI_GENAI_API_KEY,
-      modelo: env.OCI_MODELO || 'meta.llama-3.3-70b-instruct',
+      modelos: [env.OCI_MODELO || 'meta.llama-3.3-70b-instruct'],
       extra: { max_tokens: 200 },
     }
   }
@@ -99,20 +99,20 @@ export async function POST(req: Request): Promise<Response> {
   const ia = proveedor(peticion.zonas)
   if (!ia) return respuesta({ error: 'Falta la clave de la IA (GROQ_API_KEY u OCI_GENAI_API_KEY)' }, 503)
 
-  const r = await fetch(ia.url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${ia.clave}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: ia.modelo,
-      temperature: 0,
-      messages: [
-        { role: 'system', content: INSTRUCCIONES.replace('{ZONAS}', peticion.zonas.map((z) => `"${z}"`).join(', ')) },
-        { role: 'user', content: peticion.frase },
-      ],
-      ...ia.extra,
-    }),
-    signal: AbortSignal.timeout(8000),
-  }).catch(() => null)
+  const mensajes = [
+    { role: 'system', content: INSTRUCCIONES.replace('{ZONAS}', peticion.zonas.map((z) => `"${z}"`).join(', ')) },
+    { role: 'user', content: peticion.frase },
+  ]
+  let r: Response | null = null
+  for (const modelo of ia.modelos) {
+    r = await fetch(ia.url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ia.clave}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelo, temperature: 0, messages: mensajes, ...ia.extra }),
+      signal: AbortSignal.timeout(3500),
+    }).catch(() => null)
+    if (r?.status !== 429) break
+  }
 
   if (!r?.ok) return respuesta({ error: `La IA no responde (${r?.status ?? 'sin conexión'})` }, 502)
   const datos = await r.json().catch(() => null) as { choices?: { message?: { content?: string } }[] } | null

@@ -8,7 +8,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 |---|---|
 | `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo |
 | `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros, sitio que queda por recurso) y `interpretarFrase` (asistente sin IA: frase → filtros por palabras clave y nombres de municipio). Funciones puras sobre los resultados del motor |
-| `src/asistente.ts` | Lee la frase del vecino: pregunta a `/api/asistente` (IA) y, si no hay red o tarda más de 6 s, usa `interpretarFrase` |
+| `src/asistente.ts` | Lee la frase del vecino: pregunta a `/api/asistente` (IA) y, si no hay red o tarda más de 8 s, usa `interpretarFrase` |
 | `api/asistente.ts` | Función de Vercel: pasa la frase a la IA (Groq; Oracle como alternativa) y devuelve JSON con perfil, instituto, tamaño, municipio y zona. La web valida cada campo con `lecturaDeIA` (`mudanza.ts`) |
 | `src/descarga.ts` | CSV del escenario actual para descargar (formato Excel en español) |
 | `src/tipos.ts` | Tipos de los datos (`Municipio`, `ZonaSalud`, `Escenario`, `ResultadoMunicipio`...). Debe coincidir con lo que genera `etl/preparar.py` |
@@ -34,7 +34,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 - Proveedor: **Groq** (capa gratuita, modelo `openai/gpt-oss-120b`, responde en menos de 1 s y con esquema JSON garantizado). Oracle (OCI Generative AI) queda como alternativa, pero en la región de la cuenta (Madrid) no hay modelos que funcionen.
 - Variables de entorno en Vercel (Settings → Environment Variables), nunca en el código ni en git: `GROQ_API_KEY` (`gsk_…`) y, opcional, `GROQ_MODELO`. Si no hay `GROQ_API_KEY` se usa `OCI_GENAI_API_KEY` + `OCI_REGION` + `OCI_MODELO`.
-- Con `npm run dev` la función no existe y se usa el de palabras clave. Para probar la IA en local: `vercel dev` con las variables en `.env.local`.
+- Límites de la capa gratuita de Groq: 1.000 peticiones al día y 8.000 tokens por minuto (unas 9 preguntas por minuto con el modelo grande). Si el grande está saturado (429), la función prueba con `openai/gpt-oss-20b`; si también, la web usa las palabras clave.
+- Con `npm run dev` la función también se sirve en local (`vite.config.ts`), con la clave de `.env.local`.
 - La IA solo elige filtros: las explicaciones y todas las cifras las pone la web. Si nombra un municipio, su zona manda sobre la zona que diga la IA.
 
 ## Reglas

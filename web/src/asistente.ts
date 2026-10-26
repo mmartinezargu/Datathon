@@ -4,7 +4,7 @@
 import { interpretarFrase, lecturaDeIA, zonasConCandidatos } from './mudanza'
 import type { FiltrosMudanza, LecturaFrase, Municipio } from './tipos'
 
-const ESPERA_MAX_MS = 6000
+const ESPERA_MAX_MS = 8000 // la función puede probar dos modelos de hasta 3,5 s
 
 export async function leerFrase(frase: string, municipios: Municipio[], actual: FiltrosMudanza): Promise<LecturaFrase> {
   const sinRed = !navigator.onLine || window.__DATOS_CABIDA__ !== undefined || location.protocol === 'file:'
