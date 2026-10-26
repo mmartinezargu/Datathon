@@ -7,6 +7,7 @@ import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
+import { Mudanza } from './componentes/Mudanza'
 import { Repartir } from './componentes/Repartir'
 import { Metodologia } from './componentes/Metodologia'
 import { Plan } from './componentes/Plan'
@@ -16,31 +17,29 @@ import { OrigenTodos } from './componentes/OrigenVaso'
 import { Reubicacion } from './componentes/Reubicacion'
 import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
+import { FILTROS_INICIALES } from './mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA } from './reparto'
 import {
   ANIO_BASE, HOSPITAL_LEJOS_KM, PARAMETROS_PLAN, SIN_INVERSION, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
   inversionesDe, inversionesPorZona, nuevaObra, obraSugerida, quedanSinSitio, resumenReubicacion,
 } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
-import type { DatosValidacion, Escenario, FiltrosReparto, Municipio, Obra, OpcionesPlan, ParametrosPlan, Perfil, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
+import type { DatosValidacion, Escenario, FiltrosMudanza, FiltrosReparto, Municipio, Obra, OpcionesPlan, ParametrosPlan, Perfil, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
-type Pestana = 'inicio' | 'mapa' | 'plan' | 'reparto' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'plan' | 'mudanza' | 'reparto' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 type VistaMovil = 'escenario' | 'mapa' | 'resultado'
 type Paneles = { escenario: boolean; resultado: boolean } // true = plegado
 
 // Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
-const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', plan: 'plan', reparto: 'repartir', metodologia: 'como' }
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', plan: 'plan', mudanza: 'vivir', reparto: 'repartir', metodologia: 'como' }
 // El antiguo enlace de «¿Es fiable?» lleva a la sección «¿Acierta?», al final de «Cómo funciona»
 const ENLACE_ACIERTA = '#fiable'
-// «Dónde vivir» (#vivir) se fusionó con «Repartir»: el enlace antiguo lleva allí
-const ENLACE_VIVIR = '#vivir'
 const pestanaDelEnlace = (): Pestana =>
   window.location.hash === ENLACE_ACIERTA ? 'metodologia'
-    : window.location.hash === ENLACE_VIVIR ? 'reparto'
     : (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
 
 // Paneles plegados del mapa: se recuerdan en el navegador (puede fallar en modo privado: entonces, abiertos)
@@ -58,6 +57,7 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'plan', texto: 'Plan', icono: 'plan' },
+  { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'reparto', texto: 'Repartir', icono: 'repartir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
@@ -81,6 +81,8 @@ export default function App() {
   const [obras, setObras] = useState<Obra[]>([])
   const [parametrosPlan, setParametrosPlan] = useState<ParametrosPlan>(PARAMETROS_PLAN)
   const [opcionesPlan, setOpcionesPlan] = useState<OpcionesPlan>({})
+  const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
+  const [comparados, setComparados] = useState<string[]>([])
   const [mezcla, setMezcla] = useState<Record<Perfil, number>>(MEZCLA_SUPUESTA)
   const [filtrosReparto, setFiltrosReparto] = useState<FiltrosReparto>(FILTROS_REPARTO)
 
@@ -238,6 +240,12 @@ export default function App() {
             opciones={opcionesPlan} onOpciones={setOpcionesPlan}
             onFicha={(ine) => { elegir(ine); setPestana('mapa') }}
             onVerEnMapa={() => { setEscenario(escenarioDelPlan(escenario)); setSeleccionado(null); setPestana('mapa') }} />
+        </main>
+      ) : pestana === 'mudanza' ? (
+        <main className="pagina">
+          <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
+            filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
+            onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : pestana === 'reparto' ? (
         <main className="pagina">
