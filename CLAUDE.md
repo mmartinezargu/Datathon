@@ -49,7 +49,7 @@ npm run build && npm run preview   # versión final, http://localhost:4173
 ## Reglas de trabajo
 
 - Prioridad absoluta: lo que se ve en la demo de la final (ver `PENDIENTE.md`). Nada de extras (IA con Oracle, Monte Carlo, transporte, SPARQL) hasta que lo pendiente esté hecho.
-- Sin servidor ni APIs en tiempo de ejecución: la web debe funcionar estática y también sin internet (copia offline para la final).
+- Sin servidor ni APIs en tiempo de ejecución: la web debe funcionar estática y también sin internet (copia offline para la final). Única excepción: el asistente con IA (`web/api/asistente.ts`, Groq), que es opcional y cae al de palabras clave si no hay red.
 - Idioma: todo en español — código (nombres de variables/funciones), comentarios, textos de UI y commits. Mantén el estilo existente (`calcular`, `escenarioPorDefecto`, `componentes/Ficha.tsx`...).
 - Textos de la UI en lenguaje llano para ciudadanos y jurado, sin jerga técnica.
 - Cifras en formato español (`997.059`, `44,4 %`). Usa `web/src/formato.ts`, no formatees a mano.

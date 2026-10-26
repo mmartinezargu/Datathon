@@ -1,13 +1,15 @@
 # web/ — aplicación CABIDA
 
-React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin llamadas a APIs externas en tiempo de ejecución.
+React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin llamadas a APIs externas en tiempo de ejecución. **Única excepción**: `api/asistente.ts` (asistente con IA, Groq), que es opcional — si falla, la web sigue igual con el asistente de palabras clave.
 
 ## Mapa del código
 
 | Archivo | Rol |
 |---|---|
 | `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo |
-| `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros, sitio que queda por recurso). Funciones puras sobre los resultados del motor |
+| `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros, sitio que queda por recurso) y `interpretarFrase` (asistente sin IA: frase → filtros por palabras clave y nombres de municipio). Funciones puras sobre los resultados del motor |
+| `src/asistente.ts` | Lee la frase del vecino: pregunta a `/api/asistente` (IA) y, si no hay red o tarda más de 6 s, usa `interpretarFrase` |
+| `api/asistente.ts` | Función de Vercel: pasa la frase a la IA (Groq; Oracle como alternativa) y devuelve JSON con perfil, instituto, tamaño, municipio y zona. La web valida cada campo con `lecturaDeIA` (`mudanza.ts`) |
 | `src/descarga.ts` | CSV del escenario actual para descargar (formato Excel en español) |
 | `src/tipos.ts` | Tipos de los datos (`Municipio`, `ZonaSalud`, `Escenario`, `ResultadoMunicipio`...). Debe coincidir con lo que genera `etl/preparar.py` |
 | `src/App.tsx` | Estado global y composición de la app |
@@ -15,7 +17,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Palancas.tsx` | Controles del escenario (supuestos) |
 | `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta» |
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
-| `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: perfil, filtros, ranking con frase y comparador |
+| `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
 | `src/componentes/Metodologia.tsx` | Pestaña «Cómo se calcula»: 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Lee las constantes de `motor.ts` y `mudanza.ts` |
 | `src/componentes/Validacion.tsx` | Pestaña de validación 2015→2025 |
@@ -26,6 +28,13 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/colores.ts` | Paleta de los 4 tipos. Úsala siempre, no metas colores sueltos |
 | `src/formato.ts` | Formato español de números y porcentajes |
 | `public/datos/` | **Generado** por el ETL. No editar a mano |
+
+## Asistente con IA
+
+- Proveedor: **Groq** (capa gratuita, modelo `openai/gpt-oss-120b`, responde en menos de 1 s y con esquema JSON garantizado). Oracle (OCI Generative AI) queda como alternativa, pero en la región de la cuenta (Madrid) no hay modelos que funcionen.
+- Variables de entorno en Vercel (Settings → Environment Variables), nunca en el código ni en git: `GROQ_API_KEY` (`gsk_…`) y, opcional, `GROQ_MODELO`. Si no hay `GROQ_API_KEY` se usa `OCI_GENAI_API_KEY` + `OCI_REGION` + `OCI_MODELO`.
+- Con `npm run dev` la función no existe y se usa el de palabras clave. Para probar la IA en local: `vercel dev` con las variables en `.env.local`.
+- La IA solo elige filtros: las explicaciones y todas las cifras las pone la web. Si nombra un municipio, su zona manda sobre la zona que diga la IA.
 
 ## Reglas
 
