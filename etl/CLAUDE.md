@@ -1,6 +1,6 @@
 # etl/ — preparación de datos y validación
 
-Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, geopandas, pyogrio, shapely, requests, scipy). Añade dependencias con `uv add <paquete>`, nunca con pip.
+Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, geopandas, pyogrio, shapely, requests, scipy, openpyxl). Añade dependencias con `uv add <paquete>`, nunca con pip.
 
 ## Scripts
 
@@ -11,7 +11,6 @@ Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, 
 | `capacidad.py` | Ingredientes fijos de la capacidad (viviendas, planeamiento, colegios y zona básica de salud de cada municipio). Los umbrales y la cuenta final con palancas los calcula `web/src/motor.ts` |
 | `preparar.py` | Genera `../web/public/datos/*.json` y `../data/out/*.csv` |
 | `validacion.py` | Valida el modelo 2015→2025 (WAPE y personas colocadas en otro municipio o zona) y escribe `validacion_municipios.csv` / `validacion.json` |
-| `plan_inversion.py` | Para una diapositiva: con el escenario por defecto, con y sin reubicar, añade colegios y centros de salud donde limitan y dice cuántos, cuánto cuestan y cuánta gente sigue sin sitio. Repite las cuentas de `web/src/motor.ts` (si cambias el motor, cámbialo aquí; al arrancar comprueba que salen las cifras de la web) |
 
 ## Reglas
 

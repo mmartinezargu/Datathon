@@ -11,6 +11,10 @@ data/raw/*
 !data/raw/ine_59525_viviendas_censo2021.csv
 !data/raw/ine_59543_hogares_censo2021.csv
 !data/raw/idem_limites_municipales.geojson
+!data/raw/ine_59531_viviendas_vacias_censo2021.csv
+!data/raw/iecm_censo2021_zonas_basicas_salud.zip
+!data/raw/iecm_almudena_501032_alumnos_primaria.csv
+!data/raw/iecm_almudena_501033_alumnos_eso.csv
 
 # Python
 .venv/

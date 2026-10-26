@@ -39,13 +39,14 @@ CABIDA usa estas dependencias directas. La licencia se ha comprobado en lo que h
 | pyogrio | 0.13.0 | MIT | https://pyogrio.readthedocs.io/ |
 | shapely | 2.2.0 | BSD-3-Clause | https://shapely.readthedocs.io/ |
 | requests | 2.34.2 | Apache-2.0 | https://requests.readthedocs.io |
+| openpyxl | 3.1.5 | MIT | https://openpyxl.readthedocs.io |
 | scipy | 1.18.1 | BSD-3-Clause (incluye componentes con otras licencias permisivas, ver su `LICENSE.txt`) | https://scipy.org/ |
 
 Cómo volver a comprobarlo:
 
 ```bash
 cd web && node -e 'const p=require("./package.json");for(const d of Object.keys({...p.dependencies,...p.devDependencies})){const j=require("./node_modules/"+d+"/package.json");console.log(d,j.version,j.license)}'
-cd etl && uv run python -c "import importlib.metadata as md;[print(d, md.version(d), md.metadata(d).get('License-Expression') or md.metadata(d).get_all('Classifier')) for d in ['pandas','geopandas','pyogrio','shapely','requests','scipy']]"
+cd etl && uv run python -c "import importlib.metadata as md;[print(d, md.version(d), md.metadata(d).get('License-Expression') or md.metadata(d).get_all('Classifier')) for d in ['pandas','geopandas','pyogrio','shapely','requests','scipy','openpyxl']]"
 ```
 
 ## Datos

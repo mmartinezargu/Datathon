@@ -64,6 +64,6 @@ describe('repartir a los que llegan', () => {
     const rp = repartir(r, porIne, llegan)
     expect(rp.colocados).toBeGreaterThan(cabenSinDirigir(r))
     expect(rp.colocados).toBeLessThanOrEqual(capacidad)
-    expect(cabenSinDirigir(r)).toBe(60_785)
+    expect(cabenSinDirigir(r)).toBe(56_796) // la misma cifra de cabecera que el mapa
   })
 })

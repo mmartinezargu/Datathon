@@ -16,7 +16,7 @@ const ANIOS = [2030, 2035, 2039]
 /** Para el texto: «unas 134.000». */
 const redondeo = (n: number) => Math.round(n / 1000) * 1000
 const EXIGENCIAS = [
-  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio se considera lleno cuando tiene tantos niños como el 25 % más cargado de los de su tamaño, y un centro de salud cuando atiende a tanta gente como el 25 % de las zonas más pobladas.' },
+  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio se considera lleno cuando tiene tantos alumnos como el 25 % más cargado de los de su tamaño, y un centro de salud cuando atiende a tanta gente como el 25 % de las zonas más pobladas.' },
   { valor: 0.9, texto: 'Media', ayuda: 'Lleno cuando tiene tanta carga como el 10 % más cargado (colegios de su tamaño; zonas de salud de toda la Comunidad).' },
   { valor: 0.97, texto: 'Flexible', ayuda: 'Se aceptan cargas como las de los más saturados.' },
 ]
@@ -82,8 +82,8 @@ export function Palancas({ escenario, onCambiar }: Props) {
           <Deslizador etiqueta="Suelo previsto que llega a construirse" valor={escenario.pctSuelo} texto={pct(escenario.pctSuelo, 0)}
             min={0} max={1} paso={0.05} pista="Del suelo urbanizable que el planeamiento deja pendiente."
             onCambiar={(v) => cambiar({ pctSuelo: v })} />
-          <Deslizador etiqueta="Vivienda vacía o secundaria que se ocupa" valor={escenario.pctVivienda} texto={pct(escenario.pctVivienda, 0)}
-            min={0} max={0.5} paso={0.05} pista="Viviendas no principales del Censo 2021."
+          <Deslizador etiqueta="Vivienda vacía que se ocupa" valor={escenario.pctVivienda} texto={pct(escenario.pctVivienda, 0)}
+            min={0} max={0.5} paso={0.05} pista="Es un supuesto: no hay dato oficial de cuántas vacías llegan a ocuparse. Las vacías salen del Censo 2021, según su consumo de luz. Muévelo para ver qué cambia."
             onCambiar={(v) => cambiar({ pctVivienda: v })} />
           <Deslizador etiqueta="Crecimiento máximo al año" valor={escenario.ritmoMax} texto={pct(escenario.ritmoMax, 1)}
             min={0.01} max={0.06} paso={0.005} pista="Más rápido que esto, un municipio no absorbe gente sin colapsar."

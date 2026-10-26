@@ -20,10 +20,13 @@ Las cifras del escenario (cuánta gente llega y cuánta cabe con las palancas el
 |---|---|---|
 | Padrón continuo: población por municipio y año (tabla 2881) | INE | https://www.ine.es/jaxiT3/Tabla.htm?t=2881 |
 | Censo 2021: viviendas principales y no principales (tabla 59525) | INE | https://www.ine.es/jaxi/Tabla.htm?tpx=59525&L=0 |
+| Censo 2021: viviendas vacías según el consumo eléctrico (tabla 59531) | INE | https://www.ine.es/jaxi/Tabla.htm?tpx=59531 |
 | Censo 2021: hogares por tamaño (tabla 59543) | INE | https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0 |
+| Alumnos matriculados en primaria y ESO por municipio (ALMUDENA, temas 501032 y 501033) | Instituto de Estadística de la Comunidad de Madrid | https://gestiona.comunidad.madrid/desvan/Inicio.icm?enlace=almudena |
+| Censo 2021: población por zona básica de salud (T21SALUD01), para validar | Instituto de Estadística de la Comunidad de Madrid | https://web.comunidad.madrid/iestadis/fijas/estructu/demograficas/censos/icensos21_zbsal.htm |
 | Municipios de la Comunidad de Madrid (zona estadística, superficie) | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d |
 | Centros educativos | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5 |
-| Población censada por edad (Censo anual), para estimar los niños de edad escolar | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402 |
+| Población censada por edad (Censo anual), para estimar los alumnos donde hay colegio pero no dato de matrícula | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402 |
 | Centros, servicios y establecimientos sanitarios | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7 |
 | Zonas básicas de salud | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff |
 | Límites municipales | IDEM, Comunidad de Madrid | https://idem.comunidad.madrid/ |

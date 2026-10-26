@@ -15,16 +15,25 @@ un municipio que no era. 1 menos eso = de cada 100, cuántas acierta dónde van.
 Se calcula también agrupando por zona (lo que se coloca en otra zona).
 Menos es mejor.
 
+Además, la población de las 286 zonas básicas de salud que usa el límite de
+sanidad (Padrón 2019 actualizado con su municipio principal) se compara con la
+del Censo 2021 por zona básica de salud (IECM, tabla T21SALUD01), llevando
+nuestra estimación a 2021 con el mismo método. No se sustituye nada: es una prueba.
+
 Salidas: web/public/datos/validacion.json y data/out/validacion_municipios.csv
 """
+import io
 import json
+import warnings
+import zipfile
 
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+import capacidad
 import diccionario
-from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, WEB_DATOS, leer_poblacion, miles
+from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, RAW, WEB_DATOS, leer_poblacion, miles
 from preparar import K_SUAVIZADO, leer_zonas
 
 INICIO, CORTE, FIN = 2005, 2015, 2025
@@ -64,6 +73,37 @@ def colocadas_fuera(pred: np.ndarray, real: np.ndarray, grupos: np.ndarray | Non
         pred = pd.Series(pred).groupby(grupos).sum().to_numpy()
         real = pd.Series(real).groupby(grupos).sum().to_numpy()
     return float(np.abs(pred - real).sum() / 2 / real.sum())
+
+
+def leer_censo_zonas() -> pd.DataFrame:
+    """Censo 2021, población por zona básica de salud (IECM, T21SALUD01). Sin «Sin zona asignada (colectivos)»."""
+    with zipfile.ZipFile(RAW / "iecm_censo2021_zonas_basicas_salud.zip") as z, warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # openpyxl avisa de un pie de página que no entiende
+        t = pd.read_excel(io.BytesIO(z.read("T21SALUD01.xlsx")), header=None, dtype={0: str})
+    t = t[t[0].fillna("").str.fullmatch(r"\d{3}")]
+    return pd.DataFrame({"codigo": t[0], "censo_2021": t[2].astype(float)})
+
+
+def comparar_zonas(pob: pd.DataFrame, universo: set[str]) -> dict:
+    """Nuestra población de cada zona de salud, con el mismo método pero a 2021, frente al Censo 2021."""
+    mun_zona, zonas = capacidad.leer_sanidad(pob, anio=2021)
+    d = zonas.merge(leer_censo_zonas(), on="codigo", how="inner")
+    d["estimada_2021"] = d["poblacion"].astype(float)
+    d["dif"] = d["estimada_2021"] / d["censo_2021"] - 1
+    del_reto = set(mun_zona.loc[mun_zona["ine"].isin(universo), "zbs_codigo"])
+
+    def resumen(x: pd.DataFrame) -> dict:
+        return {"zonas": len(x), "correlacion": round(float(np.corrcoef(x["estimada_2021"], x["censo_2021"])[0, 1]), 4),
+                "dif_media": round(float(x["dif"].mean()), 4), "dif_abs_media": round(float(x["dif"].abs().mean()), 4),
+                "dif_abs_mediana": round(float(x["dif"].abs().median()), 4)}
+
+    peores = d.reindex(d["dif"].abs().sort_values(ascending=False).index).head(10)
+    return {
+        "todas": resumen(d), "del_reto": resumen(d[d["codigo"].isin(del_reto)]),
+        "mas_se_apartan": [{"codigo": f.codigo, "nombre": f.nombre, "estimada_2021": int(f.estimada_2021),
+                            "censo_2021": int(f.censo_2021), "dif": round(float(f.dif), 4),
+                            "del_reto": f.codigo in del_reto} for f in peores.itertuples()],
+    }
 
 
 def main() -> None:
@@ -127,6 +167,18 @@ def main() -> None:
     diccionario.comprobar("validacion_municipios.csv", list(detalle.columns))
     detalle.to_csv(OUT / "validacion_municipios.csv", index=False, encoding="utf-8")
 
+    pob = leer_poblacion()
+    zonas_salud = comparar_zonas(pob, set(df["ine"]))
+    t, r = zonas_salud["todas"], zonas_salud["del_reto"]
+    print(f"\nZonas de salud frente al Censo 2021 (IECM): {t['zonas']} zonas, correlación {t['correlacion']:.3f}, "
+          f"diferencia media {t['dif_media']:+.1%}, media en valor absoluto {t['dif_abs_media']:.1%} "
+          f"(mediana {t['dif_abs_mediana']:.1%})")
+    print(f"  Las {r['zonas']} zonas de los municipios del reto: correlación {r['correlacion']:.3f}, "
+          f"diferencia media {r['dif_media']:+.1%}, en valor absoluto {r['dif_abs_media']:.1%}")
+    for z in zonas_salud["mas_se_apartan"]:
+        print(f"  {z['codigo']} {z['nombre']:32} {miles(z['estimada_2021']):>8} vs {miles(z['censo_2021']):>8}  {z['dif']:+.1%}"
+              + ("  (del reto)" if z["del_reto"] else ""))
+
     salida = {
         "periodo": f"{CORTE}-{FIN}", "datos_hasta": CORTE, "municipios": len(df),
         "crecimiento_real_total": int(total), "techo_g_max": G_MAX, "modelos": filas,
@@ -134,6 +186,7 @@ def main() -> None:
         "mayores_errores": detalle.reindex(detalle["error"].abs().sort_values(ascending=False).index)
                                   .head(10)[["ine", "nombre", "crecimiento_real", "crecimiento_previsto"]]
                                   .to_dict(orient="records"),
+        "zonas_salud": zonas_salud,
     }
     WEB_DATOS.mkdir(parents=True, exist_ok=True)
     (WEB_DATOS / "validacion.json").write_text(

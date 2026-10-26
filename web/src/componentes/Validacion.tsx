@@ -9,6 +9,7 @@ import type { DatosValidacion } from '../tipos'
 export function Validacion({ datos }: { datos: DatosValidacion }) {
   const peor = Math.max(...datos.modelos.map((m) => m.fuera_municipio))
   const { nuestro, tendencia } = modelosClave(datos)
+  const zonas = datos.zonas_salud
 
   return (
     <section id="acierta" className="validacion">
@@ -79,6 +80,39 @@ export function Validacion({ datos }: { datos: DatosValidacion }) {
           </table>
         </div>
         <p className="nota">Datos: Padrón continuo del INE, tabla 2881. Se publican aunque el resultado no sea perfecto.</p>
+      </div>
+
+      <div className="val-tarjeta">
+        <h3>¿Cuánta gente atiende cada centro de salud? Lo comparamos con el Censo</h3>
+        <p className="val-frase">
+          Para el límite de sanidad hace falta saber cuántos vecinos tiene cada zona básica de salud. Usamos el Padrón de 2019
+          que viene con el mapa de zonas, actualizado con lo que creció su municipio principal. Llevado a 2021, se aparta del
+          Censo 2021 por zona de salud un <b>{pct(zonas.todas.dif_abs_media)} de media</b> en las {zonas.todas.zonas} zonas
+          ({pct(zonas.del_reto.dif_abs_media)} en las {zonas.del_reto.zonas} zonas de los pueblos del reto), y las dos cifras
+          van casi a la par (correlación {zonas.todas.correlacion.toFixed(3).replace('.', ',')}).
+        </p>
+        <div className="tabla-scroll">
+          <table>
+            <thead>
+              <tr><th>Zona de salud que más se aparta</th><th className="num">Nuestra cifra</th><th className="num">Censo 2021</th><th className="num">Diferencia</th></tr>
+            </thead>
+            <tbody>
+              {zonas.mas_se_apartan.map((z) => (
+                <tr key={z.codigo}>
+                  <td>{z.nombre}{z.del_reto && <small className="val-reto"> pueblo del reto</small>}</td>
+                  <td className="num">{miles(z.estimada_2021)}</td>
+                  <td className="num">{miles(z.censo_2021)}</td>
+                  <td className={`num ${z.dif > 0 ? 'sobra' : 'falta'}`}>{z.dif > 0 ? '+' : ''}{pct(z.dif)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="nota">
+          Datos: Censo de Población y Viviendas 2021 por zona básica de salud (Instituto de Estadística de la Comunidad de Madrid,
+          tabla T21SALUD01). Es solo una prueba: el modelo sigue usando su cifra. De media nos pasamos un {pct(zonas.todas.dif_media)},
+          en parte porque el Censo deja fuera a quien vive en residencias y otros colectivos.
+        </p>
       </div>
     </section>
   )

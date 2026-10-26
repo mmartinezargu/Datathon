@@ -1,15 +1,16 @@
 // Pestaña «Repartir» (#repartir), pensada para la institución: coge la gente que el modelo prevé que llega,
 // la divide por perfiles (familias, personas mayores, teletrabajo) y la reparte entre los pueblos según
 // quiénes son y dónde se la quiere llevar (reparto.ts). Se puede pedir con una frase (IA o palabras clave)
-// o con los filtros, y ampliar colegios o centros de salud donde se llenan. Se recalcula al momento.
+// o con los filtros, y añadir obras al plan (pestaña «Plan») donde se llenan por colegios o sanidad. Se recalcula al momento.
 
 import { useMemo, useState } from 'react'
 import { LIMITES } from '../colores'
 import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
-import type { Escenario, FiltrosReparto, Inversion, Inversiones, LecturaFrase, Municipio, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
+import type { Escenario, FiltrosReparto, LecturaFrase, Municipio, Obra, ParametrosPlan, Perfil, ResultadoMunicipio, Tamano, Umbrales } from '../tipos'
 import { miles, millones } from '../formato'
-import { COSTE_CENTRO_SALUD, COSTE_COLEGIO, HOSPITAL_LEJOS_KM, SIN_INVERSION, costeInversion } from '../motor'
+import { HOSPITAL_LEJOS_KM, costeObra, nuevaObra, obraSugerida } from '../motor'
+import { NOMBRE_OBRA } from '../fuentesPlan'
 import { Asistente } from './Asistente'
 import { Icono } from './Iconos'
 
@@ -22,35 +23,38 @@ const EJEMPLOS = [
 ]
 
 interface Props {
-  resultados: ResultadoMunicipio[] // con las inversiones
-  resultadosSinInversion: ResultadoMunicipio[]
+  resultados: ResultadoMunicipio[] // con las obras del plan
+  resultadosSinPlan: ResultadoMunicipio[]
   porIne: Map<string, Municipio>
   escenario: Escenario
   mezcla: Record<Perfil, number>
   onMezcla: (m: Record<Perfil, number>) => void
   filtros: FiltrosReparto
   onFiltros: (f: FiltrosReparto) => void
-  inversiones: Inversiones // las mismas que «¿y si invertimos aquí?» del mapa
-  onInvertir: (ine: string, inv: Inversion) => void
+  obras: Obra[] // el mismo plan de la pestaña «Plan» y del mapa
+  onObras: (o: Obra[]) => void
+  umbrales: Umbrales
+  parametros: ParametrosPlan
+  onIrAlPlan: () => void
   onVerEnMapa: (ine: string) => void
 }
 
 /** Plural sencillo: 1 colegio, 2 colegios. */
 const cuantos = (n: number, uno: string, varios: string) => `${miles(n)} ${n === 1 ? uno : varios}`
 
-export function Repartir({ resultados, resultadosSinInversion, porIne, escenario, mezcla, onMezcla, filtros, onFiltros,
-  inversiones, onInvertir, onVerEnMapa }: Props) {
+export function Repartir({ resultados, resultadosSinPlan, porIne, escenario, mezcla, onMezcla, filtros, onFiltros,
+  obras, onObras, umbrales, parametros, onIrAlPlan, onVerEnMapa }: Props) {
   const [todos, setTodos] = useState(false)
   const llegan = useMemo(() => llegadasPorPerfil(escenario.personas, mezcla), [escenario.personas, mezcla])
   const reparto = useMemo(() => repartir(resultados, porIne, llegan, filtros), [resultados, porIne, llegan, filtros])
-  const hayInversion = Object.keys(inversiones).length > 0
-  const repartoSinInvertir = useMemo(() => (hayInversion ? repartir(resultadosSinInversion, porIne, llegan, filtros) : reparto),
-    [hayInversion, resultadosSinInversion, porIne, llegan, filtros, reparto])
+  const hayPlan = obras.length > 0
+  const repartoSinPlan = useMemo(() => (hayPlan ? repartir(resultadosSinPlan, porIne, llegan, filtros) : reparto),
+    [hayPlan, resultadosSinPlan, porIne, llegan, filtros, reparto])
   const sinDirigir = useMemo(() => cabenSinDirigir(resultados), [resultados])
   const porIneRes = useMemo(() => new Map(resultados.map((r) => [r.ine, r])), [resultados])
   const zonas = useMemo(() => [...new Set(resultados.map((r) => porIne.get(r.ine)!.zona))].sort((a, b) => a.localeCompare(b, 'es')),
     [resultados, porIne])
-  const total = Object.values(inversiones).reduce((s, i) => ({ colegios: s.colegios + i.colegios, centros: s.centros + i.centros }), SIN_INVERSION)
+  const coste = obras.reduce((s, o) => s + costeObra(o), 0)
   const sumaMezcla = ORDEN_REPARTO.reduce((s, p) => s + mezcla[p], 0)
   const sinSitio = ORDEN_REPARTO.reduce((s, p) => s + reparto.sinSitio[p], 0)
   const filas = todos ? reparto.pueblos : reparto.pueblos.slice(0, MAX_FILAS)
@@ -139,19 +143,19 @@ export function Repartir({ resultados, resultadosSinInversion, porIne, escenario
           </p>
         )}
 
-        {hayInversion && (
+        {hayPlan && (
           <p className="sim-inversion">
-            <b>Con tus inversiones</b> ({[total.colegios ? cuantos(total.colegios, 'colegio', 'colegios') : '', total.centros ? cuantos(total.centros, 'centro de salud', 'centros de salud') : '']
-              .filter(Boolean).join(' y ')}, unos {millones(costeInversion(total))}) caben{' '}
-            <b>{miles(reparto.colocados - repartoSinInvertir.colocados)} personas más</b> que sin invertir
-            ({miles(repartoSinInvertir.colocados)} → {miles(reparto.colocados)}). Son las mismas inversiones del mapa.
+            <b>Con el plan</b> ({cuantos(obras.length, 'obra', 'obras')}, unos {millones(coste)}) caben{' '}
+            <b>{miles(reparto.colocados - repartoSinPlan.colocados)} personas más</b> que sin él
+            ({miles(repartoSinPlan.colocados)} → {miles(reparto.colocados)}). Es el mismo plan de la pestaña{' '}
+            <button className="enlace" onClick={onIrAlPlan}>Plan</button>, con sus costes y plazos.
           </p>
         )}
 
         <h2>Pueblo a pueblo</h2>
         <p className="ayuda">
-          «Lo llena» es lo primero que se acaba en ese pueblo. Si son los colegios o el centro de salud, puedes invertir ahí
-          (un colegio, unos {millones(COSTE_COLEGIO)}; un centro de salud, unos {millones(COSTE_CENTRO_SALUD)}) y ver cuántos más caben.
+          «Lo llena» es lo primero que se acaba en ese pueblo. Si son los colegios o el centro de salud, puedes añadir al plan la
+          obra que más ayuda ahí (ampliar un colegio, uno nuevo, un instituto o un centro de salud) y ver cuántos más caben.
         </p>
         {reparto.pueblos.length === 0 ? (
           <p className="vacio">No hay ningún pueblo con sitio que cumpla lo que pides. Prueba a quitar algún filtro.</p>
@@ -174,8 +178,8 @@ export function Repartir({ resultados, resultadosSinInversion, porIne, escenario
                     {ORDEN_REPARTO.map((p) => <td key={p} className="num">{f.porPerfil[p] ? miles(f.porPerfil[p]) : '—'}</td>)}
                     <td className="num"><b>{miles(f.total)}</b><span className="sim-de"> de {miles(hueco(porIneRes.get(f.ine)!))}</span></td>
                     <td>{f.lleno ? <LoLlena r={porIneRes.get(f.ine)!} /> : <span className="sim-de">queda sitio</span>}</td>
-                    <td><BotonInvertir r={porIneRes.get(f.ine)!} lleno={f.lleno} inv={inversiones[f.ine] ?? SIN_INVERSION}
-                      onInvertir={(inv) => onInvertir(f.ine, inv)} /></td>
+                    <td><Obras r={porIneRes.get(f.ine)!} m={porIne.get(f.ine)!} lleno={f.lleno} obras={obras} onObras={onObras}
+                      umbrales={umbrales} parametros={parametros} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -212,17 +216,23 @@ function LoLlena({ r }: { r: ResultadoMunicipio }) {
   return <span className="sim-llena"><Icono nombre={r.limitante} tamano={15} />{LIMITES[r.limitante].nombre}</span>
 }
 
-/** «+1 colegio» o «+1 centro de salud» si eso es lo que llena el pueblo; y lo ya invertido, con su botón para quitarlo. */
-function BotonInvertir({ r, lleno, inv, onInvertir }: { r: ResultadoMunicipio; lleno: boolean; inv: Inversion; onInvertir: (inv: Inversion) => void }) {
+/** Las obras del plan en este pueblo (con ✕ para quitarlas) y, si lo llenan colegios o sanidad, la que más ayudaría. */
+function Obras({ r, m, lleno, obras, onObras, umbrales, parametros }: {
+  r: ResultadoMunicipio; m: Municipio; lleno: boolean; obras: Obra[]; onObras: (o: Obra[]) => void; umbrales: Umbrales; parametros: ParametrosPlan
+}) {
   const puede = lleno && (r.limitante === 'colegios' || r.limitante === 'sanidad')
+  const sugerida = puede ? obraSugerida(m, r, umbrales, obras, parametros) : null
   return (
     <span className="sim-invertir">
-      {inv.colegios > 0 && <button className="sim-hecho" onClick={() => onInvertir({ ...inv, colegios: inv.colegios - 1 })}
-        title="Quitar un colegio">+{cuantos(inv.colegios, 'colegio', 'colegios')} ✕</button>}
-      {inv.centros > 0 && <button className="sim-hecho" onClick={() => onInvertir({ ...inv, centros: inv.centros - 1 })}
-        title="Quitar un centro de salud">+{cuantos(inv.centros, 'centro', 'centros')} ✕</button>}
-      {puede && r.limitante === 'colegios' && <button className="sim-mas" onClick={() => onInvertir({ ...inv, colegios: inv.colegios + 1 })}>+1 colegio</button>}
-      {puede && r.limitante === 'sanidad' && <button className="sim-mas" onClick={() => onInvertir({ ...inv, centros: inv.centros + 1 })}>+1 centro de salud</button>}
+      {obras.map((o, i) => (o.ine === r.ine && (
+        <button key={i} className="sim-hecho" title="Quitar del plan" onClick={() => onObras(obras.filter((_, j) => j !== i))}>
+          {NOMBRE_OBRA[o.tipo]} ✕
+        </button>
+      )))}
+      {sugerida && (
+        <button className="sim-mas" title={`Añadir al plan: ${NOMBRE_OBRA[sugerida]}, unos ${millones(costeObra(nuevaObra(r.ine, sugerida, parametros)))}`}
+          onClick={() => onObras([...obras, nuevaObra(r.ine, sugerida, parametros)])}>+ {NOMBRE_OBRA[sugerida]}</button>
+      )}
     </span>
   )
 }

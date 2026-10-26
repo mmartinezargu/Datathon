@@ -6,7 +6,9 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { ANIO_BASE, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PARAMETROS_PLAN, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '../fuentesPlan'
+import type { TipoObra } from '../tipos'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { DatosValidacion, Escenario, Perfil, Recurso } from '../tipos'
@@ -19,24 +21,32 @@ import { Icono } from './Iconos'
 const K_SUAVIZADO = 5_000
 
 /** Suelo pendiente de desarrollar sin cifra de viviendas en el planeamiento, en los 155 (AUDITORIA.md, punto 1). */
-const SUELO_SIN_CIFRA_HA = 7_053
 
 const FUENTES = [
   { nombre: 'Padrón continuo: población por municipio, 2005–2025', quien: 'INE (tabla 2881)', para: 'Cuánta gente vive en cada municipio y cómo ha crecido', url: 'https://www.ine.es/jaxiT3/Tabla.htm?t=2881' },
   { nombre: 'Previsión de población: 8 millones en 2039 (nota de prensa del 17/02/2025)', quien: 'Comunidad de Madrid', para: 'Comparar la cifra por defecto con la previsión de la Comunidad', url: 'https://www.comunidad.madrid/node/71411' },
-  { nombre: 'Censo 2021: viviendas principales y no principales', quien: 'INE (tabla 59525)', para: 'Viviendas vacías o de segunda residencia', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59525&L=0' },
+  { nombre: 'Censo 2021: viviendas por intensidad de uso según el consumo eléctrico', quien: 'INE (tabla 59531)', para: 'Viviendas vacías de cada municipio', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59531' },
+  { nombre: 'Censo 2021: viviendas principales y no principales', quien: 'INE (tabla 59525)', para: 'Viviendas vacías o de segunda residencia, en los pueblos donde el INE no da las vacías', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59525&L=0' },
   { nombre: 'Censo 2021: hogares por tamaño', quien: 'INE (tabla 59543)', para: 'Personas por hogar, para pasar de viviendas a personas', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0' },
   { nombre: 'Municipios de la Comunidad de Madrid', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Zona estadística y superficie', url: 'https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d' },
   { nombre: 'Centros educativos', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Colegios de primaria e institutos en funcionamiento', url: 'https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5' },
-  { nombre: 'Población censada por edad (Censo anual)', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Cuántos niños de edad de primaria y de secundaria hay en cada municipio', url: 'https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402' },
+  { nombre: 'Alumnos matriculados en educación primaria y en ESO por municipio (ALMUDENA, temas 501032 y 501033)', quien: 'Instituto de Estadística de la Comunidad de Madrid', para: 'Cuántos alumnos tienen hoy los colegios e institutos de cada municipio', url: 'https://gestiona.comunidad.madrid/desvan/Inicio.icm?enlace=almudena' },
+  { nombre: 'Población censada por edad (Censo anual)', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Estimar los alumnos donde hay colegio pero no dato de matrícula', url: 'https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402' },
   { nombre: 'Zonas básicas de salud', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'A qué centro de salud va cada municipio y cuánta gente atiende', url: 'https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff' },
+  { nombre: 'Censo 2021: población por zona básica de salud (tabla T21SALUD01)', quien: 'Instituto de Estadística de la Comunidad de Madrid', para: 'Comprobar la población de cada zona de salud («¿Acierta?»)', url: 'https://web.comunidad.madrid/iestadis/fijas/estructu/demograficas/censos/icensos21_zbsal.htm' },
   { nombre: 'Centros sanitarios', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Dónde están los hospitales generales públicos', url: 'https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7' },
   { nombre: 'Límites municipales y planeamiento urbanístico refundido 2025', quien: 'IDEM, Comunidad de Madrid', para: 'El mapa y las viviendas previstas en suelo sin desarrollar', url: 'https://idem.comunidad.madrid/' },
 ]
 
 const NOMBRE_RECURSO: Record<Recurso, string> = { colegios: 'colegios', sanidad: 'centro de salud', vivienda: 'vivienda' }
 
-export function Metodologia({ escenario, validacion }: { escenario: Escenario; validacion: DatosValidacion }) {
+export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimado }: {
+  escenario: Escenario; validacion: DatosValidacion
+  /** Municipios del reto sin cifra de viviendas vacías del INE (se estiman con su zona). */
+  sinDatoVacias: number
+  /** Municipios del reto con suelo residencial sin cifra de viviendas, y cuántas se estiman en total. */
+  sueloEstimado: { municipios: number; viviendas: number }
+}) {
   const anios = escenario.anio - ANIO_BASE
   const prevision = segunPrevision(escenario.anio)
   const { nuestro, tendencia } = modelosClave(validacion)
@@ -116,9 +126,14 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
       <section className="val-tarjeta">
         <h2>Y además</h2>
         <p>
-          <b>¿Y si invertimos aquí?</b> Al añadir un colegio (unos {millones(COSTE_COLEGIO)}) o un centro de salud (unos {millones(COSTE_CENTRO_SALUD)})
-          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe. También se enseña un plazo orientativo hasta que abre:
-          unos {PLAZO_COLEGIO_ANIOS} años un colegio y unos {PLAZO_CENTRO_SALUD_ANIOS} un centro de salud. Son estimaciones, no plazos oficiales.
+          <b>Plan: ¿qué hace falta para que quepan?</b> Una lista de obras (ampliar un colegio, colegio nuevo, instituto o centro de salud)
+          con sus plazas, su coste y el año en que abren. El «plan óptimo» va añadiendo, una a una, la obra que hace caber a más gente por
+          cada euro: en cada pueblo, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
+          por zona cada vez, porque sirve a toda la zona. Lo que gana una obra se cuenta en los 155, no solo en su pueblo: un centro suma
+          lo que da a toda su zona y, reubicando, lo que libera a los pueblos vecinos. Para cuando lo que limita es la vivienda o el ritmo,
+          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Se calcula reubicando en pueblos cercanos y se compara con
+          «cada pueblo con lo suyo». Con un plan cargado, el mapa colorea según lo que falta después de reubicar y con las obras. Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
+          para no pasarse. Todos los valores se pueden cambiar; los de partida y su fuente están en la tabla de abajo.
         </p>
         <p>
           <b>Reubicar en pueblos cercanos.</b> Con el interruptor de las palancas, quien no cabe en su pueblo va al pueblo con sitio
@@ -135,6 +150,42 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           convierte en los filtros de «Repartir», que luego puedes cambiar. La IA no calcula nada ni reparte a nadie: los resultados
           salen del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
         </p>
+      </section>
+
+      <section className="val-tarjeta">
+        <h2>Lo que vale cada obra del plan</h2>
+        <div className="tabla-scroll">
+          <table className="fuentes">
+            <thead><tr><th>Obra</th><th>Valor de partida</th><th>De dónde sale</th></tr></thead>
+            <tbody>
+              {(Object.keys(NOMBRE_OBRA) as TipoObra[]).map((t) => {
+                const v = PARAMETROS_PLAN.obras[t]
+                return (
+                  <tr key={t}>
+                    <td><b>{NOMBRE_OBRA[t]}</b><br /><span className="ayuda">{QUE_HACE_OBRA[t]}</span></td>
+                    <td>
+                      {t === 'centro_salud'
+                        ? <>{millones(v.eurosPorPlaza)}; atiende a {miles(v.plazas)} personas</>
+                        : <>{miles(v.plazas)} plazas a {miles(v.eurosPorPlaza)} € por plaza ({millones(v.plazas * v.eurosPorPlaza)})</>}
+                      ; abre a los {v.anios} años
+                    </td>
+                    <td>
+                      {FUENTES_PLAN[t].texto}{' '}
+                      {FUENTES_PLAN[t].enlaces.map((e, k) => (
+                        <span key={e.url}>{k > 0 && '; '}<a href={e.url} target="_blank" rel="noreferrer">{e.texto}</a></span>
+                      ))}.
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr>
+                <td><b>Inicio de las obras</b></td>
+                <td>{PARAMETROS_PLAN.anioInicio}</td>
+                <td>{FUENTE_ANIO_INICIO}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="val-tarjeta">
@@ -162,14 +213,15 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
         <h2>Limitaciones: lo que el modelo no sabe</h2>
         <ul className="limitaciones">
           <li><b>El planeamiento no es una licencia.</b> Que un suelo tenga viviendas previstas no quiere decir que se vayan a construir, ni cuándo. Por eso solo se cuenta una parte ({pct(escenario.pctSuelo, 0)}).</li>
-          <li><b>«No principal» no es «vacía».</b> El Censo junta las viviendas vacías con las segundas residencias, y muchas no están en venta ni en alquiler. Por eso solo se cuenta un {pct(escenario.pctVivienda, 0)}.</li>
-          <li><b>No hay datos abiertos de plazas escolares.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro, ni cuántos alumnos van a estudiar a otro municipio: cada municipio se compara con los de tamaño parecido.</li>
-          <li><b>Los niños se estiman.</b> Los niños de edad de primaria y de secundaria salen de grupos de 5 años del Censo anual, y se supone que quien llega trae la misma proporción de niños que el municipio.</li>
+          <li><b>Una vivienda vacía no está en venta ni en alquiler.</b> El INE la cuenta como vacía cuando casi no gasta luz, pero puede ser una herencia, una casa en obras o un piso que su dueño no quiere alquilar. Cuántas llegan a ocuparse es un supuesto, sin dato oficial: por defecto, un {pct(escenario.pctVivienda, 0)}. Se puede mover en «Supuestos».</li>
+          <li><b>En {sinDatoVacias} pueblos pequeños las vacías se estiman.</b> El INE no publica la cifra en los municipios más pequeños. Ahí se toman sus viviendas no principales (vacías más segundas residencias) y se les aplica la parte que son vacías en los pueblos de su zona que sí tienen dato.</li>
+          <li><b>No hay datos abiertos de plazas escolares.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro: cada municipio se compara con los de tamaño parecido, contando los alumnos que tiene hoy.</li>
+          <li><b>Alumnos de hoy, no plazas.</b> Sabemos cuántos alumnos de primaria y de ESO tiene cada municipio (último curso publicado, aún provisional), pero no cuántas plazas. Se supone que quien llega trae los mismos niños por vecino que los que ya viven en el municipio, y los niños se estiman con grupos de 5 años del Censo anual. Donde hay colegio pero no dato de matrícula, se estima por la edad de los vecinos.</li>
           <li><b>Todos los colegios cuentan igual:</b> públicos, concertados y privados.</li>
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona de salud que cubre más superficie de su término, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
-          <li><b>Suelo sin cifra de viviendas.</b> El suelo pendiente que no trae cifra de viviendas en el planeamiento cuenta como 0 ({miles(SUELO_SIN_CIFRA_HA)} ha en los 155), así que la capacidad de vivienda es prudente.</li>
+          <li><b>Suelo sin cifra de viviendas.</b> En {sueloEstimado.municipios} municipios hay suelo residencial pendiente sin cifra de viviendas en el planeamiento. Se estiman con la densidad de los ámbitos que sí la traen: {miles(sueloEstimado.viviendas)} viviendas en total. El suelo industrial, terciario o de equipamientos sin cifra no cuenta.</li>
           <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
-          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos niños como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
+          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos alumnos como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso pone en otro municipio a {Math.round(nuestro.fuera_municipio * 100)} de cada 100 personas.</li>
           <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
           <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los pueblos de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
@@ -217,19 +269,21 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
             <dl className="limites-metodo">
               <dt>Vivienda</dt>
               <dd>
-                <p className="formula">(viviendas vacías o secundarias × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
+                <p className="formula">(viviendas vacías × {pct(escenario.pctVivienda, 0)} + viviendas previstas en suelo sin desarrollar × {pct(escenario.pctSuelo, 0)}) × personas por hogar</p>
+                <p className="ayuda">Vacías: las que casi no gastan luz según el Censo 2021 (INE, a partir del consumo eléctrico). En los {sinDatoVacias} municipios en los que el INE no da esa cifra: no principales × (vacías ÷ no principales) de su zona estadística, con los municipios de la zona que sí tienen dato.</p>
+                <p className="ayuda">Previstas: las que el planeamiento da a su suelo pendiente (urbanizable o urbano no consolidado). En el suelo residencial sin cifra, hectáreas × viviendas por hectárea de los ámbitos que sí la traen: del mismo municipio y clase de suelo; si no hay, la mediana de su zona estadística; si tampoco, la de la Comunidad. Residencial = su uso predominante es residencial, unifamiliar o multifamiliar.</p>
               </dd>
               <dt>Colegios</dt>
               <dd>
                 <p>
-                  Se mira cuántos niños hay por colegio (de 6 a 11 años en primaria y de 12 a 17 en secundaria) y se compara con
+                  Se mira cuántos alumnos matriculados hay por colegio (en primaria y en ESO) y se compara con
                   municipios de tamaño parecido. No hay tramos: una curva sube poco a poco con el tamaño del municipio, porque los
-                  colegios de los pueblos grandes son más grandes. Un colegio está «lleno» cuando tiene tantos niños como el{' '}
+                  colegios de los pueblos grandes son más grandes. Un colegio está «lleno» cuando tiene tantos alumnos como el{' '}
                   {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño. Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
                 </p>
-                <p className="formula">log(niños por colegio) = a + b × log(vecinos), con a y b de una recta ajustada a los 155; el límite es esa recta subida hasta el percentil {pct(escenario.exigencia, 0)} de lo que se aparta cada municipio</p>
-                <p className="formula">plazas libres = colegios × límite − niños de hoy; personas que caben = plazas libres ÷ proporción de niños de esa edad en el municipio</p>
-                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica. Los niños se estiman a partir de grupos de 5 años del Censo anual.</p>
+                <p className="formula">log(alumnos por colegio) = a + b × log(vecinos), con a y b de una recta ajustada a los 155; el límite es esa recta subida hasta el percentil {pct(escenario.exigencia, 0)} de lo que se aparta cada municipio</p>
+                <p className="formula">plazas libres = colegios × límite − alumnos de hoy; personas que caben = plazas libres ÷ niños de esa edad que viven en el municipio por vecino</p>
+                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica. Las plazas libres salen de los alumnos matriculados en los centros del municipio, vivan donde vivan (ALMUDENA, IECM); donde hay colegio pero no dato, de los niños de esa edad por la relación alumnos ÷ niños de los demás. Para pasar plazas a personas se usan los niños que viven en el municipio (de 6 a 11 años y de 12 a 17, estimados con grupos de 5 años del Censo anual): quien llega trae los hijos que trae, estudien donde estudien.</p>
               </dd>
               <dt>Sanidad</dt>
               <dd>
@@ -261,7 +315,7 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
             </ul>
             <p>
               <b>Reubicar en pueblos cercanos (si se activa).</b> Se forman todas las parejas de un pueblo al que le sobra gente y otro
-              con sitio (sin contar las oportunidades condicionadas) a {escenario.radioKm} km o menos entre sus centros, y se ordenan de
+              con sitio a {escenario.radioKm} km o menos entre sus centros (el de destino, con el hospital a {HOSPITAL_LEJOS_KM} km o menos, sea del tipo que sea), y se ordenan de
               la más cercana a la más lejana. En ese orden, cada pareja traslada lo que pueda:
             </p>
             <p className="formula">personas = mín(lo que aún no cabe en el origen, el sitio que aún le queda al destino)</p>
@@ -276,9 +330,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <section>
             <h3>4. Invertir y repartir</h3>
             <p>
-              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio y añade tantas plazas como el límite de niños por
-              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud; si su zona ya se pasa del límite, primero cubre esa parte. Después se recalcula todo: a veces el límite pasa a otro
-              recurso y hace falta invertir en algo más.
+              <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
+              edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
+              zona las personas que atiende (de partida, la mediana de las zonas); si la zona ya se pasa del límite, primero cubre esa parte,
+              y cada municipio de la zona se lleva su parte según sus vecinos. Después se recalcula todo: a veces el límite pasa a otro
+              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
               <b>Repartir.</b> Cada grupo ordena los pueblos por el sitio que les queda en colegios, centro de salud y vivienda
