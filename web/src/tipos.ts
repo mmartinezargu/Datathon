@@ -153,7 +153,7 @@ export interface DatosValidacion {
   mayores_errores: { ine: string; nombre: string; crecimiento_real: number; crecimiento_previsto: number }[]
 }
 
-/** Simulador «¿Y si llegan más?»: cómo se reparten unos recién llegados entre los pueblos con sitio. */
+/** Simulador de reparto: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
 export interface Reparto {
   pueblos: { ine: string; porPerfil: Record<Perfil, number>; total: number; lleno: boolean }[] // de más a menos recibidos
   colocados: number

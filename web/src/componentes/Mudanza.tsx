@@ -139,7 +139,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
         </p>
       </section>
 
-      <Simulador resultados={resultados} porIne={porIne} anio={escenario.anio} onVerEnMapa={onVerEnMapa} />
+      <Simulador resultados={resultados} porIne={porIne} escenario={escenario} onVerEnMapa={onVerEnMapa} />
     </div>
   )
 }

@@ -300,7 +300,8 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
   .pestanas { overflow-x: auto; scrollbar-width: none; }
 }
 
-/* ---------- Simulador «¿Y si llegan más?» ---------- */
+/* ---------- Simulador de reparto ---------- */
+.sim-pregunta { font-size: 15px; margin: 16px 0 0; }
 .sim-entradas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .sim-entradas input { width: 100%; margin-top: 8px; font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; color: var(--tinta); font-variant-numeric: tabular-nums; }
 .sim-resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 10px; }
