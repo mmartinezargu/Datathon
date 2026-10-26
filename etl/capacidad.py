@@ -7,7 +7,7 @@ import geopandas as gpd
 import pandas as pd
 import pyogrio
 
-from comun import RAW
+from comun import ANIO_BASE, RAW
 
 # ---------- Vivienda ----------
 
@@ -90,6 +90,29 @@ def leer_colegios() -> pd.DataFrame:
     return (c.groupby("ine")[["primaria", "secundaria"]].sum()
              .rename(columns={"primaria": "colegios_primaria", "secundaria": "colegios_secundaria"})
              .reset_index())
+
+
+def leer_ninos(pob: pd.DataFrame) -> pd.DataFrame:
+    """Niños en edad de primaria (6-11 años) y de secundaria (12-17) en 2025 [est.].
+
+    El Censo anual (CM) da la población por grupos de 5 años, así que se estima:
+        primaria   ≈ 0,8 × «5-9» + 0,4 × «10-14»
+        secundaria ≈ 0,6 × «10-14» + 0,6 × «15-19»
+    De ahí sale la proporción de niños del municipio, que se aplica a su población
+    del Padrón 2025 (la misma que usa el resto del modelo).
+    """
+    e = pd.read_csv(RAW / "cm_poblacion_por_edad_censo_anual.csv", sep=";", encoding="latin-1",
+                    dtype={"Código territorio": str})
+    e = e[(e["Año"] == ANIO_BASE) & (e["Tipo territorio"] == "Municipios")
+          & (e["Nacionalidad"] == "Total") & (e["Sexo"] == "Total")]
+    e["ine"] = "28" + e["Código territorio"].str[:3]  # el código del portal lleva un dígito de control
+    g = e.pivot_table(index="ine", columns="Edad", values="Valor", aggfunc="sum")
+    proporcion = pd.DataFrame({
+        "ninos_primaria": 0.8 * g["De 5-9 años"] + 0.4 * g["De 10-14 años"],
+        "ninos_secundaria": 0.6 * g["De 10-14 años"] + 0.6 * g["De 15-19 años"],
+    }).div(g["Total"], axis=0)
+    hoy = pob.set_index("ine")[ANIO_BASE]
+    return proporcion.mul(hoy.reindex(proporcion.index), axis=0).round().reset_index()
 
 
 # ---------- Sanidad ----------

@@ -5,7 +5,7 @@
 //   capacidad = cuánta gente cabe = el menor de 4 límites (ley del mínimo)
 //   tipo      = el cruce de las dos: tensión, polo, oportunidad o consolidación
 
-import type { Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
+import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
 
 export const ANIO_BASE = 2025
 /** Personas que ganaron los 155 municipios en 2015-2025 (Padrón, INE). */
@@ -14,9 +14,6 @@ export const CRECIMIENTO_DECADA = 134_426
 export const RITMO_ANUAL = CRECIMIENTO_DECADA / 10
 /** Para no marcar "en tensión" por un puñado de personas. */
 export const MARGEN_MINIMO = 25
-/** Tramos de tamaño: un pueblo de 800 vecinos no se compara con uno de 40.000. */
-export const TRAMOS_MUNICIPIO = [1_000, 5_000, 10_000, 20_000, Infinity]
-export const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales, medias y urbanas
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
 export const COSTE_COLEGIO = 9_500_000
 export const COSTE_CENTRO_SALUD = 8_000_000
@@ -142,16 +139,16 @@ export function calcularLimites(m: Municipio, esc: Escenario, anios: number, u: 
   // Vivienda: parte de las vacías o secundarias + parte de las previstas, por personas por hogar
   const vivienda = (c.viv_no_principales * esc.pctVivienda + c.viv_previstas * esc.pctSuelo) * c.personas_hogar
 
-  // Colegios: hasta llegar al umbral de habitantes por colegio de los de su tamaño.
+  // Colegios: plazas libres hasta el límite de niños por colegio de los de su tamaño, pasadas a personas
+  // con la proporción de niños del municipio (se supone que quien llega trae la misma).
   // Si no tiene colegio de ese nivel, sus alumnos van a otro municipio: ese límite no aplica.
-  const porNivel = nivelesColegio(m, u, inv.colegios).map((x) => Math.max(0, x.n * x.umbral - p))
+  const porNivel = nivelesColegio(m, u, inv.colegios).map((x) => x.caben)
   const colegios = porNivel.length ? Math.min(...porNivel) : null
 
   // Sanidad: sitio libre en su zona básica de salud, repartido según el peso del municipio en la zona.
-  // Cada centro de salud nuevo suma lo que aguanta una zona entera de su tamaño, solo para este municipio.
-  const umbralZona = u.zonaSalud[tramo(c.zbs_poblacion, TRAMOS_ZONA)]
-  const libreZona = Math.max(0, umbralZona - c.zbs_poblacion)
-  const sanidad = libreZona * Math.min(1, p / c.zbs_poblacion) + inv.centros * umbralZona
+  // Cada centro de salud nuevo suma lo que aguanta una zona, solo para este municipio.
+  const libreZona = Math.max(0, u.zonaSalud - c.zbs_poblacion)
+  const sanidad = libreZona * Math.min(1, p / c.zbs_poblacion) + inv.centros * u.zonaSalud
 
   // Ritmo: un municipio no absorbe más de un X % al año sin colapsar, aunque tenga suelo
   const ritmo = p * ((1 + esc.ritmoMax) ** anios - 1)
@@ -160,42 +157,47 @@ export function calcularLimites(m: Municipio, esc: Escenario, anios: number, u: 
 }
 
 /**
- * Umbral de saturación: hasta dónde se puede cargar un colegio o un centro de salud.
- * Se mira a los de su mismo tamaño y se toma el percentil que diga la palanca "exigencia".
- * Con 0,75: un colegio está lleno cuando atiende a tantos vecinos como el 25 % más cargado.
+ * Límites de saturación: hasta dónde se puede cargar un colegio o un centro de salud.
+ * - Colegios: niños por colegio frente al tamaño del municipio, con una curva continua (sin tramos):
+ *   recta de log(niños por colegio) sobre log(población) en los 155 que tienen colegio de ese nivel,
+ *   subida hasta el percentil «exigencia» de lo que se aparta cada uno de la recta.
+ * - Sanidad: un único límite para todas las zonas, el percentil «exigencia» de la población de las 286.
+ * Con 0,9: un colegio está lleno cuando tiene tantos niños como el 10 % más cargado de los de su tamaño.
  */
 export function calcularUmbrales(universo: Municipio[], zonas: ZonaSalud[], exigencia: number): Umbrales {
-  const porTramo = (filas: { valor: number; tramo: number }[], nTramos: number) =>
-    Array.from({ length: nTramos }, (_, t) => percentil(filas.filter((f) => f.tramo === t).map((f) => f.valor), exigencia))
-  const ratios = (nivel: 'colegios_primaria' | 'colegios_secundaria') =>
-    universo
-      .filter((m) => m.capacidad![nivel] > 0)
-      .map((m) => {
-        const p = m.poblacion[String(ANIO_BASE)]
-        return { valor: p / m.capacidad![nivel], tramo: tramo(p, TRAMOS_MUNICIPIO) }
-      })
-  return {
-    primaria: porTramo(ratios('colegios_primaria'), TRAMOS_MUNICIPIO.length),
-    secundaria: porTramo(ratios('colegios_secundaria'), TRAMOS_MUNICIPIO.length),
-    zonaSalud: porTramo(zonas.map((z) => ({ valor: z.poblacion, tramo: tramo(z.poblacion, TRAMOS_ZONA) })), TRAMOS_ZONA.length),
+  const curva = (nivel: 'primaria' | 'secundaria'): CurvaColegio => {
+    const puntos = universo
+      .filter((m) => m.capacidad![`colegios_${nivel}`] > 0 && m.capacidad![`ninos_${nivel}`] > 0)
+      .map((m) => ({ x: Math.log(m.poblacion[String(ANIO_BASE)]), y: Math.log(m.capacidad![`ninos_${nivel}`] / m.capacidad![`colegios_${nivel}`]) }))
+    const mx = puntos.reduce((s, q) => s + q.x, 0) / puntos.length
+    const my = puntos.reduce((s, q) => s + q.y, 0) / puntos.length
+    const b = puntos.reduce((s, q) => s + (q.x - mx) * (q.y - my), 0) / puntos.reduce((s, q) => s + (q.x - mx) ** 2, 0)
+    const a = my - b * mx
+    return { a, b, ajuste: percentil(puntos.map((q) => q.y - (a + b * q.x)), exigencia) }
   }
+  return { primaria: curva('primaria'), secundaria: curva('secundaria'), zonaSalud: percentil(zonas.map((z) => z.poblacion), exigencia) }
+}
+
+/** Niños por colegio que aguantan los colegios de un municipio de este tamaño. */
+export function limiteColegio(curva: CurvaColegio, poblacion: number): number {
+  return Math.exp(curva.a + curva.b * Math.log(poblacion) + curva.ajuste)
 }
 
 /**
- * Colegios de cada nivel (primaria, secundaria) con su umbral, contando los que se construyan.
- * Solo los niveles que ya tiene el municipio. Cada colegio nuevo va al nivel con menos sitio.
+ * Colegios de cada nivel (primaria, secundaria) con su límite y el sitio que dejan, contando los que se construyan.
+ * Solo los niveles que ya tiene el municipio. Cada colegio nuevo suma «límite» plazas y va al nivel con menos sitio.
  */
 export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
   const c = m.capacidad!
-  const t = tramo(m.poblacion[String(ANIO_BASE)], TRAMOS_MUNICIPIO)
-  const niveles = [
-    { nombre: 'primaria', n: c.colegios_primaria, umbral: u.primaria[t] },
-    { nombre: 'secundaria', n: c.colegios_secundaria, umbral: u.secundaria[t] },
-  ].filter((x) => x.n > 0)
+  const p = m.poblacion[String(ANIO_BASE)]
+  const niveles = (['primaria', 'secundaria'] as const)
+    .filter((nombre) => c[`colegios_${nombre}`] > 0 && c[`ninos_${nombre}`] > 0)
+    .map((nombre) => ({ nombre, n: c[`colegios_${nombre}`], limite: limiteColegio(u[nombre], p), ninos: c[`ninos_${nombre}`], proporcion: c[`ninos_${nombre}`] / p }))
+  const caben = (x: (typeof niveles)[number]) => Math.max(0, x.n * x.limite - x.ninos) / x.proporcion
   for (let k = 0; k < nuevos && niveles.length; k++) {
-    niveles.reduce((a, b) => (a.n * a.umbral <= b.n * b.umbral ? a : b)).n++
+    niveles.reduce((a, b) => (caben(a) <= caben(b) ? a : b)).n++
   }
-  return niveles
+  return niveles.map((x) => ({ ...x, libres: x.n * x.limite - x.ninos, caben: caben(x) }))
 }
 
 /** Coste de lo que se decide construir en un municipio, en euros. */
@@ -208,14 +210,10 @@ export function plazoInversion(inv: Inversion): number {
   return Math.max(inv.colegios ? PLAZO_COLEGIO_ANIOS : 0, inv.centros ? PLAZO_CENTRO_SALUD_ANIOS : 0)
 }
 
-/** Los umbrales que le tocan a un municipio concreto (para explicar la cuenta en su ficha). */
+/** Los límites que le tocan a un municipio concreto (para explicar la cuenta en su ficha). */
 export function umbralesDe(m: Municipio, u: Umbrales) {
-  const t = tramo(m.poblacion[String(ANIO_BASE)], TRAMOS_MUNICIPIO)
-  return { primaria: u.primaria[t], secundaria: u.secundaria[t], zona: u.zonaSalud[tramo(m.capacidad!.zbs_poblacion, TRAMOS_ZONA)] }
-}
-
-function tramo(poblacion: number, cortes: number[]): number {
-  return cortes.findIndex((c) => poblacion < c)
+  const p = m.poblacion[String(ANIO_BASE)]
+  return { primaria: limiteColegio(u.primaria, p), secundaria: limiteColegio(u.secundaria, p), zona: u.zonaSalud }
 }
 
 /** Percentil con interpolación lineal (igual que pandas.quantile). */

@@ -131,18 +131,19 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
   switch (r.limitante) {
     case 'colegios': {
       // El nivel que manda es el de menos sitio
-      const niveles = nivelesColegio(m, u, inv.colegios).sort((a, b) => (a.n * a.umbral - p) - (b.n * b.umbral - p))
-      const x = niveles[0]
+      const x = nivelesColegio(m, u, inv.colegios).sort((a, b) => a.caben - b.caben)[0]
       const nuevos = inv.colegios ? ` (con ${inv.colegios === 1 ? 'el nuevo' : `los ${inv.colegios} nuevos`})` : ''
-      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} para ${miles(p)} vecinos: ${miles(p / x.n)} por centro. ` +
-        `Los municipios de su tamaño llegan hasta ${miles(x.umbral)}. (${miles(x.umbral)} × ${x.n}) − ${miles(p)} = ${miles(Math.max(0, x.n * x.umbral - p))} personas.`
+      const edad = x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'
+      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} para unos ${miles(x.ninos)} niños ${edad} (estimación): ${miles(x.ninos / x.n)} por centro. ` +
+        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.ninos)} = ${miles(Math.max(0, x.libres))}. ` +
+        `Como un ${pct(x.proporcion, 1)} de sus vecinos tiene esa edad, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
       const libre = Math.max(0, umb.zona - c.zbs_poblacion)
       const nuevos = inv.centros
         ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas más (${miles(umb.zona)} por centro): ${miles(r.caben)} en total.`
         : ''
-      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y las zonas de su tamaño llegan hasta ${miles(umb.zona)}. ` +
+      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}. ` +
         (libre === 0 ? 'La zona ya está por encima: no queda sitio.' : `Quedan ${miles(libre)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${miles(r.caben)}`}.`) + nuevos
     }
     case 'vivienda':

@@ -14,9 +14,9 @@ interface Props {
 
 const ANIOS = [2030, 2035, 2039]
 const EXIGENCIAS = [
-  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio o un centro de salud se considera lleno cuando atiende a tantos vecinos como el 25 % más cargado de los de su tamaño.' },
-  { valor: 0.9, texto: 'Media', ayuda: 'Lleno cuando atiende a tantos vecinos como el 10 % más cargado de los de su tamaño.' },
-  { valor: 0.97, texto: 'Flexible', ayuda: 'Se aceptan cargas como las de los más saturados de su tamaño.' },
+  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio se considera lleno cuando tiene tantos niños como el 25 % más cargado de los de su tamaño, y un centro de salud cuando atiende a tanta gente como el 25 % de las zonas más pobladas.' },
+  { valor: 0.9, texto: 'Media', ayuda: 'Lleno cuando tiene tanta carga como el 10 % más cargado (colegios de su tamaño; zonas de salud de toda la Comunidad).' },
+  { valor: 0.97, texto: 'Flexible', ayuda: 'Se aceptan cargas como las de los más saturados.' },
 ]
 
 export function Palancas({ escenario, onCambiar }: Props) {

@@ -5,7 +5,7 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, RITMO_ANUAL, TRAMOS_MUNICIPIO, TRAMOS_ZONA } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, RITMO_ANUAL } from '../motor'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { Escenario, Perfil, Recurso } from '../tipos'
@@ -22,6 +22,7 @@ const FUENTES = [
   { nombre: 'Censo 2021: hogares por tamaño', quien: 'INE (tabla 59543)', para: 'Personas por hogar, para pasar de viviendas a personas', url: 'https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0' },
   { nombre: 'Municipios de la Comunidad de Madrid', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Zona estadística y superficie', url: 'https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d' },
   { nombre: 'Centros educativos', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Colegios de primaria e institutos en funcionamiento', url: 'https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5' },
+  { nombre: 'Población censada por edad (Censo anual)', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Cuántos niños de edad de primaria y de secundaria hay en cada municipio', url: 'https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402' },
   { nombre: 'Zonas básicas de salud', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'A qué centro de salud va cada municipio y cuánta gente atiende', url: 'https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff' },
   { nombre: 'Centros sanitarios', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Dónde están los hospitales generales públicos', url: 'https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7' },
   { nombre: 'Límites municipales y planeamiento urbanístico refundido 2025', quien: 'IDEM, Comunidad de Madrid', para: 'El mapa y las viviendas previstas en suelo sin desarrollar', url: 'https://idem.comunidad.madrid/' },
@@ -145,7 +146,7 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <li><b>«No principal» no es «vacía».</b> El Censo junta las viviendas vacías con las segundas residencias, y muchas no están en venta ni en alquiler. Por eso solo se cuenta un {pct(escenario.pctVivienda, 0)}.</li>
           <li><b>Contamos colegios, no plazas.</b> No sabemos cuántas aulas ni cuántas líneas tiene cada centro, ni cuántos alumnos van a estudiar a otro municipio.</li>
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona que cubre más superficie suya, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
-          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio o un centro está lleno cuando atiende a tantos vecinos como los más cargados de su tamaño, no según un estándar oficial.</li>
+          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos niños como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso se equivoca en un {pct(nuestro.wape)} de las personas.</li>
           <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
           <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los pueblos de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
@@ -187,20 +188,21 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
               <dt>Colegios</dt>
               <dd>
                 <p>
-                  Se mira cuántos vecinos atiende cada colegio en los municipios de su mismo tamaño (se agrupan con cortes en{' '}
-                  {y(TRAMOS_MUNICIPIO.slice(0, -1).map((t) => miles(t)))} habitantes). Un colegio está «lleno»
-                  cuando atiende a tantos como el {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño.
-                  Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
+                  Se mira cuántos niños hay por colegio (de 6 a 11 años en primaria y de 12 a 17 en secundaria) y se compara con
+                  municipios de tamaño parecido. No hay tramos: una curva sube poco a poco con el tamaño del municipio, porque los
+                  colegios de los pueblos grandes son más grandes. Un colegio está «lleno» cuando tiene tantos niños como el{' '}
+                  {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño. Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
                 </p>
-                <p className="formula">colegios × vecinos por colegio cuando está lleno − vecinos de hoy</p>
-                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica.</p>
+                <p className="formula">log(niños por colegio) = a + b × log(vecinos), con a y b de una recta ajustada a los 155; el límite es esa recta subida hasta el percentil {pct(escenario.exigencia, 0)} de lo que se aparta cada municipio</p>
+                <p className="formula">plazas libres = colegios × límite − niños de hoy; personas que caben = plazas libres ÷ proporción de niños de esa edad en el municipio</p>
+                <p className="ayuda">Si no tiene colegio de un nivel, sus alumnos van a otro municipio y ese límite no aplica. Los niños se estiman a partir de grupos de 5 años del Censo anual.</p>
               </dd>
               <dt>Sanidad</dt>
               <dd>
                 <p>
-                  Cada municipio va a una zona básica de salud. Igual que con los colegios, se compara con las zonas de su
-                  tamaño (cortes en {y(TRAMOS_ZONA.slice(0, -1).map((t) => miles(t)))} personas) para saber
-                  cuánta gente aguanta antes de saturarse.
+                  Cada municipio va a una zona básica de salud. Su población se compara con la de todas las zonas de la Comunidad:
+                  una zona está «llena» cuando atiende a tanta gente como el {pct(1 - escenario.exigencia, 0)} de las zonas más pobladas.
+                  No se compara por tramos de tamaño, porque el tamaño de la zona es justo lo que se mide.
                 </p>
                 <p className="formula">(lo que aguanta la zona − lo que atiende hoy) × la parte de la zona que son vecinos del municipio</p>
               </dd>
@@ -240,8 +242,8 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           <section>
             <h3>4. Invertir y mudarse</h3>
             <p>
-              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio. Cada centro de salud nuevo añade, solo para ese
-              municipio, lo que aguanta una zona de salud como la suya. Después se recalcula todo: a veces el límite pasa a otro
+              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio y añade tantas plazas como el límite de niños por
+              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud. Después se recalcula todo: a veces el límite pasa a otro
               recurso y hace falta invertir en algo más.
             </p>
             <p>
@@ -269,9 +271,4 @@ const REGLA: Record<(typeof ORDEN_TIPOS)[number], string> = {
   polo: 'Cabe toda la gente que llega y crece más que la mediana.',
   oportunidad: 'Cabe la que llega, crece menos que la mediana y tiene más sitio que la mediana.',
   consolidacion: 'Cabe la que llega, pero crece poco y tiene poco sitio de sobra.',
-}
-
-/** ['1.000', '5.000', '10.000'] -> «1.000, 5.000 y 10.000». */
-function y(partes: string[]): string {
-  return partes.length < 2 ? partes.join('') : `${partes.slice(0, -1).join(', ')} y ${partes.at(-1)}`
 }

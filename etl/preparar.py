@@ -85,7 +85,7 @@ def redondear_coordenadas(geo: dict, decimales: int) -> None:
 
 COLUMNAS_CAPACIDAD = [
     "viv_principales", "viv_no_principales", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
-    "colegios_primaria", "colegios_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
+    "colegios_primaria", "colegios_secundaria", "ninos_primaria", "ninos_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
 ]
 
 
@@ -95,6 +95,7 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
     df = (df.merge(capacidad.leer_viviendas(), on="ine", how="left")
             .merge(capacidad.leer_planeamiento(), on="ine", how="left")
             .merge(capacidad.leer_colegios(), on="ine", how="left")
+            .merge(capacidad.leer_ninos(pob), on="ine", how="left")
             .merge(sanidad, on="ine", how="left"))
     df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
         df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))

@@ -22,6 +22,8 @@ NUCLEO = ("Portal de Datos Abiertos de la Comunidad de Madrid, Centros educativo
           "https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5")
 PLANEAMIENTO = ("IDEM, Planeamiento urbanístico refundido 2025",
                 "https://idem.comunidad.madrid/recursos_cat_geo/Catalogo/recursos/Planeamiento/Refundido/vpla_ref_25_gpkg.zip")
+EDAD = ("Portal de Datos Abiertos de la Comunidad de Madrid, Población censada por edad (Censo anual) y Padrón (INE)",
+        "https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 
 # archivo -> [(columna, descripción, unidad, (fuente, url))]
@@ -40,11 +42,17 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("viv_principales", "Viviendas principales (donde vive un hogar habitualmente)", "viviendas", VIVIENDAS),
         ("viv_no_principales", "Viviendas no principales: vacías o de segunda residencia", "viviendas", VIVIENDAS),
         ("personas_hogar", "Personas por hogar: población 2021 ÷ hogares del Censo 2021", "personas por hogar", HOGARES),
-        ("viv_previstas", "Viviendas previstas en suelo aún pendiente de desarrollar (urbanizable o urbano no consolidado)",
+        ("viv_previstas", "Viviendas previstas en suelo aún pendiente de desarrollar (urbanizable o urbano no consolidado). "
+         "Un ámbito partido en varios polígonos se cuenta una sola vez",
          "viviendas", PLANEAMIENTO),
         ("suelo_pendiente_ha", "Superficie de ese suelo pendiente de desarrollar", "hectáreas", PLANEAMIENTO),
-        ("colegios_primaria", "Centros educativos en funcionamiento que dan primaria", "centros", COLEGIOS),
+        ("colegios_primaria", "Centros educativos en funcionamiento que dan primaria (colegios públicos, concertados y privados; "
+         "sin educación de adultos, aulas hospitalarias ni enseñanzas artísticas)", "centros", COLEGIOS),
         ("colegios_secundaria", "Centros educativos en funcionamiento que dan secundaria", "centros", COLEGIOS),
+        ("ninos_primaria", "[est.] Niños en edad de primaria (6-11 años) en 2025: 0,8 × «5-9 años» + 0,4 × «10-14 años» "
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025", "personas", EDAD),
+        ("ninos_secundaria", "[est.] Niños en edad de secundaria (12-17 años) en 2025: 0,6 × «10-14 años» + 0,6 × «15-19 años» "
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025", "personas", EDAD),
         ("zbs_codigo", "Código de la zona básica de salud a la que se asigna (la que cubre más superficie del municipio)",
          "código", ZONAS_SALUD),
         ("zbs_nombre", "Nombre de esa zona básica de salud", "texto", ZONAS_SALUD),
