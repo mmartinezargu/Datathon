@@ -286,6 +286,10 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
                 </li>
               ))}
             </ul>
+            <p>
+              La casilla <b>«Con hospital a menos de {HOSPITAL_LEJOS_KM} km»</b> deja solo los municipios con un hospital general
+              público a esa distancia o menos, en línea recta. Viene marcada para las personas mayores.
+            </p>
           </section>
         </div>
       </details>

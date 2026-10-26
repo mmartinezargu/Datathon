@@ -257,6 +257,7 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .cand-cabeza b { font-family: var(--disp); font-size: 17px; }
 .cand-cabeza .chip { margin-bottom: 0; }
 .cand-cuerpo p { margin: 6px 0 8px; font-size: 13.5px; }
+.cand-cuerpo p.cand-hospital { display: flex; align-items: center; gap: 5px; margin: 0 0 8px; font-size: 12.5px; }
 .cand-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 12.5px; }
 .encaje { display: inline-flex; align-items: center; gap: 8px; color: var(--tinta2); font-variant-numeric: tabular-nums; }
 .encaje-pista { width: 70px; height: 8px; background: var(--fondo); border-radius: 4px; overflow: hidden; }

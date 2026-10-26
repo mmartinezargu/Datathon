@@ -116,6 +116,7 @@ export interface FiltrosMudanza {
   colegio: boolean // que tenga colegio de primaria
   instituto: boolean // que tenga instituto (secundaria)
   sitioLibre: boolean // que no se quede sin sitio con la gente que llega
+  hospitalCerca: boolean // que el hospital general público más cercano esté a HOSPITAL_LEJOS_KM o menos (motor.ts)
   zona: string | null // zona estadística; null = cualquiera
   tamano: Tamano
 }
