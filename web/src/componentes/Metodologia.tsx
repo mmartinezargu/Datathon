@@ -141,12 +141,14 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           de pueblos más próximas. Si no hay ninguno a esa distancia, se queda sin sitio, y los colores del mapa no cambian.
         </p>
         <p>
-          <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
+          <b>Repartir.</b> Coge a toda la gente que llega y la reparte según quiénes son (familias, personas mayores, teletrabajo),
+          como si se pudiera elegir a dónde va cada uno: cada grupo va a los pueblos que mejor le encajan y cada pueblo recibe hasta
+          llenarse. Se compara con lo que cabe si cada uno va donde le lleva la tendencia.
         </p>
         <p>
-          <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («somos 4 y trabajo en Getafe») y lo convierte en los
-          filtros de «¿Dónde me mudo?», que luego puedes cambiar. La IA no calcula nada ni ordena los pueblos: los resultados salen
-          del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
+          <b>Cuéntanoslo con tus palabras.</b> Una IA lee lo que escribes («llevadlos a pueblos pequeños con hospital cerca») y lo
+          convierte en los filtros de «Repartir», que luego puedes cambiar. La IA no calcula nada ni reparte a nadie: los resultados
+          salen del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
         </p>
       </section>
 
@@ -326,7 +328,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           </section>
 
           <section>
-            <h3>4. Invertir y mudarse</h3>
+            <h3>4. Invertir y repartir</h3>
             <p>
               <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
               edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
@@ -335,8 +337,8 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
-              <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda
-              <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos. Cada perfil da un peso distinto:
+              <b>Repartir.</b> Cada grupo ordena los pueblos por el sitio que les queda en colegios, centro de salud y vivienda
+              <i> después</i> de que llegue la gente prevista, en proporción a sus vecinos, con un peso distinto para cada grupo:
             </p>
             <ul className="perfiles-metodo">
               {(Object.keys(PERFILES) as Perfil[]).map((p) => (
@@ -348,8 +350,10 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               ))}
             </ul>
             <p>
-              La casilla <b>«Con hospital a menos de {HOSPITAL_LEJOS_KM} km»</b> deja solo los municipios con un hospital general
-              público a esa distancia o menos, en línea recta. Viene marcada para las personas mayores.
+              Después llenan los pueblos en ese orden, por turnos y a la par (cada grupo, en proporción a cuántos son), hasta lo que le cabe a cada uno (el menor de sus
+              cuatro límites). Las familias solo van a pueblos con colegio y las personas mayores, a pueblos con un hospital general
+              público a menos de {HOSPITAL_LEJOS_KM} km en línea recta. Qué parte de los que llegan es de cada grupo es un supuesto
+              que se puede cambiar.
             </p>
           </section>
         </div>
