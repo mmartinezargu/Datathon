@@ -9,6 +9,7 @@ import type { Candidato, Escenario, FiltrosMudanza, LecturaFrase, Municipio, Per
 import { decimal, miles, pct } from '../formato'
 import { HOSPITAL_LEJOS_KM } from '../motor'
 import { Icono } from './Iconos'
+import { Simulador } from './Simulador'
 
 const MAX_COMPARAR = 3
 const MAX_RANKING = 10
@@ -137,6 +138,8 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
           de alquiler ni tiempos de viaje al trabajo: mira también eso antes de decidir.
         </p>
       </section>
+
+      <Simulador resultados={resultados} porIne={porIne} anio={escenario.anio} onVerEnMapa={onVerEnMapa} />
     </div>
   )
 }

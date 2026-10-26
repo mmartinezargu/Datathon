@@ -18,6 +18,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta» |
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |
+| `src/reparto.ts` | Simulador «¿Y si llegan más?»: reparte recién llegados por perfil entre los pueblos con hueco (`margen − recibe`), recorriendo el ranking de cada perfil; eligen primero mayores, luego familias, luego teletrabajo. Función pura |
+| `src/componentes/Simulador.tsx` | Bloque del simulador al final de «Dónde vivir»: cuántos llegan de cada tipo, resumen y tabla de pueblos (lleno o no) |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
 | `src/componentes/Metodologia.tsx` | Pestaña «Cómo funciona» (`#como`): 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Al final, la sección «¿Acierta?». Lee las constantes de `motor.ts` y `mudanza.ts` |
 | `src/componentes/Validacion.tsx` | Sección «¿Acierta?» (validación 2015→2025), al final de «Cómo funciona». El enlace `#fiable` baja hasta ella |
