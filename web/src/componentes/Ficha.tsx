@@ -1,8 +1,8 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, alLimite, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
+import { ANIO_BASE, alLimite, aperturaObra, costeObra, nivelesColegio, quedanSinSitio, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
-import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
+import type { Escenario, Inversion, Limite, Municipio, Obra, ResultadoMunicipio, TipoObra, Traslado, Umbrales } from '../tipos'
 import { caben, decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
@@ -11,24 +11,24 @@ import { OrigenMunicipio } from './OrigenVaso'
 
 interface Props {
   r: ResultadoMunicipio
-  antes: ResultadoMunicipio // el mismo municipio sin las inversiones simuladas
   m: Municipio
   porIne: Map<string, Municipio>
   escenario: Escenario
   umbrales: Umbrales
-  inversion: Inversion
-  onInvertir: (inv: Inversion) => void
+  inversion: Inversion // lo que construye el plan aquí
+  enPlan: Obra[] // las obras del plan en este municipio y los centros de salud de su zona (sirven a toda la zona)
+  onPlanificar: () => void // abrir la pestaña «Plan» (con este municipio añadido si no estaba)
   onElegir: (ine: string) => void // abrir la ficha de otro municipio (los de los traslados)
 }
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir, onElegir }: Props) {
+export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, onPlanificar, onElegir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
   const escala = Math.max(r.llegan, ...valores, 1)
-  const ampliado = inversion.colegios > 0 || inversion.centros > 0
+  const ampliado = enPlan.length > 0
   const limite = alLimite(r, m, umbrales, inversion)
 
   return (
@@ -76,7 +76,7 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
         <div className="cuenta">{explicacion(r, m, escenario, umbrales, inversion)}</div>
       </details>
 
-      <Invertir r={r} antes={antes} m={m} umbrales={umbrales} inversion={inversion} onInvertir={onInvertir} />
+      <EnElPlan obras={enPlan} zona={m.capacidad!.zbs_nombre} onPlanificar={onPlanificar} />
 
       <h3>Población 2005–{escenario.anio}</h3>
       <Evolucion poblacion={m.poblacion} anioFin={escenario.anio} poblacionFin={r.poblacion + r.llegan} color={tipo.color} />
@@ -163,27 +163,27 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
   switch (r.limitante) {
     case 'colegios': {
       // El nivel que manda es el de menos sitio
-      const x = nivelesColegio(m, u, inv.colegios).sort((a, b) => a.caben - b.caben)[0]
-      const nuevos = inv.colegios ? ` (con ${inv.colegios === 1 ? 'el nuevo' : `los ${inv.colegios} nuevos`})` : ''
+      const x = nivelesColegio(m, u, inv).sort((a, b) => a.caben - b.caben)[0]
+      const nuevas = x.nuevas ? ` + ${miles(x.nuevas)} del plan` : ''
       const nivel = x.nombre === 'primaria' ? 'primaria' : 'ESO'
       const estimados = c.alumnos_estimados ? ' (estimación: no hay dato de matrícula)' : ''
-      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} con ${miles(x.alumnos)} alumnos de ${nivel}${estimados}: ${miles(x.alumnos / x.n)} por centro. ` +
-        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.alumnos)} = ${miles(Math.max(0, x.libres))}. ` +
+      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre} con ${miles(x.alumnos)} alumnos de ${nivel}${estimados}: ${miles(x.alumnos / x.n)} por centro. ` +
+        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.alumnos)}${nuevas} = ${miles(Math.max(0, x.libres))}. ` +
         `En ${m.nombre} viven ${decimal(x.ninosPorVecino * 100, 1)} niños ${x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'} por cada 100 vecinos (estimación): ` +
         `si quien llega trae los mismos, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
-      // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
-      const parte = (umb.zona - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
-      const total = miles(r.limites.sanidad ?? 0)
+      // Los centros nuevos del plan suman a toda la zona (inv trae los de su zona). La parte del municipio en el sitio libre
+      // de la zona es negativa si la zona sigue por encima del límite.
+      const aguanta = umb.zona + inv.personasSanidad
+      const parte = (aguanta - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
       const nuevos = inv.centros
-        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas (${miles(umb.zona)} por centro)` +
-          (parte < 0 ? `; descontando ese exceso, quedan ${total}.` : `: ${total} en total.`)
+        ? `; con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} del plan en la zona, hasta ${miles(aguanta)}`
         : ''
-      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}. ` +
+      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}${nuevos}. ` +
         (parte < 0
-          ? `La zona ya está por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más${inv.centros ? '' : ', así que no queda sitio'}.`
-          : `Quedan ${miles(umb.zona - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${total}`}.`) + nuevos
+          ? `La zona ${inv.centros ? 'sigue' : 'ya está'} por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más, así que no queda sitio.`
+          : `Quedan ${miles(aguanta - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos: ${miles(r.limites.sanidad ?? 0)}.`)
     }
     case 'vivienda':
       return (c.viv_vacias_sin_dato
@@ -197,64 +197,27 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
   }
 }
 
-/** Modo «¿y si invertimos aquí?»: construir colegios o centros de salud y ver qué cambia. */
-function Invertir({ r, antes, m, umbrales, inversion, onInvertir }: {
-  r: ResultadoMunicipio; antes: ResultadoMunicipio; m: Municipio; umbrales: Umbrales
-  inversion: Inversion; onInvertir: (inv: Inversion) => void
-}) {
-  const sinColegio = nivelesColegio(m, umbrales).length === 0
-  const hay = inversion.colegios > 0 || inversion.centros > 0
-  const ganan = r.caben - antes.caben
-
-  return (
-    <>
-      <h3>¿Y si invertimos aquí?</h3>
-      <div className="invertir">
-        <Contador nombre="Colegios nuevos" coste={COSTE_COLEGIO} plazo={PLAZO_COLEGIO_ANIOS} valor={inversion.colegios}
-          onCambiar={(colegios) => onInvertir({ ...inversion, colegios })}
-          aviso={sinColegio ? 'No tiene colegio propio: sus alumnos van a otro municipio.' : undefined} />
-        <Contador nombre="Centros de salud nuevos" coste={COSTE_CENTRO_SALUD} plazo={PLAZO_CENTRO_SALUD_ANIOS} valor={inversion.centros}
-          onCambiar={(centros) => onInvertir({ ...inversion, centros })} />
-      </div>
-      {hay && (
-        <div className="invertir-efecto" aria-live="polite">
-          <p>
-            Con <b>{millones(costeInversion(inversion))}</b> caben <b>{miles(r.caben)}</b> personas
-            {ganan >= 1 ? <> ({miles(ganan)} más que antes)</> : <>, las mismas que antes</>}.
-          </p>
-          <p>Estaría listo en <b>unos {plazoInversion(inversion)} años</b> <span className="estimacion">estimación</span></p>
-          {r.tipo !== antes.tipo ? (
-            <p>
-              Pasa de <span className="chip" style={{ background: TIPOS[antes.tipo].color }}>{TIPOS[antes.tipo].nombre}</span> a{' '}
-              <span className="chip" style={{ background: TIPOS[r.tipo].color }}>{TIPOS[r.tipo].nombre}</span>
-            </p>
-          ) : (
-            <p>Sigue siendo «{TIPOS[r.tipo].nombre.toLowerCase()}».</p>
-          )}
-          {ganan < 1 && <p className="ayuda">No gana sitio porque {LIMITES[r.limitante].frase}. Prueba a invertir en otra cosa.</p>}
-          <button className="boton-quitar" onClick={() => onInvertir({ colegios: 0, centros: 0 })}>Quitar la inversión</button>
-        </div>
-      )}
-    </>
-  )
+const OBRAS_EN_TEXTO: Record<TipoObra, [string, string]> = {
+  ampliar_primaria: ['ampliación de colegio', 'ampliaciones de colegio'],
+  colegio_primaria: ['colegio nuevo', 'colegios nuevos'],
+  instituto: ['instituto', 'institutos'],
+  centro_salud: ['centro de salud', 'centros de salud'],
 }
 
-function Contador({ nombre, coste, plazo, valor, onCambiar, aviso }: {
-  nombre: string; coste: number; plazo: number; valor: number; onCambiar: (v: number) => void; aviso?: string
-}) {
+/** «En el plan: 1 ampliación de colegio y 1 centro de salud (8,5 M€; abre en 2030) → Ver en el plan». */
+function EnElPlan({ obras, zona, onPlanificar }: { obras: Obra[]; zona: string; onPlanificar: () => void }) {
+  const partes = (Object.keys(OBRAS_EN_TEXTO) as TipoObra[])
+    .map((t) => [t, obras.filter((o) => o.tipo === t).length] as const)
+    .filter(([, n]) => n > 0)
+    .map(([t, n]) => `${n} ${OBRAS_EN_TEXTO[t][n === 1 ? 0 : 1]}${t === 'centro_salud' ? ` (zona ${zona})` : ''}`)
+  const lista = partes.length > 1 ? `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}` : partes[0]
   return (
-    <div className="contador">
-      <div>
-        <span className="c-nombre">{nombre}</span>
-        <span className="ayuda">
-          {aviso ?? <>unos {millones(coste)} cada uno; abre en unos {plazo} años <span className="estimacion">estimación</span></>}
-        </span>
-      </div>
-      <div className="c-botones">
-        <button onClick={() => onCambiar(valor - 1)} disabled={valor === 0} aria-label={`Quitar uno: ${nombre.toLowerCase()}`}>−</button>
-        <b aria-live="polite">{valor}</b>
-        <button onClick={() => onCambiar(valor + 1)} disabled={!!aviso || valor >= 9} aria-label={`Añadir uno: ${nombre.toLowerCase()}`}>+</button>
-      </div>
-    </div>
+    <p className="ficha-plan">
+      <span>
+        En el plan:{' '}
+        {obras.length ? <><b>{lista}</b> ({millones(obras.reduce((s, o) => s + costeObra(o), 0))}; abre en {Math.max(...obras.map(aperturaObra))})</> : 'nada todavía'}
+      </span>
+      <button className="enlace" onClick={onPlanificar}>{obras.length ? 'Ver en el plan' : 'Planificar aquí'} →</button>
+    </p>
   )
 }

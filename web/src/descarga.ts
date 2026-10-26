@@ -4,16 +4,19 @@
 // que la hoja de cálculo los lea como números (por eso no se usa formato.ts).
 
 import { LIMITES, TIPOS } from './colores'
-import { SIN_INVERSION, costeInversion } from './motor'
-import type { Escenario, Inversiones, Municipio, ResultadoMunicipio, Traslado } from './tipos'
+import { NOMBRE_OBRA } from './fuentesPlan'
+import { SIN_INVERSION, aperturaObra, costeObra, inversionesDe } from './motor'
+import type { Escenario, Municipio, Obra, ResultadoMunicipio, Traslado } from './tipos'
 
 export function csvEscenario(
-  resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, esc: Escenario, inversiones: Inversiones,
+  resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, esc: Escenario, obras: Obra[],
 ): string {
+  const inversiones = inversionesDe(obras)
+  const coste = (ine: string) => obras.filter((o) => o.ine === ine).reduce((s, o) => s + costeObra(o), 0)
   const cabecera = [
     'ine', 'municipio', 'zona', 'poblacion_2025', `llegan_hasta_${esc.anio}`, 'caben', 'margen',
     'crecimiento_pct', 'caben_por_vivienda', 'caben_por_colegios', 'caben_por_sanidad', 'caben_por_ritmo',
-    'limita', 'tipo', 'condicionada', 'hospital_km', 'reubicados_recibe', 'reubicados_envia', 'recibe_de', 'envia_a', 'colegios_nuevos', 'centros_salud_nuevos', 'coste_inversion_eur',
+    'limita', 'tipo', 'condicionada', 'hospital_km', 'reubicados_recibe', 'reubicados_envia', 'recibe_de', 'envia_a', 'plan_plazas_primaria', 'plan_plazas_eso', 'plan_centros_salud', 'plan_coste_eur',
   ]
   const filas = [...resultados]
     .sort((a, b) => a.ine.localeCompare(b.ine))
@@ -26,10 +29,22 @@ export function csvEscenario(
         decimal(r.crecimiento * 100), entero(r.limites.vivienda), entero(r.limites.colegios),
         entero(r.limites.sanidad), entero(r.limites.ritmo),
         LIMITES[r.limitante].nombre, TIPOS[r.tipo].nombre, r.condicionada ? 'sí' : 'no', m ? decimal(m.hospital_km) : '', entero(r.recibe), entero(r.envia),
-        traslados(r.llegadas, 'origen', porIne), traslados(r.envios, 'destino', porIne), String(inv.colegios), String(inv.centros), entero(costeInversion(inv)),
+        traslados(r.llegadas, 'origen', porIne), traslados(r.envios, 'destino', porIne), entero(inv.plazasPrimaria), entero(inv.plazasSecundaria), String(inv.centros), entero(coste(r.ine)),
       ]
     })
   return '﻿' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
+}
+
+/** El plan de la pestaña «Plan»: una fila por obra, en el orden de la lista. */
+export function csvPlan(obras: Obra[], ganaPorObra: number[], porIne: Map<string, Municipio>): string {
+  const cabecera = ['ine', 'municipio', 'obra', 'plazas_o_personas_que_atiende', 'euros_por_plaza', 'coste_eur', 'inicio_obras', 'apertura', 'zona_salud', 'pasan_a_caber', 'euros_por_persona']
+  const filas = obras.map((o, i) => [
+    o.ine, porIne.get(o.ine)?.nombre ?? '', NOMBRE_OBRA[o.tipo], entero(o.plazas),
+    o.tipo === 'centro_salud' ? '' : entero(o.eurosPorPlaza), entero(costeObra(o)), String(o.inicio), String(aperturaObra(o)),
+    o.tipo === 'centro_salud' ? porIne.get(o.ine)?.capacidad?.zbs_nombre ?? '' : '', entero(ganaPorObra[i] ?? 0),
+    (ganaPorObra[i] ?? 0) >= 1 ? entero(costeObra(o) / ganaPorObra[i]) : '',
+  ])
+  return '\ufeff' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
 }
 
 /** Guarda un texto como archivo en el ordenador del usuario, sin pasar por ningún servidor. */

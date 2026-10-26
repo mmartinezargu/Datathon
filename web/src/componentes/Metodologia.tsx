@@ -6,7 +6,9 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { ANIO_BASE, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PARAMETROS_PLAN, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '../fuentesPlan'
+import type { TipoObra } from '../tipos'
 import { PERFILES } from '../mudanza'
 import { CONDICIONADA, ORDEN_TIPOS, TIPOS } from '../colores'
 import type { DatosValidacion, Escenario, Perfil, Recurso } from '../tipos'
@@ -124,9 +126,14 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
       <section className="val-tarjeta">
         <h2>Y además</h2>
         <p>
-          <b>¿Y si invertimos aquí?</b> Al añadir un colegio (unos {millones(COSTE_COLEGIO)}) o un centro de salud (unos {millones(COSTE_CENTRO_SALUD)})
-          a un pueblo, se vuelve a calcular todo y se ve cuánta gente más cabe. También se enseña un plazo orientativo hasta que abre:
-          unos {PLAZO_COLEGIO_ANIOS} años un colegio y unos {PLAZO_CENTRO_SALUD_ANIOS} un centro de salud. Son estimaciones, no plazos oficiales.
+          <b>Plan: ¿qué hace falta para que quepan?</b> Una lista de obras (ampliar un colegio, colegio nuevo, instituto o centro de salud)
+          con sus plazas, su coste y el año en que abren. El «plan óptimo» va añadiendo, una a una, la obra que hace caber a más gente por
+          cada euro: en cada pueblo, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
+          por zona cada vez, porque sirve a toda la zona. Lo que gana una obra se cuenta en los 155, no solo en su pueblo: un centro suma
+          lo que da a toda su zona y, reubicando, lo que libera a los pueblos vecinos. Para cuando lo que limita es la vivienda o el ritmo,
+          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Se calcula reubicando en pueblos cercanos y se compara con
+          «cada pueblo con lo suyo». Con un plan cargado, el mapa colorea según lo que falta después de reubicar y con las obras. Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
+          para no pasarse. Todos los valores se pueden cambiar; los de partida y su fuente están en la tabla de abajo.
         </p>
         <p>
           <b>Reubicar en pueblos cercanos.</b> Con el interruptor de las palancas, quien no cabe en su pueblo va al pueblo con sitio
@@ -141,6 +148,42 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           filtros de «¿Dónde me mudo?», que luego puedes cambiar. La IA no calcula nada ni ordena los pueblos: los resultados salen
           del modelo y de los datos públicos. Si no hay internet, se usa un lector de palabras clave y funciona igual.
         </p>
+      </section>
+
+      <section className="val-tarjeta">
+        <h2>Lo que vale cada obra del plan</h2>
+        <div className="tabla-scroll">
+          <table className="fuentes">
+            <thead><tr><th>Obra</th><th>Valor de partida</th><th>De dónde sale</th></tr></thead>
+            <tbody>
+              {(Object.keys(NOMBRE_OBRA) as TipoObra[]).map((t) => {
+                const v = PARAMETROS_PLAN.obras[t]
+                return (
+                  <tr key={t}>
+                    <td><b>{NOMBRE_OBRA[t]}</b><br /><span className="ayuda">{QUE_HACE_OBRA[t]}</span></td>
+                    <td>
+                      {t === 'centro_salud'
+                        ? <>{millones(v.eurosPorPlaza)}; atiende a {miles(v.plazas)} personas</>
+                        : <>{miles(v.plazas)} plazas a {miles(v.eurosPorPlaza)} € por plaza ({millones(v.plazas * v.eurosPorPlaza)})</>}
+                      ; abre a los {v.anios} años
+                    </td>
+                    <td>
+                      {FUENTES_PLAN[t].texto}{' '}
+                      {FUENTES_PLAN[t].enlaces.map((e, k) => (
+                        <span key={e.url}>{k > 0 && '; '}<a href={e.url} target="_blank" rel="noreferrer">{e.texto}</a></span>
+                      ))}.
+                    </td>
+                  </tr>
+                )
+              })}
+              <tr>
+                <td><b>Inicio de las obras</b></td>
+                <td>{PARAMETROS_PLAN.anioInicio}</td>
+                <td>{FUENTE_ANIO_INICIO}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="val-tarjeta">
@@ -285,9 +328,11 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           <section>
             <h3>4. Invertir y mudarse</h3>
             <p>
-              <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio y añade tantas plazas como el límite de alumnos por
-              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud; si su zona ya se pasa del límite, primero cubre esa parte. Después se recalcula todo: a veces el límite pasa a otro
-              recurso y hace falta invertir en algo más.
+              <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
+              edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
+              zona las personas que atiende (de partida, la mediana de las zonas); si la zona ya se pasa del límite, primero cubre esa parte,
+              y cada municipio de la zona se lleva su parte según sus vecinos. Después se recalcula todo: a veces el límite pasa a otro
+              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
               <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda

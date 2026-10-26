@@ -61,14 +61,61 @@ export interface Escenario {
   radioKm: number // hasta qué distancia se busca sitio (línea recta entre núcleos)
 }
 
-/** Lo que el usuario decide construir en un municipio (modo «¿y si invertimos aquí?»). */
+/** Lo que el plan construye en un municipio, sumando sus obras (inversionesDe en motor.ts). */
 export interface Inversion {
-  colegios: number // colegios nuevos (cada uno va al nivel con menos sitio)
+  plazasPrimaria: number // plazas de primaria nuevas (ampliaciones y colegios)
+  plazasSecundaria: number // plazas de ESO nuevas (institutos)
   centros: number // centros de salud nuevos
+  personasSanidad: number // personas que atienden entre todos
 }
 
-/** Inversiones simuladas, por código INE. */
+/** Inversiones del plan, por código INE. */
 export type Inversiones = Record<string, Inversion>
+
+export type TipoObra = 'ampliar_primaria' | 'colegio_primaria' | 'instituto' | 'centro_salud'
+
+/** Lo que vale cada tipo de obra. En un centro de salud, «plazas» son las personas que atiende y «eurosPorPlaza», lo que cuesta el centro. */
+export interface ValoresObra {
+  plazas: number
+  eurosPorPlaza: number
+  anios: number // de que empiezan las obras a que abre
+}
+
+/** Una fila del plan de la pestaña «Plan». */
+export interface Obra extends ValoresObra {
+  ine: string
+  tipo: TipoObra
+  inicio: number // año en que empiezan las obras
+}
+
+/** Valores por defecto del plan: todos editables, con su fuente en «Cómo funciona». */
+export interface ParametrosPlan {
+  obras: Record<TipoObra, ValoresObra>
+  anioInicio: number // año en que pueden empezar las obras
+}
+
+/** Con qué se rellena el plan óptimo. Sin presupuesto ni municipios: todo lo que haga falta, en los 155. */
+export interface OpcionesPlan {
+  presupuestoTotal?: number // euros
+  presupuestoAnual?: number // euros al año: las obras se escalonan para no pasarse
+  soloMunicipios?: string[] // ine
+}
+
+/** Lo que consigue un plan (evaluarPlan en motor.ts). */
+export interface ResultadoPlan {
+  resultados: ResultadoMunicipio[] // con el plan
+  coste: number // euros
+  obras: Record<TipoObra, number> // cuántas de cada tipo
+  municipios: number // en cuántos municipios se construye
+  sinSitioAntes: number // sin el plan
+  sinSitio: number // con el plan
+  sinSitioPor: Record<Limite, number> // lo que sigue sin sitio, según el recurso que limita
+  pasanACaber: number // sinSitioAntes − sinSitio
+  reubicadas: number // con el plan, personas que van a un pueblo cercano
+  ultimaApertura: number | null
+  calendario: { anio: number; personas: number }[] // personas que pasan a caber cada año, según abren las obras
+  ganaPorObra: number[] // lo que baja la gente sin sitio en los 155 al sumar cada obra a las de antes en la lista (suman pasanACaber)
+}
 
 /** Curva de alumnos por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */
 export interface CurvaColegio {
