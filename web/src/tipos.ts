@@ -126,6 +126,7 @@ export interface LecturaFrase {
   filtros: FiltrosMudanza
   entendido: string[] // lo que hemos sacado de la frase, en palabras sencillas (vacío = no hemos entendido nada)
   origen: 'ia' | 'palabras' // la IA (api/asistente.ts) o el asistente de palabras clave (sin internet)
+  perfilDicho: boolean // la frase dice quién es (si no, el perfil de `filtros` es el que ya había)
 }
 
 /** Un municipio en el ranking de «¿Dónde me mudo?». */
@@ -153,7 +154,15 @@ export interface DatosValidacion {
   mayores_errores: { ine: string; nombre: string; crecimiento_real: number; crecimiento_previsto: number }[]
 }
 
-/** Simulador de reparto: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
+/** Pestaña «Repartir»: dónde se puede llevar a la gente (se aplica a todos los perfiles). */
+export interface FiltrosReparto {
+  zona: string | null // zona estadística; null = cualquiera
+  tamano: Tamano
+  hospitalCerca: boolean // todos con el hospital cerca (las personas mayores, siempre)
+  instituto: boolean // las familias, solo a pueblos con instituto
+}
+
+/** Pestaña «Repartir»: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
 export interface Reparto {
   pueblos: { ine: string; porPerfil: Record<Perfil, number>; total: number; lleno: boolean }[] // de más a menos recibidos
   colocados: number

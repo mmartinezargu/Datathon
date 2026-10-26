@@ -7,8 +7,7 @@ import { Mapa, type InfoEtiqueta } from './componentes/Mapa'
 import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
-import { Mudanza } from './componentes/Mudanza'
-import { Simulador } from './componentes/Simulador'
+import { Repartir } from './componentes/Repartir'
 import { Metodologia } from './componentes/Metodologia'
 import { Inicio, type Destino, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
@@ -16,25 +15,28 @@ import { OrigenTodos } from './componentes/OrigenVaso'
 import { Reubicacion } from './componentes/Reubicacion'
 import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
-import { FILTROS_INICIALES } from './mudanza'
+import { FILTROS_REPARTO, MEZCLA_SUPUESTA } from './reparto'
 import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, quedanSinSitio, resumenReubicacion } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
-import type { DatosValidacion, Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
+import type { DatosValidacion, Escenario, FiltrosReparto, Inversion, Inversiones, Municipio, Perfil, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
-type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'reparto' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'reparto' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 type VistaMovil = 'escenario' | 'mapa' | 'resultado'
 type Paneles = { escenario: boolean; resultado: boolean } // true = plegado
 
 // Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
-const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', reparto: 'repartir', metodologia: 'como' }
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', reparto: 'repartir', metodologia: 'como' }
 // El antiguo enlace de «¿Es fiable?» lleva a la sección «¿Acierta?», al final de «Cómo funciona»
 const ENLACE_ACIERTA = '#fiable'
+// «Dónde vivir» (#vivir) se fusionó con «Repartir»: el enlace antiguo lleva allí
+const ENLACE_VIVIR = '#vivir'
 const pestanaDelEnlace = (): Pestana =>
   window.location.hash === ENLACE_ACIERTA ? 'metodologia'
+    : window.location.hash === ENLACE_VIVIR ? 'reparto'
     : (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
 
 // Paneles plegados del mapa: se recuerdan en el navegador (puede fallar en modo privado: entonces, abiertos)
@@ -51,7 +53,6 @@ function leerPaneles(): Paneles {
 const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
-  { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'reparto', texto: 'Repartir', icono: 'repartir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
@@ -72,8 +73,8 @@ export default function App() {
   const [paneles, setPaneles] = useState<Paneles>(leerPaneles)
   const [salto, setSalto] = useState(0) // sube cada vez que hay que bajar a «¿Acierta?»
   const [inversiones, setInversiones] = useState<Inversiones>({})
-  const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
-  const [comparados, setComparados] = useState<string[]>([])
+  const [mezcla, setMezcla] = useState<Record<Perfil, number>>(MEZCLA_SUPUESTA)
+  const [filtrosReparto, setFiltrosReparto] = useState<FiltrosReparto>(FILTROS_REPARTO)
 
   // Cambiar de pestaña también cambia el enlace; los botones atrás/adelante del navegador funcionan
   const setPestana = (p: Pestana) => {
@@ -216,15 +217,10 @@ export default function App() {
           onIr={(d: Destino) => (d === 'acierta' ? irAAcierta() : setPestana(d))} /></main>
       ) : pestana === 'metodologia' ? (
         <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
-      ) : pestana === 'mudanza' ? (
-        <main className="pagina">
-          <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
-            filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
-            onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
-        </main>
       ) : pestana === 'reparto' ? (
         <main className="pagina">
-          <Simulador resultados={resultados} resultadosSinInversion={resultadosSinInversion} porIne={porIne} escenario={escenario}
+          <Repartir resultados={resultados} resultadosSinInversion={resultadosSinInversion} porIne={porIne} escenario={escenario}
+            mezcla={mezcla} onMezcla={setMezcla} filtros={filtrosReparto} onFiltros={setFiltrosReparto}
             inversiones={inversiones} onInvertir={invertir} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (

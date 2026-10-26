@@ -1,13 +1,12 @@
 // Pestaña «¿Dónde me mudo?»: la vista para el ciudadano. Elige su perfil y lo que necesita,
 // y le salen los municipios donde aún hay sitio para él, con una frase que explica por qué.
 
-import { useState } from 'react'
 import { TIPOS } from '../colores'
-import { leerFrase } from '../asistente'
 import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
-import type { Candidato, Escenario, FiltrosMudanza, LecturaFrase, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
+import type { Candidato, Escenario, FiltrosMudanza, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
 import { decimal, miles, pct } from '../formato'
 import { HOSPITAL_LEJOS_KM } from '../motor'
+import { Asistente } from './Asistente'
 import { Icono } from './Iconos'
 
 const MAX_COMPARAR = 3
@@ -47,7 +46,9 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
       </section>
 
       <section className="val-tarjeta filtros">
-        <Asistente porIne={porIne} filtros={filtros} onFiltros={onFiltros} />
+        <Asistente porIne={porIne} actual={filtros} ejemplos={EJEMPLOS_FRASE} boton="Buscar"
+          noEntendido="Prueba a decir quién se muda (familia, jubilado, teletrabajo), dónde trabajas o si quieres un pueblo, o elige abajo."
+          onLectura={(l) => onFiltros(l.filtros)} />
 
         <h2>¿Quién se muda?</h2>
         <div className="segmentos ancho" role="radiogroup" aria-label="Perfil">
@@ -166,52 +167,6 @@ function BarrasSitio({ c, poblacion }: { c: Candidato; poblacion: number }) {
           </div>
         )
       })}
-    </div>
-  )
-}
-
-/** Caja para contarlo con tus palabras: rellena los filtros de abajo, que se pueden retocar a mano. */
-function Asistente({ porIne, filtros, onFiltros }: { porIne: Map<string, Municipio>; filtros: FiltrosMudanza; onFiltros: (f: FiltrosMudanza) => void }) {
-  const [frase, setFrase] = useState('')
-  const [lectura, setLectura] = useState<LecturaFrase | null>(null)
-  const [pensando, setPensando] = useState(false)
-  const leer = async (texto: string) => {
-    if (!texto.trim() || pensando) return
-    setPensando(true)
-    const l = await leerFrase(texto, [...porIne.values()], filtros)
-    setPensando(false)
-    setLectura(l)
-    if (l.entendido.length) onFiltros(l.filtros)
-  }
-
-  return (
-    <div className="asistente">
-      <h2>Cuéntanoslo con tus palabras</h2>
-      <form className="asistente-fila" onSubmit={(e) => { e.preventDefault(); leer(frase) }}>
-        <input type="text" value={frase} onChange={(e) => setFrase(e.target.value)}
-          placeholder={`Por ejemplo: «${EJEMPLOS_FRASE[0]}»`} aria-label="Cuéntanos quién se muda y qué buscáis" />
-        <button type="submit" disabled={!frase.trim() || pensando}>{pensando ? 'Pensando…' : 'Buscar'}</button>
-      </form>
-      <div className="asistente-ejemplos">
-        {EJEMPLOS_FRASE.map((e) => (
-          <button key={e} type="button" className="enlace" disabled={pensando} onClick={() => { setFrase(e); leer(e) }}>«{e}»</button>
-        ))}
-      </div>
-      {lectura && (
-        lectura.entendido.length ? (
-          <div className="asistente-entendido" aria-live="polite">
-            <b>Hemos entendido:</b>
-            {lectura.origen === 'ia' && <span className="asistente-origen">con IA</span>}
-            <ul>{lectura.entendido.map((t) => <li key={t}>{t}</li>)}</ul>
-            <p className="ayuda">Si no es así, corrígelo abajo.</p>
-          </div>
-        ) : (
-          <p className="asistente-entendido" aria-live="polite">
-            No lo hemos entendido. Prueba a decir quién se muda (familia, jubilado, teletrabajo), dónde trabajas o
-            si quieres un pueblo, o elige abajo.
-          </p>
-        )
-      )}
     </div>
   )
 }

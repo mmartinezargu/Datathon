@@ -326,3 +326,4 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 @media (max-width: 640px) {
   .sim-entradas, .sim-resumen { grid-template-columns: 1fr; }
 }
+.sim-reiniciar { margin-top: 12px; }
