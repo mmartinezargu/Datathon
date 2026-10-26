@@ -134,3 +134,20 @@ export interface Candidato {
   sitio: Record<Recurso, number | null> // personas que aún caben en cada recurso después de que llegue la gente prevista (null = no aplica)
   razones: Recurso[] // los recursos que más le suben en el ranking, de más a menos
 }
+
+/** Validación 2015→2025 (etl/validacion.py → datos/validacion.json). */
+export interface DatosValidacion {
+  periodo: string
+  datos_hasta: number
+  municipios: number
+  crecimiento_real_total: number
+  modelos: {
+    modelo: string
+    wape: number
+    fuera_municipio: number // parte del total colocada en otro municipio: sum|previsto − real| ÷ 2 ÷ total
+    fuera_zona: number // lo mismo, sumando por zona
+    aciertos_top20: number
+    spearman: number
+  }[]
+  mayores_errores: { ine: string; nombre: string; crecimiento_real: number; crecimiento_previsto: number }[]
+}
