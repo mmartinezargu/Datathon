@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 export type NombreIcono =
   | 'inicio' | 'mapa' | 'vivir' | 'fiable' | 'metodo'
   | 'vivienda' | 'colegios' | 'sanidad' | 'ritmo'
-  | 'personas' | 'volver' | 'descarga' | 'plegar' | 'desplegar' | 'ojo'
+  | 'personas' | 'volver' | 'descarga' | 'plegar' | 'desplegar' | 'ojo' | 'plan'
 
 const TRAZOS: Record<NombreIcono, ReactNode> = {
   inicio: <><path d="M4 11.5 12 5l8 6.5" /><path d="M6.5 10v9h11v-9" /><path d="M10 19v-5h4v5" /></>,
@@ -23,6 +23,7 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
   descarga: <><path d="M12 4v11" /><path d="m7 10.5 5 5 5-5" /><path d="M5 19.5h14" /></>,
   plegar: <><path d="m14.5 6-6 6 6 6" /></>,
   desplegar: <><path d="m9.5 6 6 6-6 6" /></>,
+  plan: <><rect x="5.5" y="4.5" width="13" height="16" rx="2" /><path d="M9.5 4.5V3.5h5v1" /><path d="m8.8 11.5 1.8 1.8 3.6-3.8" /><path d="M9 16.5h6" /></>,
   ojo: <><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.8" /></>,
 }
 

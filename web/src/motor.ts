@@ -5,7 +5,7 @@
 //   capacidad = cuánta gente cabe = el menor de 4 límites (ley del mínimo)
 //   tipo      = el cruce de las dos: tensión, polo, oportunidad o consolidación
 
-import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
+import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoMunicipio, ResultadoPlan, Tipo, TipoObra, Traslado, Umbrales, ZonaSalud } from './tipos'
 
 export const ANIO_BASE = 2025
 /** Personas que ganaron los 155 municipios en 2015-2025 (Padrón, INE). */
@@ -32,17 +32,28 @@ export function segunPrevision(anio: number) {
 }
 /** Para no marcar "en tensión" por un puñado de personas. */
 export const MARGEN_MINIMO = 25
-/** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
-export const COSTE_COLEGIO = 9_500_000
-export const COSTE_CENTRO_SALUD = 8_000_000
-/** Plazo orientativo hasta que abre, en años [est.]. */
-export const PLAZO_COLEGIO_ANIOS = 2
-export const PLAZO_CENTRO_SALUD_ANIOS = 3
 /** Más lejos que esto, una oportunidad queda «condicionada»: unos 30 min en coche [est.]. */
 export const HOSPITAL_LEJOS_KM = 25
 /** Reubicación: hasta qué distancia (en línea recta entre núcleos) se busca un pueblo con sitio. */
 export const RADIO_REUBICACION_KM = 25
-export const SIN_INVERSION: Inversion = { colegios: 0, centros: 0 }
+export const SIN_INVERSION: Inversion = { plazasPrimaria: 0, plazasSecundaria: 0, centros: 0, personasSanidad: 0 }
+
+/**
+ * Valores por defecto del plan, sacados de obras reales de la Comunidad (fuentes en fuentesPlan.ts).
+ * - Ampliar un colegio: una línea (9 aulas de 25), a 6.000 €/plaza (CEIP María Blanchard: 2,8 M€ por 475 plazas).
+ * - Colegio nuevo: 450 plazas a 12.900 €/plaza (CEIP Isabel la Católica: 5,8 M€ por 450 plazas).
+ * - Instituto: 880 plazas a 15.000 €/plaza (IES Los Molinos).
+ * - Centro de salud: 7,1 M€ (16 centros por 113,8 M€) y atiende a 23.078 personas, la mediana de las 286 zonas.
+ */
+export const PARAMETROS_PLAN: ParametrosPlan = {
+  obras: {
+    ampliar_primaria: { plazas: 225, eurosPorPlaza: 6_000, anios: 2 },
+    colegio_primaria: { plazas: 450, eurosPorPlaza: 12_900, anios: 3 },
+    instituto: { plazas: 880, eurosPorPlaza: 15_000, anios: 3 },
+    centro_salud: { plazas: 23_078, eurosPorPlaza: 7_100_000, anios: 3 },
+  },
+  anioInicio: 2027,
+}
 
 export function escenarioPorDefecto(anio = 2035): Escenario {
   return {
@@ -142,6 +153,21 @@ export function quedanSinSitio(r: ResultadoMunicipio): number {
   return Math.max(0, -r.margen) - r.envia
 }
 
+/** Las cifras de cabecera del mapa: con la reubicación, lo que va a pueblos cercanos pasa de «sin sitio» a «caben». */
+export function cifrasCabecera(resultados: ResultadoMunicipio[]) {
+  const reubicadas = resultados.reduce((s, r) => s + r.envia, 0)
+  return {
+    dentro: resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0) + reubicadas,
+    sinSitio: resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0) - reubicadas,
+    reubicadas,
+  }
+}
+
+/** El plan se calcula reubicando en pueblos cercanos: «Ver en el mapa» pone el simulador así. */
+export function escenarioDelPlan(esc: Escenario): Escenario {
+  return { ...esc, reequilibrio: true }
+}
+
 /** Resumen de la reubicación para los 155: cuántos se mueven, a cuántos pueblos y a qué distancia media. */
 export function resumenReubicacion(resultados: ResultadoMunicipio[]) {
   const traslados = resultados.flatMap((r) => r.envios).sort((p, q) => q.personas - p.personas)
@@ -165,14 +191,14 @@ export function calcularLimites(m: Municipio, esc: Escenario, anios: number, u: 
   // Colegios: plazas libres (límite de alumnos por colegio de los de su tamaño − alumnos matriculados), pasadas a personas
   // con los niños de esa edad que viven en el municipio por vecino: quien llega trae los hijos que trae, estudien donde estudien.
   // Si no tiene colegio de ese nivel, sus alumnos van a otro municipio: ese límite no aplica.
-  const porNivel = nivelesColegio(m, u, inv.colegios).map((x) => x.caben)
+  const porNivel = nivelesColegio(m, u, inv).map((x) => x.caben)
   const colegios = porNivel.length ? Math.min(...porNivel) : null
 
   // Sanidad: sitio libre en su zona básica de salud, repartido según el peso del municipio en la zona.
   // Si la zona ya está por encima del límite, la parte del municipio en ese exceso es negativa:
-  // cada centro de salud nuevo suma lo que aguanta una zona, pero primero tiene que cubrir ese exceso.
+  // cada centro de salud nuevo suma las personas que atiende, pero primero tiene que cubrir ese exceso.
   const libreZona = (u.zonaSalud - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
-  const sanidad = Math.max(0, libreZona + inv.centros * u.zonaSalud)
+  const sanidad = Math.max(0, libreZona + inv.personasSanidad)
 
   // Ritmo: un municipio no absorbe más de un X % al año sin colapsar, aunque tenga suelo
   const ritmo = p * ((1 + esc.ritmoMax) ** anios - 1)
@@ -208,23 +234,23 @@ export function limiteColegio(curva: CurvaColegio, poblacion: number): number {
 }
 
 /**
- * Colegios de cada nivel (primaria, secundaria) con su límite y el sitio que dejan, contando los que se construyan.
- * Solo los niveles que ya tiene el municipio. Cada colegio nuevo suma «límite» plazas y va al nivel con menos sitio.
+ * Colegios de cada nivel (primaria, secundaria) con su límite y el sitio que dejan, contando las plazas que añada el plan.
+ * Solo los niveles que ya tiene el municipio (si no tiene, sus alumnos estudian fuera y ese límite no aplica).
  * - Plazas libres: con los alumnos matriculados (ALMUDENA), que es lo que llena los colegios.
  * - De plazas a personas: con los niños residentes de esa edad por vecino (Censo anual), no con los alumnos por vecino.
  *   Si no, un instituto con pocos alumnos porque la mayoría estudia fuera daría cientos de personas por plaza.
  */
-export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
+export function nivelesColegio(m: Municipio, u: Umbrales, inv = SIN_INVERSION) {
   const c = m.capacidad!
   const p = m.poblacion[String(ANIO_BASE)]
   const niveles = (['primaria', 'secundaria'] as const)
     .filter((nombre) => c[`colegios_${nombre}`] > 0 && c[`alumnos_${nombre}`] > 0)
-    .map((nombre) => ({ nombre, n: c[`colegios_${nombre}`], limite: limiteColegio(u[nombre], p), alumnos: c[`alumnos_${nombre}`], ninosPorVecino: c[`ninos_${nombre}`] / p }))
-  const caben = (x: (typeof niveles)[number]) => Math.max(0, x.n * x.limite - x.alumnos) / x.ninosPorVecino
-  for (let k = 0; k < nuevos && niveles.length; k++) {
-    niveles.reduce((a, b) => (caben(a) <= caben(b) ? a : b)).n++
-  }
-  return niveles.map((x) => ({ ...x, libres: x.n * x.limite - x.alumnos, caben: caben(x) }))
+    .map((nombre) => ({ nombre, n: c[`colegios_${nombre}`], limite: limiteColegio(u[nombre], p), alumnos: c[`alumnos_${nombre}`], ninosPorVecino: c[`ninos_${nombre}`] / p,
+      nuevas: nombre === 'primaria' ? inv.plazasPrimaria : inv.plazasSecundaria }))
+  return niveles.map((x) => {
+    const libres = x.n * x.limite - x.alumnos + x.nuevas
+    return { ...x, libres, caben: Math.max(0, libres) / x.ninosPorVecino }
+  })
 }
 
 /**
@@ -234,7 +260,7 @@ export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
 export function alLimite(r: ResultadoMunicipio, m: Municipio, u: Umbrales, inv = SIN_INVERSION) {
   if (r.caben >= 1) return null
   if (r.limitante === 'colegios') {
-    const x = nivelesColegio(m, u, inv.colegios)
+    const x = nivelesColegio(m, u, inv)
       .map((n) => ({ ...n, hoy: n.alumnos / n.n }))
       .reduce((a, b) => (a.hoy / a.limite >= b.hoy / b.limite ? a : b))
     return { recurso: 'colegios' as const, nivel: x.nombre, centros: x.n, hoy: x.hoy, limite: x.limite, exceso: x.hoy / x.limite - 1 }
@@ -246,20 +272,214 @@ export function alLimite(r: ResultadoMunicipio, m: Municipio, u: Umbrales, inv =
   return null
 }
 
-/** Coste de lo que se decide construir en un municipio, en euros. */
-export function costeInversion(inv: Inversion): number {
-  return inv.colegios * COSTE_COLEGIO + inv.centros * COSTE_CENTRO_SALUD
-}
-
-/** Plazo orientativo hasta que esté todo abierto: el de la obra más larga (se construyen a la vez). */
-export function plazoInversion(inv: Inversion): number {
-  return Math.max(inv.colegios ? PLAZO_COLEGIO_ANIOS : 0, inv.centros ? PLAZO_CENTRO_SALUD_ANIOS : 0)
-}
 
 /** Los límites que le tocan a un municipio concreto (para explicar la cuenta en su ficha). */
 export function umbralesDe(m: Municipio, u: Umbrales) {
   const p = m.poblacion[String(ANIO_BASE)]
   return { primaria: limiteColegio(u.primaria, p), secundaria: limiteColegio(u.secundaria, p), zona: u.zonaSalud }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Plan: qué hay que construir para que quepa la gente (pestaña «Plan»)
+// ---------------------------------------------------------------------------------------------
+
+/** Lo que cuesta una obra: plazas × €/plaza; un centro de salud, lo que cuesta el centro. */
+export function costeObra(o: Obra): number {
+  return o.tipo === 'centro_salud' ? o.eurosPorPlaza : o.plazas * o.eurosPorPlaza
+}
+
+export function aperturaObra(o: Obra): number {
+  return o.inicio + o.anios
+}
+
+/** Una obra con los valores por defecto de su tipo. */
+export function nuevaObra(ine: string, tipo: TipoObra, params: ParametrosPlan, inicio = params.anioInicio): Obra {
+  return { ine, tipo, ...params.obras[tipo], inicio }
+}
+
+/** Suma las obras de cada municipio: plazas de primaria, de ESO y personas que atienden los centros de salud. */
+export function inversionesDe(obras: Obra[]): Inversiones {
+  const inv: Inversiones = {}
+  for (const o of obras) inv[o.ine] = sumarObra(inv[o.ine] ?? SIN_INVERSION, o)
+  return inv
+}
+
+function sumarObra(inv: Inversion, o: Obra): Inversion {
+  return {
+    plazasPrimaria: inv.plazasPrimaria + (o.tipo === 'ampliar_primaria' || o.tipo === 'colegio_primaria' ? o.plazas : 0),
+    plazasSecundaria: inv.plazasSecundaria + (o.tipo === 'instituto' ? o.plazas : 0),
+    centros: inv.centros + (o.tipo === 'centro_salud' ? 1 : 0),
+    personasSanidad: inv.personasSanidad + (o.tipo === 'centro_salud' ? o.plazas : 0),
+  }
+}
+
+/**
+ * La obra más barata que suelta el límite de colegios o de sanidad de un municipio (null si no limita ninguno de los dos).
+ * - Sanidad: un centro de salud.
+ * - Colegios: en el nivel con menos sitio. Primaria: ampliar un colegio (una línea por colegio que ya tiene) o construir uno,
+ *   lo que salga más barato por plaza; con los valores por defecto, ampliar antes que construir. ESO: un instituto.
+ */
+export function obraQueDesbloquea(m: Municipio, r: ResultadoMunicipio, u: Umbrales, obras: Obra[], params: ParametrosPlan,
+  limite: Limite = r.limitante): TipoObra | null {
+  if (limite === 'sanidad') return 'centro_salud'
+  if (limite !== 'colegios') return null
+  const delMunicipio = obras.filter((o) => o.ine === m.ine)
+  const niveles = nivelesColegio(m, u, inversionesDe(delMunicipio)[m.ine])
+  if (!niveles.length) return null
+  const nivel = niveles.reduce((a, b) => (a.caben <= b.caben ? a : b))
+  if (nivel.nombre === 'secundaria') return 'instituto'
+  const ampliaciones = delMunicipio.filter((o) => o.tipo === 'ampliar_primaria').length
+  const p = params.obras
+  return ampliaciones < m.capacidad!.colegios_primaria && p.ampliar_primaria.eurosPorPlaza <= p.colegio_primaria.eurosPorPlaza
+    ? 'ampliar_primaria' : 'colegio_primaria'
+}
+
+/** Para «Planificar aquí» en la ficha: la obra que suelta su límite o, si limita la vivienda o el ritmo, la del servicio más justo. */
+export function obraSugerida(m: Municipio, r: ResultadoMunicipio, u: Umbrales, obras: Obra[], params: ParametrosPlan): TipoObra {
+  const { colegios, sanidad } = r.limites
+  const servicio: Limite = r.limitante === 'colegios' || r.limitante === 'sanidad' ? r.limitante
+    : colegios !== null && (sanidad === null || colegios <= sanidad) ? 'colegios' : 'sanidad'
+  return obraQueDesbloquea(m, r, u, obras, params, servicio) ?? 'centro_salud'
+}
+
+/**
+ * Plan óptimo, voraz: en cada paso añade la obra que más personas hace caber por cada euro.
+ * En cada municipio donde falta sitio por colegios o por sanidad se mira solo la obra más barata que suelta su límite
+ * (obraQueDesbloquea). Si con ella no cabe nadie más porque otro servicio también está lleno (colegio y centro de salud,
+ * o primaria e instituto), se mira el paquete: esa obra y las siguientes hasta que cabe alguien. Para cuando en ninguno limitan ya colegios ni sanidad (manda la vivienda o el ritmo),
+ * faltan menos de MARGEN_MINIMO personas o no queda presupuesto.
+ * Con esc.reequilibrio, lo que falta se cuenta después de reubicar en pueblos cercanos.
+ * Las obras empiezan en params.anioInicio; con presupuesto anual, se escalonan (programarObras).
+ */
+export function planOptimo(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario, params: ParametrosPlan,
+  opciones: OpcionesPlan = {}): Obra[] {
+  const universo = municipios.filter((m) => m.universo && m.capacidad)
+  const porIne = new Map(universo.map((m) => [m.ine, m]))
+  const anios = esc.anio - ANIO_BASE
+  const u = calcularUmbrales(universo, zonas, esc.exigencia)
+  const solo = opciones.soloMunicipios?.length ? new Set(opciones.soloMunicipios) : null
+  const tope = opciones.presupuestoTotal ?? Infinity
+  const sinPresupuesto = new Set<string>() // su siguiente obra ya no cabe en lo que queda
+  const obras: Obra[] = []
+  let gastado = 0
+
+  for (let paso = 0; paso < 2000; paso++) {
+    const inv = inversionesDe(obras)
+    let mejor: { obras: Obra[]; porEuro: number } | null = null
+    for (const r of calcular(municipios, zonas, esc, inv)) {
+      const falta = quedanSinSitio(r)
+      if (falta < MARGEN_MINIMO || (solo && !solo.has(r.ine)) || sinPresupuesto.has(r.ine)) continue
+      const m = porIne.get(r.ine)!
+      const paquete = paqueteQueDesbloquea(m, r, u, obras, params, esc, anios, inv[r.ine] ?? SIN_INVERSION)
+      if (!paquete) continue
+      const coste = paquete.obras.reduce((s, o) => s + costeObra(o), 0)
+      if (gastado + coste > tope + 0.5) {
+        sinPresupuesto.add(r.ine)
+        continue
+      }
+      const gana = Math.min(paquete.caben - r.caben, falta)
+      if (gana < 1 || coste <= 0) continue
+      if (!mejor || gana / coste > mejor.porEuro) mejor = { obras: paquete.obras, porEuro: gana / coste }
+    }
+    if (!mejor) break
+    obras.push(...mejor.obras)
+    gastado += mejor.obras.reduce((s, o) => s + costeObra(o), 0)
+  }
+  // Las obras de un mismo municipio, juntas (donde salió la primera): se leen mejor y se escalonan igual
+  const orden = [...new Set(obras.map((o) => o.ine))]
+  const programadas = programarObras(obras, params.anioInicio, opciones.presupuestoAnual)
+  return orden.flatMap((ine) => programadas.filter((o) => o.ine === ine))
+}
+
+/** La obra que suelta el límite del municipio y, si con ella no cabe nadie más, las siguientes (como mucho 4). */
+function paqueteQueDesbloquea(m: Municipio, r: ResultadoMunicipio, u: Umbrales, obras: Obra[], params: ParametrosPlan,
+  esc: Escenario, anios: number, inv: Inversion) {
+  const paquete: Obra[] = []
+  let [limitante, caben] = [r.limitante, r.caben]
+  while (paquete.length < 4) {
+    const tipo = obraQueDesbloquea(m, { ...r, limitante }, u, [...obras, ...paquete], params)
+    if (!tipo) return null
+    const obra = nuevaObra(m.ine, tipo, params)
+    paquete.push(obra)
+    inv = sumarObra(inv, obra)
+    ;[limitante, caben] = minimo(calcularLimites(m, esc, anios, u, inv))
+    if (caben >= r.caben + 1) return { obras: paquete, caben }
+  }
+  return null
+}
+
+/**
+ * Año de inicio de cada obra, en el orden de la lista. Sin presupuesto anual, todas en anioInicio.
+ * Con presupuesto anual, el coste de cada obra se reparte a partes iguales entre sus años de obra, y cada una empieza
+ * el primer año en que cabe sin pasarse en ninguno de ellos (si una sola ya se pasa, empieza cuando esos años están libres).
+ */
+export function programarObras(obras: Obra[], anioInicio: number, presupuestoAnual?: number): Obra[] {
+  if (!presupuestoAnual) return obras.map((o) => ({ ...o, inicio: anioInicio }))
+  const gasto = new Map<number, number>()
+  return obras.map((o) => {
+    const n = Math.max(1, o.anios)
+    const alAnio = costeObra(o) / n
+    const cabe = (inicio: number) => Array.from({ length: n }, (_, k) => gasto.get(inicio + k) ?? 0)
+      .every((g) => g + alAnio <= presupuestoAnual + 0.5 || (g === 0 && alAnio > presupuestoAnual))
+    let inicio = anioInicio
+    while (!cabe(inicio)) inicio++
+    for (let k = 0; k < n; k++) gasto.set(inicio + k, (gasto.get(inicio + k) ?? 0) + alAnio)
+    return { ...o, inicio }
+  })
+}
+
+/** Lo que consigue un plan con este escenario (con o sin reubicar, según esc.reequilibrio). */
+export function evaluarPlan(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario, obras: Obra[]): ResultadoPlan {
+  const sinSitioDe = (r: ResultadoMunicipio[]) => r.reduce((s, x) => s + quedanSinSitio(x), 0)
+  const base = calcular(municipios, zonas, esc)
+  const resultados = obras.length ? calcular(municipios, zonas, esc, inversionesDe(obras)) : base
+  const sinSitioAntes = sinSitioDe(base)
+  const sinSitio = sinSitioDe(resultados)
+
+  const sinSitioPor: Record<Limite, number> = { vivienda: 0, colegios: 0, sanidad: 0, ritmo: 0 }
+  for (const r of resultados) sinSitioPor[r.limitante] += quedanSinSitio(r)
+
+  // Calendario: lo que pasa a caber con las obras abiertas hasta cada año, menos lo del año anterior
+  const anios = [...new Set(obras.map(aperturaObra))].sort((a, b) => a - b)
+  let previo = sinSitioAntes
+  const calendario = anios.map((anio) => {
+    const ahora = sinSitioDe(calcular(municipios, zonas, esc, inversionesDe(obras.filter((o) => aperturaObra(o) <= anio))))
+    const personas = previo - ahora
+    previo = ahora
+    return { anio, personas }
+  })
+
+  // Lo que gana cada obra en su municipio, sumándolas en el orden de la lista: personas más de las que le llegan que caben
+  const porIne = new Map(municipios.map((m) => [m.ine, m]))
+  const llegan = new Map(base.map((r) => [r.ine, r.llegan]))
+  const u = calcularUmbrales(municipios.filter((m) => m.universo && m.capacidad), zonas, esc.exigencia)
+  const acumulado = new Map<string, Inversion>()
+  const ganaPorObra = obras.map((o) => {
+    const m = porIne.get(o.ine)
+    if (!m?.capacidad || !llegan.has(o.ine)) return 0
+    const antes = acumulado.get(o.ine) ?? SIN_INVERSION
+    const despues = sumarObra(antes, o)
+    acumulado.set(o.ine, despues)
+    const cabenCon = (inv: Inversion) => Math.min(minimo(calcularLimites(m, esc, esc.anio - ANIO_BASE, u, inv))[1], llegan.get(o.ine)!)
+    return cabenCon(despues) - cabenCon(antes)
+  })
+
+  const porTipo: Record<TipoObra, number> = { ampliar_primaria: 0, colegio_primaria: 0, instituto: 0, centro_salud: 0 }
+  obras.forEach((o) => porTipo[o.tipo]++)
+  return {
+    resultados,
+    coste: obras.reduce((s, o) => s + costeObra(o), 0),
+    obras: porTipo,
+    municipios: new Set(obras.map((o) => o.ine)).size,
+    sinSitioAntes,
+    sinSitio,
+    sinSitioPor,
+    pasanACaber: sinSitioAntes - sinSitio,
+    reubicadas: resultados.reduce((s, r) => s + r.envia, 0),
+    ultimaApertura: anios.length ? anios[anios.length - 1] : null,
+    calendario,
+    ganaPorObra,
+  }
 }
 
 /** Percentil con interpolación lineal (igual que pandas.quantile). */

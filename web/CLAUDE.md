@@ -6,7 +6,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 | Archivo | Rol |
 |---|---|
-| `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo |
+| `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo. También el plan de obras (`planOptimo`, `evaluarPlan`, `inversionesDe`): es la única fuente de sus cifras |
 | `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros —también «hospital cerca» con `HOSPITAL_LEJOS_KM`—, sitio que queda por recurso) y `interpretarFrase` (asistente sin IA: frase → filtros por palabras clave y nombres de municipio). Funciones puras sobre los resultados del motor |
 | `src/asistente.ts` | Lee la frase del vecino: pregunta a `/api/asistente` (IA) y, si no hay red o tarda más de 8 s, usa `interpretarFrase` |
 | `api/asistente.ts` | Función de Vercel: pasa la frase a la IA (Groq; Oracle como alternativa) y devuelve JSON con perfil, instituto, hospital, tamaño, municipio y zona. La web valida cada campo con `lecturaDeIA` (`mudanza.ts`) |
@@ -15,7 +15,9 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/App.tsx` | Estado global y composición de la app |
 | `src/componentes/Mapa.tsx` | Mapa MapLibre de los 155 municipios coloreados por tipo |
 | `src/componentes/Palancas.tsx` | Controles del escenario (supuestos) |
-| `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta» |
+| `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta». Al final, la línea «En el plan: … → Planificar aquí» |
+| `src/componentes/Plan.tsx` | Pestaña «Plan» (`#plan`): lista de obras editable (plan óptimo, con presupuesto o a mano), resultado con la comparación sin reubicar, calendario (Recharts), parámetros con su fuente, «Ver en el mapa» y CSV. Las cuentas, en `motor.ts` (`planOptimo`, `evaluarPlan`) |
+| `src/fuentesPlan.ts` | Nombres de las obras y fuente de cada valor por defecto del plan (`PARAMETROS_PLAN` en `motor.ts`) |
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |

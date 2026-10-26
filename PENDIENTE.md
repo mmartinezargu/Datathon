@@ -24,7 +24,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 | 5 | ✅ **Publicarla en internet** | Subir `web/` a Vercel o Netlify para tener un enlace que el jurado abra sin instalar nada. Hacer también una copia que funcione sin internet por si falla la wifi. | | mar 27 |
 | 6 | **Probarla entera** | Abrirla en portátil y móvil, mover todas las palancas y buscar errores: municipios con cifras raras, textos cortados, botones que no van. Apuntar todo en la PR. | todos | mar 27 |
 | 7 | **Diapositivas (10 min)** | Problema -> demo en vivo -> validación -> impacto. Con las cifras nuevas (ver abajo). | | mar 27 |
-| 8 | **Guion de la demo** | Qué se pulsa y en qué orden: mapa -> mover personas -> ficha de Arroyomolinos -> añadir colegio -> vista ciudadana -> validación. Quién habla en cada parte. | | mar 27 |
+| 8 | **Guion de la demo** | Qué se pulsa y en qué orden: mapa -> mover personas -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> vista ciudadana -> validación. Quién habla en cada parte. | | mar 27 |
 
 ## Extras: solo si todo lo anterior está terminado
 - ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
@@ -43,7 +43,10 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - 31 municipios no tienen sitio para nadie sin ampliar (18 por colegios y 13 por sanidad); solo 4 están a menos de un 5 % de su límite.
 - Validación 2015 -> 2025: acierta dónde va **77 de cada 100 personas** (89 por zonas); la tendencia sola, 67. Es decir, coloca en otro municipio al 22,6 % (11,4 % en otra zona; la tendencia sola, 32,7 % y 20,3 %).
 - El WAPE (44,4 %, frente al 64,1 % de la tendencia) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. Se enseña igual en la web.
-- Plan de inversión (`uv run plan_inversion.py`; colegio o centro de salud donde limitan, hasta que manda la vivienda o el ritmo; obras desde 2027 [supuesto]):
+- **Pestaña «Plan»** (`#plan`, 26/10, rama `funcionalidad/plan`): lista de obras editable con 3 maneras de rellenarla (plan óptimo, con presupuesto, a mano). El motor TS es la única fuente (`planOptimo` y `evaluarPlan` en `web/src/motor.ts`, con tests); `etl/plan_inversion.py` se ha borrado. Valores por defecto con su fuente: ampliar colegio 225 plazas a 6.000 €/plaza (2 años), colegio nuevo 450 a 12.900 € (3 años), instituto 880 a 15.000 € (3 años), centro de salud 7,1 M€ que atiende a 23.078 personas (mediana de las 286 zonas; 3 años); obras desde 2027 [supuesto].
+  - Plan óptimo reubicando a 25 km: **10 ampliaciones de colegio, 3 institutos y 10 centros de salud** en 20 municipios, **124,1 M€**; lo último abre en 2030. Pasan a caber **38.592**; siguen sin sitio **12.181** (de 50.774): 12.159 por vivienda. Se reubican 35.294 personas, a 8,6 km de media.
+  - Cada pueblo con lo suyo (sin reubicar): **26 ampliaciones, 13 institutos y 22 centros** en 49 municipios, **362,9 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
+- Antes (con `plan_inversion.py`, ya borrado; colegio a 9,5 M€ y centro a 8 M€):
   - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
   - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
 - Población de las zonas de salud frente al Censo 2021 (IECM): se aparta un 2,6 % de media en las 286 zonas (1,9 % en las 45 de los pueblos del reto); correlación 0,997.
