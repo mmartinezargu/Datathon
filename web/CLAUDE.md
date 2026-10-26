@@ -40,7 +40,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 ## Reglas
 
-- Comandos: `npm run dev`, `npm run lint`, `npm run build`. Antes de cerrar un cambio: lint y build sin errores.
+- Comandos: `npm run dev`, `npm run lint`, `npm test`, `npm run build`. Antes de cerrar un cambio: lint, tests y build sin errores.
+- Tests del motor en `tests/` (Vitest, con los datos reales de `public/datos`): si cambias las cifras por defecto a propósito, actualízalas también ahí.
 - Lógica de cálculo solo en `motor.ts` (funciones puras); el ranking ciudadano, en `mudanza.ts`, se apoya en sus resultados. Los componentes no hacen cuentas del modelo.
 - TypeScript estricto: nada de `any`; si falta un tipo, añádelo a `tipos.ts`.
 - No añadas dependencias salvo que sea imprescindible para la demo; nada de librerías de UI pesadas.

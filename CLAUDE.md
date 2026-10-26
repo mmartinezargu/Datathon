@@ -28,6 +28,7 @@ cd web
 npm install
 npm run dev            # http://localhost:5173
 npm run lint
+npm test               # tests del motor (Vitest, web/tests)
 npm run build && npm run preview   # versión final, http://localhost:4173
 ```
 

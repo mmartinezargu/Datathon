@@ -74,12 +74,16 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
     const [limitante, caben] = minimo(limites)
     return { ine: m.ine, poblacion: p, llegan: llegan[i], crecimiento: llegan[i] / p, limites, caben, limitante, margen: caben - llegan[i] }
   })
+  // Lo que cabría en cada uno sin invertir: las fronteras de los tipos salen de aquí (paso 3)
+  const cabenSinInvertir = universo.map((m, i) =>
+    inversiones[m.ine] ? minimo(calcularLimites(m, esc, anios, umbrales, SIN_INVERSION))[1] : parciales[i].caben)
 
   // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño).
   // Se calcula siempre con lo que llega por tendencia, también con la reubicación activa:
   // si no, los municipios llenos quedarían con margen 0 y el mapa escondería dónde falta sitio.
   const medPresion = mediana(parciales.map((r) => r.crecimiento))
-  const medCapacidad = mediana(parciales.map((r) => r.caben / r.poblacion))
+  // Con el escenario sin inversiones: así, invertir en un municipio no cambia el tipo de otro
+  const medCapacidad = mediana(parciales.map((r, i) => cabenSinInvertir[i] / r.poblacion))
   const conTipo = parciales.map((r, i) => {
     const tipo = clasificar(r, medPresion, medCapacidad)
     return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM,
@@ -164,9 +168,10 @@ export function calcularLimites(m: Municipio, esc: Escenario, anios: number, u: 
   const colegios = porNivel.length ? Math.min(...porNivel) : null
 
   // Sanidad: sitio libre en su zona básica de salud, repartido según el peso del municipio en la zona.
-  // Cada centro de salud nuevo suma lo que aguanta una zona, solo para este municipio.
-  const libreZona = Math.max(0, u.zonaSalud - c.zbs_poblacion)
-  const sanidad = libreZona * Math.min(1, p / c.zbs_poblacion) + inv.centros * u.zonaSalud
+  // Si la zona ya está por encima del límite, la parte del municipio en ese exceso es negativa:
+  // cada centro de salud nuevo suma lo que aguanta una zona, pero primero tiene que cubrir ese exceso.
+  const libreZona = (u.zonaSalud - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
+  const sanidad = Math.max(0, libreZona + inv.centros * u.zonaSalud)
 
   // Ritmo: un municipio no absorbe más de un X % al año sin colapsar, aunque tenga suelo
   const ritmo = p * ((1 + esc.ritmoMax) ** anios - 1)

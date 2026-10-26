@@ -268,7 +268,7 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
             <h3>4. Invertir y mudarse</h3>
             <p>
               <b>Invertir.</b> Cada colegio nuevo se suma al nivel con menos sitio y añade tantas plazas como el límite de niños por
-              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud. Después se recalcula todo: a veces el límite pasa a otro
+              colegio de su tamaño. Cada centro de salud nuevo añade, solo para ese municipio, lo que aguanta una zona de salud; si su zona ya se pasa del límite, primero cubre esa parte. Después se recalcula todo: a veces el límite pasa a otro
               recurso y hace falta invertir en algo más.
             </p>
             <p>

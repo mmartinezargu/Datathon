@@ -28,6 +28,7 @@ CABIDA usa estas dependencias directas. La licencia se ha comprobado en lo que h
 | typescript | 5.8.3 | Apache-2.0 | https://www.typescriptlang.org/ |
 | typescript-eslint | 8.72.0 | MIT | https://typescript-eslint.io/ |
 | vite | 6.4.5 | MIT | https://vite.dev |
+| vitest | 3.2.7 | MIT | https://vitest.dev |
 
 ## Preparación de datos (`etl/pyproject.toml`)
 

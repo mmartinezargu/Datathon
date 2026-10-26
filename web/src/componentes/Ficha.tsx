@@ -159,12 +159,17 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
         `Como un ${pct(x.proporcion, 1)} de sus vecinos tiene esa edad, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
-      const libre = Math.max(0, umb.zona - c.zbs_poblacion)
+      // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
+      const parte = (umb.zona - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
+      const total = miles(r.limites.sanidad ?? 0)
       const nuevos = inv.centros
-        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas más (${miles(umb.zona)} por centro): ${miles(r.caben)} en total.`
+        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas (${miles(umb.zona)} por centro)` +
+          (parte < 0 ? `; descontando ese exceso, quedan ${total}.` : `: ${total} en total.`)
         : ''
       return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}. ` +
-        (libre === 0 ? 'La zona ya está por encima: no queda sitio.' : `Quedan ${miles(libre)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${miles(r.caben)}`}.`) + nuevos
+        (parte < 0
+          ? `La zona ya está por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más${inv.centros ? '' : ', así que no queda sitio'}.`
+          : `Quedan ${miles(umb.zona - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${total}`}.`) + nuevos
     }
     case 'vivienda':
       return `${miles(c.viv_no_principales)} viviendas vacías o secundarias × ${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas × ${pct(esc.pctSuelo, 0)}, ` +
