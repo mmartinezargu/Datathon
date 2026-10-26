@@ -37,8 +37,8 @@ export const FUENTES_PLAN: Record<TipoObra, { texto: string; enlaces: Enlace[] }
     ],
   },
   instituto: {
-    texto: 'IES Los Molinos (Getafe): 880 plazas (20 aulas de ESO y 8 de Bachillerato); más de 13 M€ al anunciarlo y 14,6 M€ al autorizar la obra, ' +
-      'entre 14.800 y 16.600 € por plaza, con 15 meses de obra. En septiembre de 2026 se iban a adjudicar las obras.',
+    texto: 'IES Los Molinos (Getafe): 14,6 M€ por 880 plazas (20 aulas de ESO y 8 de Bachillerato), unos 16.600 € por plaza, ' +
+      'con 15 meses de obra. En septiembre de 2026 se iban a adjudicar las obras.',
     enlaces: [
       { texto: 'Comunidad de Madrid, 20/05/2026', url: 'https://www.comunidad.madrid/node/114439' },
       { texto: 'Comunidad de Madrid, 29/09/2026', url: 'https://www.comunidad.madrid/press-releases/download/119931' },

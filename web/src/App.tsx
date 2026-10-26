@@ -252,11 +252,21 @@ export default function App() {
           </aside>
 
           {/* 2. Mapa */}
-          <div className={`columna col-mapa${mapaLimpio ? ' limpio' : ''}`}>
+          <div className={`columna col-mapa${mapaLimpio ? ' limpio' : ''}${obras.length ? ' con-plan' : ''}`}>
             <div className="mapa-titulo">
               <TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio o búscalo" />
               <Buscador municipios={delReto} onElegir={elegir} />
             </div>
+            {/* Con un plan cargado, siempre a la vista (también con el mapa limpio) */}
+            {obras.length > 0 && (
+              <div className="franja-plan" role="status">
+                <span>Con el plan: <b>{millones(invertido)}</b>, {obras.length} {obras.length === 1 ? 'obra' : 'obras'}</span>
+                <span aria-hidden="true">·</span>
+                <button className="enlace" onClick={() => setObras([])}>Quitar<span className="largo"> el plan</span></button>
+                <span aria-hidden="true">·</span>
+                <button className="enlace" onClick={() => setPestana('plan')}>Editar<span className="largo"> en Plan</span></button>
+              </div>
+            )}
             <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados} vecinos={vecinos}
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <button className="mapa-limpio" aria-pressed={mapaLimpio} onClick={() => setMapaLimpio(!mapaLimpio)}
@@ -267,14 +277,14 @@ export default function App() {
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
-                  (invertido ? ', contando el plan' : ' sin ampliar servicios') +
+                  (invertido ? ' con el plan' : ' sin ampliar servicios') +
                   (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
-                  ? `no encuentran sitio cerca${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
-                  : invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} />
+                  ? `no encuentran sitio cerca${invertido ? ', aun con el plan' : ': ahí hay que invertir'}`
+                  : invertido ? 'se quedarían sin sitio, aun con el plan' : 'se quedarían sin sitio: ahí hay que invertir'} />
               <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
-                texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
+                texto={`municipios con sitio al que no llega gente${invertido ? ' con el plan' : ''}; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
             {/* La leyenda va plegada en un botón para no tapar el mapa */}
             <div className={`leyenda${leyendaAbierta ? ' abierta' : ''}`} aria-label="Leyenda">

@@ -42,14 +42,14 @@ export const SIN_INVERSION: Inversion = { plazasPrimaria: 0, plazasSecundaria: 0
  * Valores por defecto del plan, sacados de obras reales de la Comunidad (fuentes en fuentesPlan.ts).
  * - Ampliar un colegio: una línea (9 aulas de 25), a 6.000 €/plaza (CEIP María Blanchard: 2,8 M€ por 475 plazas).
  * - Colegio nuevo: 450 plazas a 12.900 €/plaza (CEIP Isabel la Católica: 5,8 M€ por 450 plazas).
- * - Instituto: 880 plazas a 15.000 €/plaza (IES Los Molinos).
+ * - Instituto: 880 plazas a 16.600 €/plaza (IES Los Molinos: 14,6 M€ por 880 plazas).
  * - Centro de salud: 7,1 M€ (16 centros por 113,8 M€) y atiende a 23.078 personas, la mediana de las 286 zonas.
  */
 export const PARAMETROS_PLAN: ParametrosPlan = {
   obras: {
     ampliar_primaria: { plazas: 225, eurosPorPlaza: 6_000, anios: 2 },
     colegio_primaria: { plazas: 450, eurosPorPlaza: 12_900, anios: 3 },
-    instituto: { plazas: 880, eurosPorPlaza: 15_000, anios: 3 },
+    instituto: { plazas: 880, eurosPorPlaza: 16_600, anios: 3 },
     centro_salud: { plazas: 23_078, eurosPorPlaza: 7_100_000, anios: 3 },
   },
   anioInicio: 2027,

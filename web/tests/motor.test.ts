@@ -121,7 +121,7 @@ describe('plan', () => {
     const r = evaluarPlan(municipios, zonas, conReubicar, plan)
     expect(cuantas(plan)).toEqual({ ampliar_primaria: 10, colegio_primaria: 0, instituto: 3, centro_salud: 10 })
     expect(r.municipios).toBe(20)
-    expect(r.coste).toBe(124_100_000)
+    expect(r.coste).toBe(128_324_000)
     expect(Math.round(r.sinSitioAntes)).toBe(50_774)
     expect(Math.round(r.sinSitio)).toBe(12_181)
     expect(Math.round(r.sinSitioPor.vivienda)).toBe(12_159)
@@ -137,7 +137,7 @@ describe('plan', () => {
     const r = evaluarPlan(municipios, zonas, sinReubicar, plan)
     expect(cuantas(plan)).toEqual({ ampliar_primaria: 26, colegio_primaria: 0, instituto: 13, centro_salud: 22 })
     expect(r.municipios).toBe(49)
-    expect(r.coste).toBe(362_900_000)
+    expect(r.coste).toBe(381_204_000)
     expect(Math.round(r.sinSitioAntes)).toBe(77_630)
     expect(Math.round(r.sinSitio)).toBe(23_897) // la misma cifra que daba etl/plan_inversion.py
   })
