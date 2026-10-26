@@ -9,7 +9,7 @@ Mapa de los 155 municipios con los 4 tipos, cuánta gente llega y cuánta cabe (
 
 Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - ✅ **Oportunidad condicionada**: oportunidad con el hospital general público más cercano a más de 25 km en línea recta (unos 30 min en coche [est.]). Sale rayada en el mapa, y la ficha dice el hospital más cercano.
-- ✅ **Reequilibrio**: interruptor en el escenario, «Dirigir lo que no cabe a los municipios con sitio». Cambian las cifras de cabecera, el vaso y la ficha. Los colores del mapa no cambian.
+- ✅ **Reubicar en pueblos cercanos**: interruptor en el escenario, con un deslizador para la distancia (10–50 km; por defecto 25). Lo que no cabe va al pueblo con sitio más cercano (y con el hospital cerca). Se ve en las cifras de cabecera, el vaso, un bloque con los 5 traslados más grandes, la ficha («Envía… a» o «Recibe… de»), el mapa (borde discontinuo en los pueblos con los que intercambia gente) y el CSV. Los colores del mapa no cambian.
 - ✅ **Plazo** en «¿y si invertimos aquí?»: colegio, unos 2 años; centro de salud, unos 3 (estimación).
 - ✅ **Datasets entregables**: `data/out/diccionario.csv`, `data/out/README.md` (fuentes, CC BY 4.0 y cómo regenerar) y `THIRD_PARTY.md`. Los datos de partida de menos de 25 MB están en `data/raw/` (solo se descarga el planeamiento).
 
@@ -37,7 +37,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - Con los servicios de hoy caben **53.239**; **81.187** se quedan sin sitio.
 - 73 municipios en tensión, 38 polos, 38 oportunidades y 6 en consolidación.
 - De las 38 oportunidades, **25 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sin contar esas, el sitio libre es de 32.349 personas (34.363 en total).
-- Con el reequilibrio activo («Dirigir lo que no cabe…»), se dirigen 32.349 personas a municipios con sitio: caben **85.588** y **48.838** no caben en ningún municipio.
+- Con «Reubicar en pueblos cercanos» a 25 km, se reubican **32.161** personas en 45 municipios, de media a 9 km. Siguen sin sitio **49.025**. A 50 km se usa todo el sitio libre de las no condicionadas (32.349) y quedan 48.838 sin sitio.
 - Validación 2015 -> 2025: error del **44,4 %**, frente al 64 % de seguir la tendencia sin más.
 
 ## Cómo arrancarla

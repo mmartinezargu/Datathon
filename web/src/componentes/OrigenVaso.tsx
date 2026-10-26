@@ -43,8 +43,8 @@ export function OrigenTodos({ llegan, anio, reequilibrio }: { llegan: number; an
         {
           color: ROJO, titulo: 'No caben',
           texto: reequilibrio
-            ? 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente se dirige a los pueblos con sitio libre (menos a los que tienen el hospital lejos). ' +
-              'Lo que queda aquí es lo que no cabe en ninguno.'
+            ? 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente va al pueblo con sitio más cercano (con el hospital cerca). ' +
+              'Lo que queda aquí es lo que no encuentra sitio a la distancia elegida.'
             : 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente no se manda a otro pueblo: el mapa solo dice dónde faltaría sitio.',
         },
       ]} />

@@ -12,10 +12,11 @@ import { Metodologia } from './componentes/Metodologia'
 import { Inicio, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
+import { Reubicacion } from './componentes/Reubicacion'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
-import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto } from './motor'
+import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, resumenReubicacion } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
 import { miles, millones, pct } from './formato'
@@ -119,8 +120,9 @@ export default function App() {
     return <div className="cargando"><Logo /> Cargando los datos de los 155 municipios…</div>
   }
 
-  // Con reequilibrio, lo que se dirige a otros municipios pasa de «sin sitio» a «caben»
-  const dirigidos = resultados.reduce((s, r) => s + r.recibe, 0)
+  // Con la reubicación, lo que va a pueblos cercanos pasa de «sin sitio» a «caben»
+  const reubicacion = resumenReubicacion(resultados)
+  const dirigidos = reubicacion.personas
   const dentro = resultados.reduce((s, r) => s + Math.min(r.caben, r.llegan), 0) + dirigidos
   const sinSitio = resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0) - dirigidos
   const reequilibrio = escenario.reequilibrio
@@ -128,6 +130,8 @@ export default function App() {
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const condicionadas = resultados.filter((r) => r.condicionada).length
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
+  // Con la reubicación, los municipios con los que intercambia gente el seleccionado (borde grueso en el mapa)
+  const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
   const selAntes = seleccionado ? resultadosSinInversion.find((r) => r.ine === seleccionado) ?? null : null
   const invertido = Object.values(inversiones).reduce((s, inv) => s + costeInversion(inv), 0)
   const invertir = (ine: string, inv: Inversion) =>
@@ -184,16 +188,16 @@ export default function App() {
           {/* 2. Mapa */}
           <div className="columna col-mapa">
             <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
-            <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados}
+            <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados} vecinos={vecinos}
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
                   (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
-                  (reequilibrio ? `, dirigiendo ${miles(dirigidos)} a municipios con sitio` : '')} />
+                  (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
-                  ? `no caben en ningún municipio${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
+                  ? `no encuentran sitio cerca${invertido ? `, aun con ${millones(invertido)} invertidos` : ': ahí hay que invertir'}`
                   : invertido ? `se quedarían sin sitio, aun con ${millones(invertido)} invertidos` : 'se quedarían sin sitio: ahí hay que invertir'} />
               <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
                 texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
@@ -235,7 +239,7 @@ export default function App() {
                 <div className="resultado-barra">
                   <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
                 </div>
-                <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} escenario={escenario} umbrales={umbrales}
+                <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} porIne={porIne} escenario={escenario} umbrales={umbrales}
                   inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} />
               </>
             ) : (
@@ -244,10 +248,11 @@ export default function App() {
                 <section className="resultado-vaso">
                   <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
                     notaLibre={reequilibrio
-                      ? 'que queda libre después de dirigir la gente (o en municipios con el hospital lejos).'
+                      ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
                       : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
                     origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} reequilibrio={reequilibrio} />} />
                 </section>
+                {reequilibrio && <Reubicacion resumen={reubicacion} sinSitio={sinSitio} porIne={porIne} onElegir={elegir} />}
                 <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} onElegir={elegir} />
               </>
             )}

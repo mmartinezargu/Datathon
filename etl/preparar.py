@@ -104,12 +104,13 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
 
 
 def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
-    """Distancia en línea recta al hospital general público más cercano.
+    """Núcleo de cada municipio y distancia en línea recta al hospital general público más cercano.
 
     - Hospitales: registro de centros sanitarios de la CM, «Hospital general» que dependen
       del servicio de salud de la Comunidad. El CSV repite cada centro una vez por servicio.
     - Núcleo del municipio: mediana de las coordenadas de sus colegios (donde vive la gente);
       si no tiene colegios, el centroide de su término municipal.
+      Se exporta en km (UTM 30N) para que la web mida la distancia entre pueblos al reubicar.
     - En línea recta, no tiempo real: es una aproximación (ver «Cómo se calcula»).
     """
     s = pd.read_csv(RAW / "cm_centros_sanitarios.csv", sep=";", encoding="utf-8-sig", dtype=str)
@@ -140,6 +141,8 @@ def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
     distancia, cual = cKDTree(np.column_stack([hosp.geometry.x, hosp.geometry.y])).query(nucleo[["x", "y"]].to_numpy())
     out = pd.DataFrame({
         "ine": nucleo.index,
+        "nucleo_x": (nucleo["x"] / 1000).round(2).to_numpy(),
+        "nucleo_y": (nucleo["y"] / 1000).round(2).to_numpy(),
         "hospital_km": (distancia / 1000).round(1),
         "hospital_municipio": hosp["ine"].iloc[cual].map(nombres).to_numpy(),
     })
@@ -181,6 +184,8 @@ def main() -> None:
             "g_propia": None if pd.isna(f["g_propia"]) else round(f["g_propia"], 6),
             "g_zona": None if pd.isna(f["g_zona"]) else round(f["g_zona"], 6),
             "g_suavizada": None if pd.isna(f["g_suavizada"]) else round(f["g_suavizada"], 6),
+            "nucleo_x": float(f["nucleo_x"]),
+            "nucleo_y": float(f["nucleo_y"]),
             "hospital_km": float(f["hospital_km"]),
             "hospital_municipio": f["hospital_municipio"],
             "capacidad": None if not f["universo"] else {c: limpio(f[c]) for c in COLUMNAS_CAPACIDAD},
@@ -197,7 +202,7 @@ def main() -> None:
     (WEB_DATOS / "limites.geojson").write_text(json.dumps(limites, ensure_ascii=False), encoding="utf-8")
 
     columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
-                *COLUMNAS_CAPACIDAD, "hospital_km", "hospital_municipio"]
+                *COLUMNAS_CAPACIDAD, "nucleo_x", "nucleo_y", "hospital_km", "hospital_municipio"]
     diccionario.comprobar("tabla_maestra.csv", columnas)
     df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
     diccionario.escribir()

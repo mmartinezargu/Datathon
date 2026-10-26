@@ -108,9 +108,9 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
           unos {PLAZO_COLEGIO_ANIOS} años un colegio y unos {PLAZO_CENTRO_SALUD_ANIOS} un centro de salud. Son estimaciones, no plazos oficiales.
         </p>
         <p>
-          <b>Dirigir lo que no cabe.</b> Con el interruptor de las palancas, la gente que no cabe en su pueblo se lleva a los
-          que tienen sitio libre, en proporción a ese sitio. No se lleva a nadie a los pueblos con el hospital lejos. Los colores
-          del mapa no cambian: siguen diciendo dónde falta sitio.
+          <b>Reubicar en pueblos cercanos.</b> Con el interruptor de las palancas, quien no cabe en su pueblo va al pueblo con sitio
+          más cercano, a menos de {escenario.radioKm} km en línea recta y con el hospital cerca; se reparte empezando por las parejas
+          de pueblos más próximas. Si no hay ninguno a esa distancia, se queda sin sitio, y los colores del mapa no cambian.
         </p>
         <p>
           <b>¿Dónde me mudo?</b> Ordena los pueblos según el sitio que les queda en colegios, centro de salud y casas, y según quién seas.
@@ -224,10 +224,11 @@ export function Metodologia({ escenario, validacion }: { escenario: Escenario; v
               ))}
             </ul>
             <p>
-              <b>Dirigir lo que no cabe (si se activa).</b> Se suma lo que no cabe en todos los municipios y se reparte entre los que
-              tienen sitio, menos las oportunidades condicionadas:
+              <b>Reubicar en pueblos cercanos (si se activa).</b> Se forman todas las parejas de un pueblo al que le sobra gente y otro
+              con sitio (sin contar las oportunidades condicionadas) a {escenario.radioKm} km o menos entre sus centros, y se ordenan de
+              la más cercana a la más lejana. En ese orden, cada pareja traslada lo que pueda:
             </p>
-            <p className="formula">recibe = sitio libre del municipio × mín(1, lo que no cabe en total ÷ sitio libre en total)</p>
+            <p className="formula">personas = mín(lo que aún no cabe en el origen, el sitio que aún le queda al destino)</p>
             <p className="ayuda">El tipo se calcula con lo que llega por tendencia, antes de este paso.</p>
             <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
             <p>

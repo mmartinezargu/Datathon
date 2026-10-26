@@ -47,13 +47,18 @@ export function Palancas({ escenario, onCambiar }: Props) {
       <label className="control interruptor">
         <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />
         <span className="interruptor-texto">
-          <b>Dirigir lo que no cabe a los municipios con sitio</b>
+          <b>Reubicar en pueblos cercanos con sitio</b>
           <span className="pista">
-            Quien no cabe en su municipio va a los que tienen sitio libre (no a los que tienen el hospital lejos).
-            Los colores del mapa no cambian: siguen diciendo dónde falta sitio.
+            Quien no cabe en su municipio va al pueblo con sitio más cercano, a menos de {escenario.radioKm} km y con hospital cerca.
+            Si no hay ninguno, se queda sin sitio. Los colores del mapa no cambian.
           </span>
         </span>
       </label>
+      {escenario.reequilibrio && (
+        <Deslizador etiqueta="Distancia máxima" valor={escenario.radioKm} texto={`${escenario.radioKm} km`}
+          min={10} max={50} paso={5} pista="En línea recta entre los centros de los pueblos."
+          onCambiar={(v) => cambiar({ radioKm: v })} />
+      )}
 
       <button className="desplegar" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
         <span>Supuestos del cálculo</span>

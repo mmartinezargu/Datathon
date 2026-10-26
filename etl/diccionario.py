@@ -18,6 +18,8 @@ ZONAS_SALUD = ("Portal de Datos Abiertos de la Comunidad de Madrid, Zonas básic
                "https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff")
 SANITARIOS = ("Portal de Datos Abiertos de la Comunidad de Madrid, Centros sanitarios; IDEM, límites municipales",
               "https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7")
+NUCLEO = ("Portal de Datos Abiertos de la Comunidad de Madrid, Centros educativos; IDEM, límites municipales",
+          "https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5")
 PLANEAMIENTO = ("IDEM, Planeamiento urbanístico refundido 2025",
                 "https://idem.comunidad.madrid/recursos_cat_geo/Catalogo/recursos/Planeamiento/Refundido/vpla_ref_25_gpkg.zip")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
@@ -48,6 +50,9 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("zbs_nombre", "Nombre de esa zona básica de salud", "texto", ZONAS_SALUD),
         ("zbs_poblacion", "Población que atiende la zona: Padrón 2019 actualizado con el crecimiento 2019-2025 de su municipio principal",
          "personas", ZONAS_SALUD),
+        ("nucleo_x", "Núcleo del municipio, coordenada X: mediana de sus colegios de primaria o secundaria "
+         "(si no tiene, centroide del término). Sirve para medir distancias entre pueblos", "km (UTM 30N, ETRS89)", NUCLEO),
+        ("nucleo_y", "Núcleo del municipio, coordenada Y (ver nucleo_x)", "km (UTM 30N, ETRS89)", NUCLEO),
         ("hospital_km", "Distancia en línea recta desde el núcleo del municipio (mediana de sus colegios; si no tiene, "
          "centroide del término) hasta el hospital general público más cercano de la Comunidad de Madrid", "km", SANITARIOS),
         ("hospital_municipio", "Municipio en el que está ese hospital", "texto", SANITARIOS),

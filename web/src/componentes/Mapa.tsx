@@ -21,11 +21,13 @@ interface Props {
   etiquetas: Record<string, InfoEtiqueta>
   /** ine de los municipios que van rayados (oportunidad condicionada) */
   rayados: Set<string>
+  /** ine de los municipios con los que intercambia gente el seleccionado (reubicación): borde grueso */
+  vecinos: string[]
   seleccionado: string | null
   onSeleccionar: (ine: string | null) => void
 }
 
-export function Mapa({ limites, colores, etiquetas, rayados, seleccionado, onSeleccionar }: Props) {
+export function Mapa({ limites, colores, etiquetas, rayados, vecinos, seleccionado, onSeleccionar }: Props) {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapa = useRef<maplibregl.Map | null>(null)
   const listo = useRef(false)
@@ -74,12 +76,18 @@ export function Mapa({ limites, colores, etiquetas, rayados, seleccionado, onSel
         paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 11, 1.4] },
       })
       m.addLayer({
+        id: 'intercambio', type: 'line', source: 'municipios',
+        paint: { 'line-color': '#15233B', 'line-width': 2.5, 'line-dasharray': [2, 1] },
+        filter: ['in', ['get', 'ine'], ['literal', []]],
+      })
+      m.addLayer({
         id: 'seleccion', type: 'line', source: 'municipios',
         paint: { 'line-color': '#15233B', 'line-width': 3 },
         filter: ['==', ['get', 'ine'], ''],
       })
       listo.current = true
       pintar()
+      resaltar()
     })
 
     // Etiqueta flotante al pasar el ratón
@@ -142,12 +150,15 @@ export function Mapa({ limites, colores, etiquetas, rayados, seleccionado, onSel
   }
   useEffect(pintar)
 
-  // 3. Resaltar el municipio seleccionado
-  useEffect(() => {
+  // 3. Resaltar el municipio seleccionado y, con la reubicación, los pueblos con los que intercambia gente
+  const claveVecinos = vecinos.join(',')
+  function resaltar() {
     const m = mapa.current
     if (!m || !listo.current) return
     m.setFilter('seleccion', ['==', ['get', 'ine'], seleccionado ?? ''])
-  }, [seleccionado])
+    m.setFilter('intercambio', ['in', ['get', 'ine'], ['literal', claveVecinos ? claveVecinos.split(',') : []]])
+  }
+  useEffect(resaltar, [seleccionado, claveVecinos])
 
   return <div ref={contenedor} className="mapa" />
 }

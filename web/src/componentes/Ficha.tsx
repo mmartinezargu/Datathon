@@ -2,7 +2,7 @@
 
 import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
-import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Umbrales } from '../tipos'
+import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
 import { decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
@@ -13,6 +13,7 @@ interface Props {
   r: ResultadoMunicipio
   antes: ResultadoMunicipio // el mismo municipio sin las inversiones simuladas
   m: Municipio
+  porIne: Map<string, Municipio>
   escenario: Escenario
   umbrales: Umbrales
   inversion: Inversion
@@ -21,7 +22,7 @@ interface Props {
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir }: Props) {
+export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
@@ -45,15 +46,7 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
       <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
-      {escenario.reequilibrio && (r.recibe >= 1 || r.ceden >= 1) && (
-        <p className="ficha-reequilibrio">
-          {r.recibe >= 1
-            ? <>Recibe <b>{miles(r.recibe)}</b> personas que no caben en otros municipios.</>
-            : -r.margen - r.ceden >= 1
-              ? <>Unas <b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios y unas <b>{miles(-r.margen - r.ceden)}</b> se quedan sin sitio.</>
-              : <>Unas <b>{miles(r.ceden)}</b> personas que le tocaban van a otros municipios.</>}
-        </p>
-      )}
+      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} />}
 
       <h3>Personas que caben según cada recurso</h3>
       <div className="limites">
@@ -84,6 +77,33 @@ export function Ficha({ r, antes, m, escenario, umbrales, inversion, onInvertir 
       <h3>Población 2005–{escenario.anio}</h3>
       <Evolucion poblacion={m.poblacion} anioFin={escenario.anio} poblacionFin={r.poblacion + r.llegan} color={tipo.color} />
     </section>
+  )
+}
+
+/** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
+function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number }) {
+  const exceso = Math.max(0, -r.margen)
+  const quedan = exceso - r.envia
+  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => {
+    const nombres = traslados.slice(0, 5).map((t) => `${porIne.get(t[campo])?.nombre} (${miles(t.personas)}, ${miles(t.km)} km)`)
+    return nombres.join(', ') + (traslados.length > 5 ? ' y otros' : '')
+  }
+  let texto
+  if (r.envia >= 1) {
+    texto = <>Envía <b>{miles(r.envia)}</b> personas a: {lista(r.envios, 'destino')}.
+      {quedan >= 1 && <> <b>{miles(quedan)}</b> se quedan sin sitio.</>}</>
+  } else if (r.recibe >= 1) {
+    texto = <>Recibe <b>{miles(r.recibe)}</b> de: {lista(r.llegadas, 'origen')}.</>
+  } else if (exceso >= 1) {
+    texto = <>No hay ningún pueblo con sitio a menos de {radioKm} km: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
+  } else {
+    return null
+  }
+  return (
+    <p className="ficha-reequilibrio">
+      {texto}
+      {(r.envia >= 1 || r.recibe >= 1) && <span className="ayuda"> En el mapa, con borde discontinuo.</span>}
+    </p>
   )
 }
 

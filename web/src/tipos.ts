@@ -33,6 +33,8 @@ export interface Municipio {
   g_propia: number | null // tasa anual 2015-2025 del municipio
   g_zona: number | null // tasa anual de su zona
   g_suavizada: number | null // mezcla de las dos (estimador bayesiano empírico)
+  nucleo_x: number // núcleo del municipio (mediana de sus colegios), en km UTM 30N
+  nucleo_y: number
   hospital_km: number // en línea recta, del núcleo al hospital general público más cercano
   hospital_municipio: string // municipio de ese hospital
   capacidad: IngredientesCapacidad | null
@@ -46,7 +48,8 @@ export interface Escenario {
   pctVivienda: number // parte de la vivienda vacía o secundaria que se ocupa (0-1)
   ritmoMax: number // crecimiento máximo prudente al año (0.03 = 3 %)
   exigencia: number // hasta qué percentil se pueden cargar colegios y centros (0.75 = como el 25 % más cargado)
-  reequilibrio: boolean // dirigir lo que no cabe a los municipios con sitio
+  reequilibrio: boolean // reubicar lo que no cabe en pueblos cercanos con sitio
+  radioKm: number // hasta qué distancia se busca sitio (línea recta entre núcleos)
 }
 
 /** Lo que el usuario decide construir en un municipio (modo «¿y si invertimos aquí?»). */
@@ -80,8 +83,18 @@ export interface ResultadoMunicipio {
   margen: number // caben - llegan (negativo = no caben)
   tipo: Tipo
   condicionada: boolean // oportunidad con el hospital lejos: hay sitio, pero antes hay que asegurar el acceso
-  recibe: number // con reequilibrio: personas que no caben en otros municipios y se dirigen aquí
-  ceden: number // con reequilibrio: personas que le tocaban, no caben y se dirigen a otros municipios
+  recibe: number // con reubicación: personas que no caben en pueblos cercanos y vienen aquí
+  envia: number // con reubicación: personas que le tocaban, no caben y van a pueblos cercanos
+  envios: Traslado[] // a dónde van, de más a menos personas
+  llegadas: Traslado[] // de dónde vienen, de más a menos personas
+}
+
+/** Personas que no caben en un municipio y se reubican en otro cercano con sitio. */
+export interface Traslado {
+  origen: string // ine
+  destino: string // ine
+  personas: number
+  km: number // en línea recta entre núcleos
 }
 
 /** Vista ciudadana «¿Dónde me mudo?». */

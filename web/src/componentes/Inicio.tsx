@@ -14,7 +14,7 @@ export interface Totales {
   capacidad: number // suma de lo que cabe en los 155
   dentro: number // de lo que llega, lo que cabe
   fuera: number // de lo que llega, lo que no cabe
-  reequilibrio: boolean // si se dirige lo que no cabe a los municipios con sitio
+  reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
 type Destino = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
