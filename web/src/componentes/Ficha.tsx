@@ -18,11 +18,12 @@ interface Props {
   umbrales: Umbrales
   inversion: Inversion
   onInvertir: (inv: Inversion) => void
+  onElegir: (ine: string) => void // abrir la ficha de otro municipio (los de los traslados)
 }
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir }: Props) {
+export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir, onElegir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
@@ -49,7 +50,7 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
 
       <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado)}</p>
       {limite && <p className="ficha-limite" style={{ borderLeftColor: TIPOS.tension.color }}>{textoAlLimite(limite, m)}</p>}
-      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} />}
+      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} onElegir={onElegir} />}
 
       <h3>Personas que caben{ampliado ? '' : ' sin ampliar servicios'}, según cada recurso</h3>
       <div className="limites">
@@ -84,13 +85,24 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
 }
 
 /** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
-function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number }) {
+function Reubicados({ r, porIne, radioKm, onElegir }: {
+  r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number; onElegir: (ine: string) => void
+}) {
   const exceso = Math.max(0, -r.margen)
   const quedan = quedanSinSitio(r)
-  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => {
-    const nombres = traslados.slice(0, 5).map((t) => `${porIne.get(t[campo])?.nombre} (${miles(t.personas)}, ${miles(t.km)} km)`)
-    return nombres.join(', ') + (traslados.length > 5 ? ' y otros' : '')
-  }
+  // Cada pueblo se puede pulsar para abrir su ficha
+  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => (
+    <>
+      {traslados.slice(0, 5).map((t, i) => (
+        <span key={t[campo]}>
+          {i > 0 && ', '}
+          <button className="enlace" onClick={() => onElegir(t[campo])}>{porIne.get(t[campo])?.nombre}</button>
+          {' '}({miles(t.personas)}, {miles(t.km)} km)
+        </span>
+      ))}
+      {traslados.length > 5 && ' y otros'}
+    </>
+  )
   let texto
   if (r.envia >= 1) {
     texto = <>Envía <b>{miles(r.envia)}</b> personas a: {lista(r.envios, 'destino')}.

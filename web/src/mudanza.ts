@@ -102,7 +102,7 @@ const ALIAS_ZONA: Record<string, string> = {
 }
 
 /** Minúsculas y sin tildes, para comparar sin fallar por cómo se escriba. */
-function normalizar(t: string): string {
+export function normalizar(t: string): string {
   return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ')
 }
 
