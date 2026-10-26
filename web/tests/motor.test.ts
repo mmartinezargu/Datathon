@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   HOSPITAL_LEJOS_KM, PARAMETROS_PLAN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  evaluarPlan, inversionesDe, nivelesColegio, nuevaObra, planOptimo, resumenReubicacion,
+  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, quedanSinSitio, resumenReubicacion,
 } from '../src/motor'
 import type { Municipio, Obra, ResultadoMunicipio, TipoObra, ZonaSalud } from '../src/tipos'
 
@@ -47,21 +47,34 @@ describe('invertir en un centro de salud', () => {
     const sin = calcular(municipios, zonas, esc).find((x) => x.ine === navalcarnero.ine)!
     const con = calcular(municipios, zonas, esc, centro).find((x) => x.ine === navalcarnero.ine)!
     expect(sin.limites.sanidad).toBe(0)
-    expect(con.limites.sanidad).toBeCloseTo(17_321, -1)
-    // Lo que atiende el centro (la mediana de las zonas) menos la parte del municipio en el exceso de la zona
-    const exceso = (c.zbs_poblacion - u.zonaSalud) * Math.min(1, navalcarnero.poblacion['2025'] / c.zbs_poblacion)
-    expect(con.limites.sanidad).toBeCloseTo(PARAMETROS_PLAN.obras.centro_salud.plazas - exceso, 6)
+    // El centro suma a la zona: (límite + lo que atiende − población de la zona) × la parte del municipio en la zona
+    const parte = Math.min(1, navalcarnero.poblacion['2025'] / c.zbs_poblacion)
+    expect(con.limites.sanidad).toBeCloseTo((u.zonaSalud + PARAMETROS_PLAN.obras.centro_salud.plazas - c.zbs_poblacion) * parte, 6)
+    expect(con.limites.sanidad).toBeGreaterThan(0)
   })
 
-  it('no cambia el tipo de otros municipios', () => {
+  it('sirve a toda su zona, y solo cambia el tipo de municipios de esa zona', () => {
     const sin = calcular(municipios, zonas, esc)
     const con = calcular(municipios, zonas, esc, centro)
-    const cambian = con.filter((x, i) => x.tipo !== sin[i].tipo)
-    expect(cambian.map((x) => x.ine)).toEqual([navalcarnero.ine])
-    expect(sin.find((x) => x.ine === navalcarnero.ine)!.tipo).toBe('tension')
-    expect(cambian[0].tipo).toBe('polo')
-    expect(cuenta(con).oportunidad).toBe(33)
-    expect(cuenta(con).consolidacion).toBe(7)
+    const zona = navalcarnero.capacidad!.zbs_codigo
+    const deLaZona = new Set(municipios.filter((m) => m.universo && m.capacidad?.zbs_codigo === zona).map((m) => m.ine))
+    const cambian = con.filter((x, i) => x.tipo !== sin[i].tipo).map((x) => x.ine)
+    expect(cambian).toContain(navalcarnero.ine)
+    expect(cambian.every((ine) => deLaZona.has(ine))).toBe(true)
+    // Todos los de la zona ganan sitio por sanidad; los de otras zonas, no
+    con.forEach((x, i) => {
+      if (deLaZona.has(x.ine)) expect(x.limites.sanidad!).toBeGreaterThanOrEqual(sin[i].limites.sanidad!)
+      else expect(x.limites.sanidad).toBe(sin[i].limites.sanidad)
+    })
+  })
+
+  it('un centro puesto en un pueblo de la zona da lo mismo que en otro de la misma zona', () => {
+    const molar = municipios.filter((m) => m.universo && m.capacidad?.zbs_nombre === 'El Molar')
+    expect(molar.length).toBeGreaterThan(1)
+    const en = (ine: string) => calcular(municipios, zonas, esc, inversionesDe([nuevaObra(ine, 'centro_salud', PARAMETROS_PLAN)])).map((x) => x.caben)
+    expect(en(molar[0].ine)).toEqual(en(molar[1].ine))
+    const porZona = inversionesPorZona(inversionesDe([nuevaObra(molar[0].ine, 'centro_salud', PARAMETROS_PLAN)]), municipios)
+    for (const m of molar) expect(porZona[m.ine].centros).toBe(1)
   })
 })
 
@@ -119,27 +132,48 @@ describe('plan', () => {
   it('plan óptimo por defecto, reubicando en pueblos cercanos', () => {
     const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
     const r = evaluarPlan(municipios, zonas, conReubicar, plan)
-    expect(cuantas(plan)).toEqual({ ampliar_primaria: 10, colegio_primaria: 0, instituto: 3, centro_salud: 10 })
-    expect(r.municipios).toBe(20)
-    expect(r.coste).toBe(128_324_000)
+    expect(cuantas(plan)).toEqual({ ampliar_primaria: 7, colegio_primaria: 0, instituto: 2, centro_salud: 6 })
+    expect(r.municipios).toBe(15)
+    expect(r.coste).toBe(81_266_000)
     expect(Math.round(r.sinSitioAntes)).toBe(50_774)
-    expect(Math.round(r.sinSitio)).toBe(12_181)
-    expect(Math.round(r.sinSitioPor.vivienda)).toBe(12_159)
+    expect(Math.round(r.sinSitio)).toBe(9_319)
+    expect(Math.round(r.sinSitioPor.vivienda)).toBe(9_319) // lo que queda es todo por vivienda
     expect(r.sinSitioPor.ritmo).toBe(0)
     expect(r.ultimaApertura).toBe(2030)
     expect(plan.every((o) => o.inicio === 2027)).toBe(true)
-    // El calendario suma lo que pasa a caber
+    // El calendario y lo que gana cada obra suman lo que pasa a caber
     expect(r.calendario.reduce((s, c) => s + c.personas, 0)).toBeCloseTo(r.pasanACaber, 6)
+    expect(r.ganaPorObra.reduce((s, g) => s + g, 0)).toBeCloseTo(r.pasanACaber, 6)
   })
 
   it('cada pueblo con lo suyo (sin reubicar) necesita mucho más', () => {
     const plan = planOptimo(municipios, zonas, sinReubicar, PARAMETROS_PLAN)
     const r = evaluarPlan(municipios, zonas, sinReubicar, plan)
-    expect(cuantas(plan)).toEqual({ ampliar_primaria: 26, colegio_primaria: 0, instituto: 13, centro_salud: 22 })
-    expect(r.municipios).toBe(49)
-    expect(r.coste).toBe(381_204_000)
+    expect(cuantas(plan)).toEqual({ ampliar_primaria: 26, colegio_primaria: 0, instituto: 13, centro_salud: 8 })
+    expect(r.municipios).toBe(42)
+    expect(r.coste).toBe(281_804_000)
     expect(Math.round(r.sinSitioAntes)).toBe(77_630)
-    expect(Math.round(r.sinSitio)).toBe(23_897) // la misma cifra que daba etl/plan_inversion.py
+    expect(Math.round(r.sinSitio)).toBe(23_874)
+  })
+
+  it.each([true, false])('no pone dos centros en la misma zona salvo que la zona lo necesite (reubicando: %s)', (reequilibrio) => {
+    const e = { ...esc, reequilibrio }
+    const plan = planOptimo(municipios, zonas, e, PARAMETROS_PLAN)
+    const u = calcularUmbrales(municipios.filter((m) => m.universo), zonas, e.exigencia)
+    const llegan = new Map(calcular(municipios, zonas, e).map((r) => [r.ine, r.llegan]))
+    const porZona = new Map<string, number>()
+    for (const o of plan.filter((x) => x.tipo === 'centro_salud')) {
+      const z = municipios.find((m) => m.ine === o.ine)!.capacidad!.zbs_codigo
+      porZona.set(z, (porZona.get(z) ?? 0) + 1)
+    }
+    expect(porZona.size).toBeGreaterThan(0)
+    for (const [z, n] of porZona) {
+      if (n < 2) continue
+      // Exceso de la zona: población + lo que les llega a sus municipios del reto − límite
+      const deLaZona = municipios.filter((m) => m.capacidad?.zbs_codigo === z)
+      const exceso = deLaZona[0].capacidad!.zbs_poblacion + deLaZona.reduce((s, m) => s + (llegan.get(m.ine) ?? 0), 0) - u.zonaSalud
+      expect(exceso).toBeGreaterThan((n - 1) * PARAMETROS_PLAN.obras.centro_salud.plazas)
+    }
   })
 
   it('no amplía más colegios de los que ya tiene un municipio', () => {
@@ -190,6 +224,19 @@ describe('plan', () => {
     const local = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN, { soloMunicipios: solo })
     expect(local.length).toBeGreaterThan(0)
     expect(local.every((o) => o.ine === navalcarnero.ine)).toBe(true)
+  })
+
+  it('con el plan cargado, el mapa colorea por lo que falta después de reubicar y con las obras', () => {
+    const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
+    const inv = inversionesDe(plan)
+    const antes = calcular(municipios, zonas, conReubicar, inv)
+    const despues = calcular(municipios, zonas, conReubicar, inv, { tiposConPlan: true })
+    expect(despues.map((r) => r.caben)).toEqual(antes.map((r) => r.caben)) // solo cambian los colores
+    const tension = despues.filter((r) => r.tipo === 'tension')
+    expect(tension.map((r) => r.ine)).toEqual(despues.filter((r) => quedanSinSitio(r) >= 25).map((r) => r.ine))
+    expect(tension.length).toBeLessThan(cuenta(antes).tension)
+    // Sin plan, los colores de siempre
+    expect(cuenta(calcular(municipios, zonas, esc))).toEqual({ tension: 78, polo: 37, oportunidad: 33, consolidacion: 7 })
   })
 
   it('«Ver en el mapa» da las mismas cifras que el plan', () => {

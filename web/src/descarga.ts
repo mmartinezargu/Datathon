@@ -37,10 +37,12 @@ export function csvEscenario(
 
 /** El plan de la pestaña «Plan»: una fila por obra, en el orden de la lista. */
 export function csvPlan(obras: Obra[], ganaPorObra: number[], porIne: Map<string, Municipio>): string {
-  const cabecera = ['ine', 'municipio', 'obra', 'plazas_o_personas_que_atiende', 'euros_por_plaza', 'coste_eur', 'inicio_obras', 'apertura', 'caben_mas']
+  const cabecera = ['ine', 'municipio', 'obra', 'plazas_o_personas_que_atiende', 'euros_por_plaza', 'coste_eur', 'inicio_obras', 'apertura', 'zona_salud', 'pasan_a_caber', 'euros_por_persona']
   const filas = obras.map((o, i) => [
     o.ine, porIne.get(o.ine)?.nombre ?? '', NOMBRE_OBRA[o.tipo], entero(o.plazas),
-    o.tipo === 'centro_salud' ? '' : entero(o.eurosPorPlaza), entero(costeObra(o)), String(o.inicio), String(aperturaObra(o)), entero(ganaPorObra[i] ?? 0),
+    o.tipo === 'centro_salud' ? '' : entero(o.eurosPorPlaza), entero(costeObra(o)), String(o.inicio), String(aperturaObra(o)),
+    o.tipo === 'centro_salud' ? porIne.get(o.ine)?.capacidad?.zbs_nombre ?? '' : '', entero(ganaPorObra[i] ?? 0),
+    (ganaPorObra[i] ?? 0) >= 1 ? entero(costeObra(o) / ganaPorObra[i]) : '',
   ])
   return '\ufeff' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
 }

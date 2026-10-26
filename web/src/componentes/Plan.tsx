@@ -169,8 +169,9 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
         <div className="tabla-scroll">
           <table className="plan-tabla">
             <thead>
-              <tr><th>Municipio</th><th>Obra</th><th className="num">Plazas</th><th className="num">€ por plaza</th>
-                <th className="num">Años</th><th className="num">Coste</th><th className="num">Abre</th><th className="num">Caben más</th><th aria-label="Borrar" /></tr>
+              <tr><th>Municipio</th><th>Obra</th><th className="num">Plazas</th><th className="num">€ por<br />plaza</th>
+                <th className="num">Años</th><th className="num">Coste</th><th className="num">Abre</th><th className="num">Pasan<br />a caber</th>
+                <th className="num">€ por<br />persona</th><th aria-label="Borrar" /></tr>
             </thead>
             <tbody>
               {obras.map((o, i) => {
@@ -180,11 +181,12 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
                 return (
                   <tr key={i}>
                     <td><button className="enlace" onClick={() => onFicha(o.ine)} title="Ver su ficha en el mapa">{nombre}</button></td>
-                    <td>
+                    <td className="plan-obra">
                       <select value={o.tipo} aria-label={`Obra en ${nombre}`}
                         onChange={(e) => { const tipo = e.target.value as TipoObra; onCambiar(i, { tipo, ...parametros.obras[tipo] }) }}>
                         {TIPOS_OBRA.map((t) => <option key={t} value={t}>{NOMBRE_OBRA[t]}</option>)}
                       </select>
+                      {centro && <small title="Un centro de salud sirve a toda su zona básica">zona {porIne.get(o.ine)?.capacidad?.zbs_nombre}</small>}
                     </td>
                     <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })}
                       etiqueta={centro ? `Personas que atiende el centro de ${nombre}` : `Plazas en ${nombre}`} sufijo={centro ? 'pers.' : undefined} /></td>
@@ -196,8 +198,9 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
                     <td className={`num${aperturaObra(o) > horizonte ? ' plan-tarde' : ''}`}
                       title={aperturaObra(o) > horizonte ? `Abre después de ${horizonte}` : undefined}>{aperturaObra(o)}</td>
                     <td className="num">
-                      {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Aquí manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()}`}>0</span>}
+                      {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Sola no suelta el límite: manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()}, o va junto a la obra de debajo`}>0</span>}
                     </td>
+                    <td className="num">{gana >= 1 ? miles(costeObra(o) / gana) : '—'}</td>
                     <td><button className="plan-borrar" onClick={() => onBorrar(i)} aria-label={`Borrar la obra de ${nombre}`} title="Borrar">×</button></td>
                   </tr>
                 )
@@ -207,7 +210,10 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
         </div>
       )}
       {obras.length > 0 && (
-        <p className="ayuda plan-pie">«Caben más»: personas más de las que le llegan que caben en el municipio con esa obra. Pulsa un municipio para ver su ficha.</p>
+        <p className="ayuda plan-pie">
+          «Pasan a caber»: lo que baja la gente sin sitio en los 155 al sumar esa obra a las de arriba (un centro de salud sirve a toda
+          su zona y, reubicando, lo que se libera aprovecha a los pueblos vecinos). Pulsa un municipio para ver su ficha.
+        </p>
       )}
     </section>
   )
@@ -253,7 +259,7 @@ function Resumen({ r, comparacion, hayObras }: { r: ResultadoPlan; comparacion: 
         <Dato valor={millones(r.coste)} texto={`en ${r.municipios} ${r.municipios === 1 ? 'municipio' : 'municipios'}`} />
         <Dato valor={`${colegios} + ${r.obras.centro_salud}`}
           texto={`colegios e institutos (${detalleColegios(r)}) y centros de salud`} />
-        <Dato valor={miles(r.pasanACaber)} texto="personas más caben" acento={TIPOS.polo.color} />
+        <Dato valor={miles(r.pasanACaber)} texto={`personas más caben; ${miles(r.coste / Math.max(1, r.pasanACaber))} € por persona`} acento={TIPOS.polo.color} />
         <Dato valor={r.ultimaApertura ? String(r.ultimaApertura) : '—'} texto="abre lo último" />
       </div>
       ) : <p className="vacio">Todavía no hay obras en el plan.</p>}

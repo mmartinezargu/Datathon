@@ -114,7 +114,7 @@ export interface ResultadoPlan {
   reubicadas: number // con el plan, personas que van a un pueblo cercano
   ultimaApertura: number | null
   calendario: { anio: number; personas: number }[] // personas que pasan a caber cada año, según abren las obras
-  ganaPorObra: number[] // personas más que caben en su municipio con cada obra (en el orden de la lista)
+  ganaPorObra: number[] // lo que baja la gente sin sitio en los 155 al sumar cada obra a las de antes en la lista (suman pasanACaber)
 }
 
 /** Curva de alumnos por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */

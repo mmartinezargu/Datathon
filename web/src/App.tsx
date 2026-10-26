@@ -19,7 +19,7 @@ import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import {
   ANIO_BASE, HOSPITAL_LEJOS_KM, PARAMETROS_PLAN, SIN_INVERSION, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  inversionesDe, nuevaObra, obraSugerida, quedanSinSitio, resumenReubicacion,
+  inversionesDe, inversionesPorZona, nuevaObra, obraSugerida, quedanSinSitio, resumenReubicacion,
 } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { DatosValidacion, Escenario, FiltrosMudanza, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
@@ -127,8 +127,9 @@ export default function App() {
   // Recalcular solo cuando cambian los datos, las palancas o el plan
   const inversiones = useMemo(() => inversionesDe(obras), [obras])
   const resultados = useMemo(
-    () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones) : []),
-    [municipios, zonas, escenario, inversiones],
+    // Con un plan cargado, los colores salen de lo que falta después de reubicar y con las obras
+    () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones, { tiposConPlan: obras.length > 0 }) : []),
+    [municipios, zonas, escenario, inversiones, obras.length],
   )
   const umbrales = useMemo(
     () => (municipios && zonas ? calcularUmbrales(municipios.filter((m) => m.universo), zonas, escenario.exigencia) : null),
@@ -185,6 +186,7 @@ export default function App() {
   // Con la reubicación, los municipios con los que intercambia gente el seleccionado (borde grueso en el mapa)
   const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
   const invertido = obras.reduce((s, o) => s + costeObra(o), 0)
+  const mismaZona = (a: string, b: string) => porIne.get(a)?.capacidad?.zbs_codigo === porIne.get(b)?.capacidad?.zbs_codigo
   // «Planificar aquí» en la ficha: si el municipio no está en el plan, se añade la obra que suelta su límite
   const planificar = (r: ResultadoMunicipio) => {
     if (!obras.some((o) => o.ine === r.ine)) {
@@ -292,9 +294,12 @@ export default function App() {
                 <span className="leyenda-muestras" aria-hidden="true">
                   {ORDEN_TIPOS.map((t) => <i key={t} style={{ background: TIPOS[t].color }} />)}
                 </span>
-                {leyendaAbierta ? 'Ocultar leyenda' : 'Leyenda'}
+                {leyendaAbierta ? 'Ocultar leyenda' : obras.length ? 'Leyenda con el plan' : 'Leyenda'}
               </button>
               <div className="leyenda-cuerpo">
+                {obras.length > 0 && colorMapa === 'tipo' && (
+                  <p className="leyenda-plan">Con el plan: colores según lo que falta después de reubicar y con las obras.</p>
+                )}
                 <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
                 {colorMapa === 'tipo' ? (
                   <>
@@ -335,7 +340,8 @@ export default function App() {
                   <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
                 </div>
                 <Ficha r={sel} m={porIne.get(sel.ine)!} porIne={porIne} escenario={escenario} umbrales={umbrales}
-                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} enPlan={obras.filter((o) => o.ine === sel.ine)}
+                  inversion={inversionesPorZona(inversiones, municipios)[sel.ine] ?? SIN_INVERSION}
+                  enPlan={obras.filter((o) => o.ine === sel.ine || (o.tipo === 'centro_salud' && mismaZona(o.ine, sel.ine)))}
                   onPlanificar={() => planificar(sel)} onElegir={elegir} />
               </>
             ) : (

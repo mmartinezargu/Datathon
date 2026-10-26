@@ -128,9 +128,11 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
         <p>
           <b>Plan: ¿qué hace falta para que quepan?</b> Una lista de obras (ampliar un colegio, colegio nuevo, instituto o centro de salud)
           con sus plazas, su coste y el año en que abren. El «plan óptimo» va añadiendo, una a una, la obra que hace caber a más gente por
-          cada euro: en cada pueblo, la más barata que suelta su límite (primero ampliar, luego construir), hasta que lo que limita es la
-          vivienda o el ritmo, o faltan menos de {MARGEN_MINIMO} personas. Se calcula reubicando en pueblos cercanos y se compara con
-          «cada pueblo con lo suyo». Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
+          cada euro: en cada pueblo, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
+          por zona cada vez, porque sirve a toda la zona. Lo que gana una obra se cuenta en los 155, no solo en su pueblo: un centro suma
+          lo que da a toda su zona y, reubicando, lo que libera a los pueblos vecinos. Para cuando lo que limita es la vivienda o el ritmo,
+          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Se calcula reubicando en pueblos cercanos y se compara con
+          «cada pueblo con lo suyo». Con un plan cargado, el mapa colorea según lo que falta después de reubicar y con las obras. Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
           para no pasarse. Todos los valores se pueden cambiar; los de partida y su fuente están en la tabla de abajo.
         </p>
         <p>
@@ -327,10 +329,10 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
             <h3>4. Invertir y mudarse</h3>
             <p>
               <b>Invertir.</b> Cada obra del plan suma sus plazas a su nivel (primaria o ESO), y se pasan a personas con los niños de esa
-              edad que viven en el municipio por vecino. Cada centro de salud nuevo añade, solo para ese municipio, las personas que atiende
-              (de partida, la mediana de las zonas); si su zona ya se pasa del límite, primero cubre esa parte. Después se recalcula todo:
-              a veces el límite pasa a otro recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan
-              óptimo cuenta las dos juntas.
+              edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
+              zona las personas que atiende (de partida, la mediana de las zonas); si la zona ya se pasa del límite, primero cubre esa parte,
+              y cada municipio de la zona se lleva su parte según sus vecinos. Después se recalcula todo: a veces el límite pasa a otro
+              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
             </p>
             <p>
               <b>Dónde mudarse.</b> Se mira cuánto sitio le queda a cada municipio en colegios, centro de salud y vivienda

@@ -16,7 +16,7 @@ interface Props {
   escenario: Escenario
   umbrales: Umbrales
   inversion: Inversion // lo que construye el plan aquí
-  enPlan: Obra[] // las obras del plan en este municipio
+  enPlan: Obra[] // las obras del plan en este municipio y los centros de salud de su zona (sirven a toda la zona)
   onPlanificar: () => void // abrir la pestaña «Plan» (con este municipio añadido si no estaba)
   onElegir: (ine: string) => void // abrir la ficha de otro municipio (los de los traslados)
 }
@@ -76,7 +76,7 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
         <div className="cuenta">{explicacion(r, m, escenario, umbrales, inversion)}</div>
       </details>
 
-      <EnElPlan obras={enPlan} onPlanificar={onPlanificar} />
+      <EnElPlan obras={enPlan} zona={m.capacidad!.zbs_nombre} onPlanificar={onPlanificar} />
 
       <h3>Población 2005–{escenario.anio}</h3>
       <Evolucion poblacion={m.poblacion} anioFin={escenario.anio} poblacionFin={r.poblacion + r.llegan} color={tipo.color} />
@@ -173,17 +173,17 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
         `si quien llega trae los mismos, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
-      // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
-      const parte = (umb.zona - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
-      const total = miles(r.limites.sanidad ?? 0)
+      // Los centros nuevos del plan suman a toda la zona (inv trae los de su zona). La parte del municipio en el sitio libre
+      // de la zona es negativa si la zona sigue por encima del límite.
+      const aguanta = umb.zona + inv.personasSanidad
+      const parte = (aguanta - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
       const nuevos = inv.centros
-        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} del plan se suman ${miles(inv.personasSanidad)} personas` +
-          (parte < 0 ? `; descontando ese exceso, quedan ${total}.` : `: ${total} en total.`)
+        ? `; con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} del plan en la zona, hasta ${miles(aguanta)}`
         : ''
-      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}. ` +
+      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}${nuevos}. ` +
         (parte < 0
-          ? `La zona ya está por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más${inv.centros ? '' : ', así que no queda sitio'}.`
-          : `Quedan ${miles(umb.zona - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${total}`}.`) + nuevos
+          ? `La zona ${inv.centros ? 'sigue' : 'ya está'} por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más, así que no queda sitio.`
+          : `Quedan ${miles(aguanta - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos: ${miles(r.limites.sanidad ?? 0)}.`)
     }
     case 'vivienda':
       return (c.viv_vacias_sin_dato
@@ -205,11 +205,11 @@ const OBRAS_EN_TEXTO: Record<TipoObra, [string, string]> = {
 }
 
 /** «En el plan: 1 ampliación de colegio y 1 centro de salud (8,5 M€; abre en 2030) → Ver en el plan». */
-function EnElPlan({ obras, onPlanificar }: { obras: Obra[]; onPlanificar: () => void }) {
+function EnElPlan({ obras, zona, onPlanificar }: { obras: Obra[]; zona: string; onPlanificar: () => void }) {
   const partes = (Object.keys(OBRAS_EN_TEXTO) as TipoObra[])
     .map((t) => [t, obras.filter((o) => o.tipo === t).length] as const)
     .filter(([, n]) => n > 0)
-    .map(([t, n]) => `${n} ${OBRAS_EN_TEXTO[t][n === 1 ? 0 : 1]}`)
+    .map(([t, n]) => `${n} ${OBRAS_EN_TEXTO[t][n === 1 ? 0 : 1]}${t === 'centro_salud' ? ` (zona ${zona})` : ''}`)
   const lista = partes.length > 1 ? `${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}` : partes[0]
   return (
     <p className="ficha-plan">
