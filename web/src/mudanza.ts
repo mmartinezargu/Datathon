@@ -170,7 +170,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
 
   // Perfil
   const sinHijos = /\b(sin|no tengo|no tenemos) (hijos|ninos|crios)/.test(t)
-  const hijos = !sinHijos && /\b(hij[oa]s?|nin[oa]s?|crio|crios|bebe|bebes|peques|familia)\b/.test(t)
+  const hijos = !sinHijos && /\b(hij[oa]s?|nin[oa]s?|crio|crios|bebe|bebes|peques|familias?)\b/.test(t)
   const instituto = /\b(institut\w*|secundaria|la eso|bachiller\w*|adolescentes?)\b/.test(t)
   const somos = t.match(/\bsomos (\d+|dos|tres|cuatro|cinco|seis|siete|ocho)\b/)
   const cuantos = somos ? (NUMEROS[somos[1]] ?? Number(somos[1])) : 0
