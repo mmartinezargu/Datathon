@@ -17,11 +17,11 @@ export interface Totales {
   reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
-export type Destino = 'mapa' | 'reparto' | 'acierta' | 'metodologia'
+export type Destino = 'mapa' | 'mudanza' | 'reparto' | 'acierta' | 'metodologia'
 
 const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: string; boton: string }[] = [
   { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan, por qué, y qué pasa si se construye un colegio o un centro de salud.', boton: 'Abrir el mapa' },
-  { destino: 'reparto', icono: 'repartir', quien: '¿Dónde los ponemos?', que: 'Dinos quiénes llegan y dónde queréis llevarlos, y te enseñamos en qué pueblos caben y qué hay que ampliar.', boton: 'Repartir' },
+  { destino: 'mudanza', icono: 'vivir', quien: 'Busco dónde vivir', que: 'Dinos quién eres y qué necesitas, y te enseñamos dónde habrá sitio para ti.', boton: 'Buscar municipio' },
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
 
