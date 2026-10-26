@@ -5,7 +5,7 @@
 //   capacidad = cuánta gente cabe = el menor de 4 límites (ley del mínimo)
 //   tipo      = el cruce de las dos: tensión, polo, oportunidad o consolidación
 
-import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
+import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Medida, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
 
 export const ANIO_BASE = 2025
 /** Personas que ganaron los 155 municipios en 2015-2025 (Padrón, INE). */
@@ -38,13 +38,21 @@ export const COSTE_CENTRO_SALUD = 8_000_000
 /** Plazo orientativo hasta que abre, en años [est.]. */
 export const PLAZO_COLEGIO_ANIOS = 2
 export const PLAZO_CENTRO_SALUD_ANIOS = 3
-/** Más lejos que esto, una oportunidad queda «condicionada»: unos 30 min en coche [est.]. */
+/** Más lejos que esto, una oportunidad queda «condicionada». Con km, en línea recta (unos 30 min en coche [est.]). */
 export const HOSPITAL_LEJOS_KM = 25
+/** Lo mismo con minutos: en coche, sin tráfico (OSRM), hasta el hospital al que se llega antes. */
+export const HOSPITAL_LEJOS_MIN = 30
 /** Reubicación: hasta qué distancia (en línea recta entre núcleos) se busca un pueblo con sitio. */
 export const RADIO_REUBICACION_KM = 25
+/** Lo mismo con minutos: en coche, sin tráfico, de núcleo a núcleo. */
+export const RADIO_REUBICACION_MIN = 30
 export const SIN_INVERSION: Inversion = { colegios: 0, centros: 0 }
 
-export function escenarioPorDefecto(anio = 2035): Escenario {
+/**
+ * Escenario de partida. La medida por defecto del motor es 'km', la de las cifras de siempre (y de los tests);
+ * la web abre con 'min' (App.tsx).
+ */
+export function escenarioPorDefecto(anio = 2035, medida: Medida = 'km'): Escenario {
   return {
     anio,
     personas: Math.round(RITMO_ANUAL * (anio - ANIO_BASE)),
@@ -53,8 +61,15 @@ export function escenarioPorDefecto(anio = 2035): Escenario {
     ritmoMax: 0.03,
     exigencia: 0.9,
     reequilibrio: false,
+    medida,
     radioKm: RADIO_REUBICACION_KM,
+    radioMin: RADIO_REUBICACION_MIN,
   }
+}
+
+/** El hospital general público más cercano queda lejos: a más de 25 km en línea recta o a más de 30 min en coche. */
+export function hospitalLejos(m: Municipio, medida: Medida): boolean {
+  return medida === 'min' ? m.hospital_min > HOSPITAL_LEJOS_MIN : m.hospital_km > HOSPITAL_LEJOS_KM
 }
 
 export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario, inversiones: Inversiones = {}): ResultadoMunicipio[] {
@@ -86,27 +101,30 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
   const medCapacidad = mediana(parciales.map((r, i) => cabenSinInvertir[i] / r.poblacion))
   const conTipo = parciales.map((r, i) => {
     const tipo = clasificar(r, medPresion, medCapacidad)
-    return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM,
+    return { ...r, tipo, condicionada: tipo === 'oportunidad' && hospitalLejos(universo[i], esc.medida),
       recibe: 0, envia: 0, envios: [], llegadas: [] }
   })
 
   // 4. Reubicación (si se activa): lo que no cabe va a los pueblos cercanos con sitio
-  return esc.reequilibrio ? reubicar(conTipo, universo, esc.radioKm) : conTipo
+  return esc.reequilibrio ? reubicar(conTipo, universo, esc) : conTipo
 }
 
 /**
  * Reubicación en pueblos cercanos: quien no cabe en su municipio va al pueblo con sitio más cercano.
- *   1. Se toman todas las parejas (municipio con exceso, municipio con sitio) a ≤ radioKm, en línea recta entre núcleos.
- *   2. Se ordenan de la más cercana a la más lejana y, en ese orden, se traslada lo que se pueda:
+ *   1. Se toman todas las parejas (municipio con exceso, municipio con sitio) cercanas, según la medida:
+ *      con 'km', a ≤ radioKm en línea recta entre núcleos; con 'min', a ≤ radioMin en coche, sin tráfico,
+ *      del núcleo de origen al de destino (vecinos_min, calculado con OSRM en etl/tiempos.py).
+ *   2. Se ordenan de la más cercana a la más lejana (en esa misma medida) y, en ese orden, se traslada lo que se pueda:
  *      mín(exceso que le queda al origen, sitio que le queda al destino).
- * Ningún pueblo con el hospital a más de HOSPITAL_LEJOS_KM recibe a nadie, sea del tipo que sea (no solo las oportunidades
- * condicionadas). Lo que no encuentra sitio cerca se queda sin sitio.
+ * Ningún pueblo con el hospital lejos (hospitalLejos, con la misma medida) recibe a nadie, sea del tipo que sea
+ * (no solo las oportunidades condicionadas). Lo que no encuentra sitio cerca se queda sin sitio.
  * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade los traslados.
  */
-export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio[], radioKm: number): ResultadoMunicipio[] {
+export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio[],
+  esc: Pick<Escenario, 'medida' | 'radioKm' | 'radioMin'>): ResultadoMunicipio[] {
   const nucleo = new Map(municipios.map((m) => [m.ine, m]))
   const exceso = new Map(resultados.filter((r) => r.margen < 0).map((r) => [r.ine, -r.margen]))
-  const sitio = new Map(resultados.filter((r) => r.margen > 0 && nucleo.get(r.ine)!.hospital_km <= HOSPITAL_LEJOS_KM).map((r) => [r.ine, r.margen]))
+  const sitio = new Map(resultados.filter((r) => r.margen > 0 && !hospitalLejos(nucleo.get(r.ine)!, esc.medida)).map((r) => [r.ine, r.margen]))
 
   const parejas: Traslado[] = []
   for (const origen of exceso.keys()) {
@@ -114,11 +132,14 @@ export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio
     for (const destino of sitio.keys()) {
       const b = nucleo.get(destino)!
       const km = Math.hypot(a.nucleo_x - b.nucleo_x, a.nucleo_y - b.nucleo_y)
-      if (km <= radioKm) parejas.push({ origen, destino, personas: 0, km })
+      const min = a.vecinos_min[destino] ?? null
+      const cerca = esc.medida === 'min' ? min !== null && min <= esc.radioMin : km <= esc.radioKm
+      if (cerca) parejas.push({ origen, destino, personas: 0, km, min })
     }
   }
   // De la más cercana a la más lejana (a igual distancia, por código INE, para que salga siempre igual)
-  parejas.sort((p, q) => p.km - q.km || p.origen.localeCompare(q.origen) || p.destino.localeCompare(q.destino))
+  const distancia = (t: Traslado) => (esc.medida === 'min' ? t.min! : t.km)
+  parejas.sort((p, q) => distancia(p) - distancia(q) || p.origen.localeCompare(q.origen) || p.destino.localeCompare(q.destino))
 
   const traslados: Traslado[] = []
   for (const p of parejas) {
@@ -142,14 +163,20 @@ export function quedanSinSitio(r: ResultadoMunicipio): number {
   return Math.max(0, -r.margen) - r.envia
 }
 
-/** Resumen de la reubicación para los 155: cuántos se mueven, a cuántos pueblos y a qué distancia media. */
+/**
+ * Resumen de la reubicación para los 155: cuántos se mueven, a cuántos pueblos y a qué distancia media (por persona).
+ * minMedio cuenta solo los traslados con minutos (con la medida 'min', todos).
+ */
 export function resumenReubicacion(resultados: ResultadoMunicipio[]) {
   const traslados = resultados.flatMap((r) => r.envios).sort((p, q) => q.personas - p.personas)
   const personas = traslados.reduce((s, t) => s + t.personas, 0)
+  const conMin = traslados.filter((t) => t.min !== null)
+  const personasConMin = conMin.reduce((s, t) => s + t.personas, 0)
   return {
     personas,
     destinos: new Set(traslados.map((t) => t.destino)).size,
-    kmMedio: personas > 0 ? traslados.reduce((s, t) => s + t.personas * t.km, 0) / personas : 0, // media por persona
+    kmMedio: personas > 0 ? traslados.reduce((s, t) => s + t.personas * t.km, 0) / personas : 0,
+    minMedio: personasConMin > 0 ? conMin.reduce((s, t) => s + t.personas * t.min!, 0) / personasConMin : 0,
     traslados,
   }
 }

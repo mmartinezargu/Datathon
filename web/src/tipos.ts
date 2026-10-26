@@ -46,8 +46,14 @@ export interface Municipio {
   nucleo_y: number
   hospital_km: number // en línea recta, del núcleo al hospital general público más cercano
   hospital_municipio: string // municipio de ese hospital
+  hospital_min: number // minutos en coche, sin tráfico (OSRM), al hospital general público al que se llega antes (puede ser otro)
+  hospital_min_municipio: string // municipio de ese hospital
+  vecinos_min: Record<string, number> // ine -> minutos en coche desde este núcleo hasta el de otro pueblo del reto (≤ 60 min); vacío si no es del reto
   capacidad: IngredientesCapacidad | null
 }
+
+/** Cómo se mide lo lejos que queda algo: minutos en coche, sin tráfico (OSRM), o km en línea recta. */
+export type Medida = 'min' | 'km'
 
 /** Las palancas que mueve el usuario. */
 export interface Escenario {
@@ -58,7 +64,9 @@ export interface Escenario {
   ritmoMax: number // crecimiento máximo prudente al año (0.03 = 3 %)
   exigencia: number // hasta qué percentil se pueden cargar colegios y centros (0.75 = como el 25 % más cargado)
   reequilibrio: boolean // reubicar lo que no cabe en pueblos cercanos con sitio
-  radioKm: number // hasta qué distancia se busca sitio (línea recta entre núcleos)
+  medida: Medida // decide qué hospital queda lejos y qué radio se usa al reubicar
+  radioKm: number // con medida 'km': hasta qué distancia se busca sitio (línea recta entre núcleos)
+  radioMin: number // con medida 'min': hasta cuántos minutos en coche se busca sitio (entre núcleos)
 }
 
 /** Lo que el usuario decide construir en un municipio (modo «¿y si invertimos aquí?»). */
@@ -111,6 +119,7 @@ export interface Traslado {
   destino: string // ine
   personas: number
   km: number // en línea recta entre núcleos
+  min: number | null // en coche, sin tráfico, de núcleo a núcleo (null = más de 60 min)
 }
 
 /** Vista ciudadana «¿Dónde me mudo?». */
@@ -123,7 +132,7 @@ export interface FiltrosMudanza {
   colegio: boolean // que tenga colegio de primaria
   instituto: boolean // que tenga instituto (secundaria)
   sitioLibre: boolean // que no se quede sin sitio con la gente que llega
-  hospitalCerca: boolean // que el hospital general público más cercano esté a HOSPITAL_LEJOS_KM o menos (motor.ts)
+  hospitalCerca: boolean // que el hospital general público más cercano no quede lejos (hospitalLejos de motor.ts, con la medida del escenario)
   zona: string | null // zona estadística; null = cualquiera
   tamano: Tamano
 }

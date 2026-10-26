@@ -1,7 +1,7 @@
 // Tests del motor con los datos reales (web/public/datos). Se ejecutan con «npm test».
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { HOSPITAL_LEJOS_KM, calcular, calcularUmbrales, escenarioPorDefecto, nivelesColegio, resumenReubicacion } from '../src/motor'
+import { HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, RADIO_REUBICACION_MIN, calcular, calcularUmbrales, escenarioPorDefecto, nivelesColegio, resumenReubicacion } from '../src/motor'
 import type { Municipio, ResultadoMunicipio, ZonaSalud } from '../src/tipos'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
@@ -73,6 +73,55 @@ describe('reubicación y hospital', () => {
     expect(b.llegadas).toEqual([])
     const lejos = new Set(municipios.filter((m) => m.hospital_km > HOSPITAL_LEJOS_KM).map((m) => m.ine))
     expect(resumenReubicacion(r).traslados.filter((t) => lejos.has(t.destino))).toEqual([])
+  })
+})
+
+describe('medida en minutos en coche (OSRM, sin tráfico)', () => {
+  const escMin = escenarioPorDefecto(2035, 'min')
+  const lejosMin = new Set(municipios.filter((m) => m.hospital_min > HOSPITAL_LEJOS_MIN).map((m) => m.ine))
+
+  it('por defecto, el motor mide en km y la web en minutos', () => {
+    expect(esc.medida).toBe('km')
+    expect(escMin).toEqual({ ...esc, medida: 'min' })
+    expect(escMin.radioMin).toBe(RADIO_REUBICACION_MIN)
+  })
+
+  it('no cambia ni lo que cabe ni los tipos: solo qué oportunidades quedan condicionadas', () => {
+    const km = calcular(municipios, zonas, esc)
+    const min = calcular(municipios, zonas, escMin)
+    expect(Math.round(caben(min))).toBe(56_796)
+    expect(min.map((x) => x.tipo)).toEqual(km.map((x) => x.tipo))
+    expect(km.filter((x) => x.condicionada)).toHaveLength(17)
+    const cond = min.filter((x) => x.condicionada)
+    expect(cond).toHaveLength(18)
+    expect(cond.every((x) => lejosMin.has(x.ine))).toBe(true)
+    // Villar del Olmo: a menos de 25 km en línea recta, pero a más de 30 min en coche
+    const villar = municipios.find((m) => m.nombre === 'Villar del Olmo')!
+    expect(villar.hospital_km).toBeLessThanOrEqual(HOSPITAL_LEJOS_KM)
+    expect(cond.map((x) => x.ine)).toContain(villar.ine)
+  })
+
+  it('reubica a 30 min en coche', () => {
+    const r = calcular(municipios, zonas, { ...escMin, reequilibrio: true })
+    const re = resumenReubicacion(r)
+    expect(Math.round(re.personas)).toBe(26_346)
+    expect(re.destinos).toBe(30)
+    expect(Math.round(escMin.personas - caben(r) - re.personas)).toBe(51_284)
+    expect(re.traslados.every((t) => t.min !== null && t.min <= RADIO_REUBICACION_MIN)).toBe(true)
+  })
+
+  it.each([10, 30, 45])('ningún pueblo con el hospital a más de 30 min recibe gente (a %i min)', (radioMin) => {
+    const r = calcular(municipios, zonas, { ...escMin, reequilibrio: true, radioMin })
+    const traslados = resumenReubicacion(r).traslados
+    expect(traslados.length).toBeGreaterThan(0)
+    expect(traslados.filter((t) => lejosMin.has(t.destino))).toEqual([])
+    expect(traslados.every((t) => t.min! <= radioMin)).toBe(true)
+  })
+
+  it('más minutos, más gente reubicada', () => {
+    const personas = [10, 20, 30, 45].map((radioMin) =>
+      resumenReubicacion(calcular(municipios, zonas, { ...escMin, reequilibrio: true, radioMin })).personas)
+    expect(personas).toEqual([...personas].sort((a, b) => a - b))
   })
 })
 

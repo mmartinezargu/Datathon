@@ -31,8 +31,9 @@ Las cifras del escenario (cuánta gente llega y cuánta cabe con las palancas el
 | Zonas básicas de salud | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff |
 | Límites municipales | IDEM, Comunidad de Madrid | https://idem.comunidad.madrid/ |
 | Planeamiento urbanístico refundido 2025 | IDEM, Comunidad de Madrid | https://idem.comunidad.madrid/recursos_cat_geo/Catalogo/recursos/Planeamiento/Refundido/vpla_ref_25_gpkg.zip |
+| Minutos en coche, sin tráfico (`hospital_min`, `hospital_min_municipio`, `vecinos_min`) | OSRM (servidor público router.project-osrm.org) sobre datos de OpenStreetMap, © colaboradores de OpenStreetMap, ODbL 1.0 | https://www.openstreetmap.org/copyright |
 
-Los enlaces exactos de descarga están en `etl/descargar.py`.
+Los enlaces exactos de descarga están en `etl/descargar.py`; los minutos en coche, en `etl/tiempos.py`.
 
 ## Licencia
 
@@ -44,6 +45,8 @@ Se pueden copiar, redistribuir, transformar y usar con cualquier fin, también c
 
 Los datos de partida son de sus autores (INE, Comunidad de Madrid), que los publican como datos abiertos con reutilización libre citando la fuente.
 
+Las columnas de minutos en coche (`hospital_min`, `hospital_min_municipio`, `vecinos_min`) se calculan con OSRM sobre datos de OpenStreetMap (© colaboradores de OpenStreetMap, licencia ODbL 1.0, https://www.openstreetmap.org/copyright). Al reutilizarlas hay que citar también a OpenStreetMap, y pueden estar sujetas a las condiciones de la ODbL.
+
 ## Cómo regenerarlos
 
 Hace falta [uv](https://docs.astral.sh/uv/) y Python 3.12 o superior.
@@ -51,6 +54,7 @@ Hace falta [uv](https://docs.astral.sh/uv/) y Python 3.12 o superior.
 ```bash
 cd etl
 uv run descargar.py    # baja los datos abiertos a data/raw (unos 170 MB)
+uv run tiempos.py      # solo si cambian los núcleos o los hospitales: minutos en coche con OSRM (data/raw/tiempos_osrm.json)
 uv run preparar.py     # tabla_maestra.csv, diccionario.csv y los datos de la web
 uv run validacion.py   # validacion_municipios.csv
 ```

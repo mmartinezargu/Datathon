@@ -36,6 +36,8 @@ npm run build && npm run preview   # versión final, http://localhost:4173
 
 `data/raw` → `etl/preparar.py` → `web/public/datos/*.json` + `data/out/*.csv` → `web/src/motor.ts` (navegador).
 
+Los minutos en coche salen antes, de `etl/tiempos.py` (OSRM) → `data/raw/tiempos_osrm.json`, que lee `preparar.py`. La web nunca llama a OSRM.
+
 - Los archivos de `web/public/datos/` y `data/out/` son **generados**: no se editan a mano, se regeneran con `uv run preparar.py`.
 - Si cambias la forma de un JSON en `preparar.py`, actualiza `web/src/tipos.ts` en el mismo cambio.
 - `motor.ts` tiene constantes ligadas a los datos (`ANIO_BASE = 2025`, `CRECIMIENTO_DECADA = 134_426`). Si el ETL cambia esas cifras, cámbialas aquí y en `PENDIENTE.md` (sección de cifras para las diapositivas).

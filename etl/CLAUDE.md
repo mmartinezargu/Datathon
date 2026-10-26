@@ -9,9 +9,10 @@ Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, 
 | `comun.py` | Compartido por `preparar.py` y `validacion.py`: rutas (`RAIZ`, `RAW`, `OUT`, `WEB_DATOS`), `LIMITE_HABITANTES = 50_000`, `ANIO_BASE = 2025`, lectura de población. Usa estas constantes, no rutas a mano |
 | `descargar.py` | Baja los datos abiertos a `../data/raw` (~170 MB) |
 | `capacidad.py` | Ingredientes fijos de la capacidad (viviendas, planeamiento, colegios y zona básica de salud de cada municipio). Los umbrales y la cuenta final con palancas los calcula `web/src/motor.ts` |
-| `preparar.py` | Genera `../web/public/datos/*.json` y `../data/out/*.csv` |
+| `tiempos.py` | Minutos en coche, sin tráfico (OSRM, servidor público) de cada núcleo al hospital y entre los 155 (≤ 60 min). Escribe `../data/raw/tiempos_osrm.json` (se sube; la caché `osrm_cache/` no) e imprime la comparación con los km. `--simulacro` prueba sin red. Solo hay que repetirlo si cambian los núcleos o los hospitales |
+| `preparar.py` | Genera `../web/public/datos/*.json` y `../data/out/*.csv`. Lee `tiempos_osrm.json` para `hospital_min`, `hospital_min_municipio` y `vecinos_min` |
 | `validacion.py` | Valida el modelo 2015→2025 (WAPE y personas colocadas en otro municipio o zona) y escribe `validacion_municipios.csv` / `validacion.json` |
-| `plan_inversion.py` | Para una diapositiva: con el escenario por defecto, con y sin reubicar, añade colegios y centros de salud donde limitan y dice cuántos, cuánto cuestan y cuánta gente sigue sin sitio. Repite las cuentas de `web/src/motor.ts` (si cambias el motor, cámbialo aquí; al arrancar comprueba que salen las cifras de la web) |
+| `plan_inversion.py` | Para una diapositiva (`--medida km` por defecto, o `min`): con el escenario por defecto, con y sin reubicar, añade colegios y centros de salud donde limitan y dice cuántos, cuánto cuestan y cuánta gente sigue sin sitio. Repite las cuentas de `web/src/motor.ts` (si cambias el motor, cámbialo aquí; al arrancar comprueba que salen las cifras de la web) |
 
 ## Reglas
 

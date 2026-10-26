@@ -4,8 +4,9 @@
 
 import { useState } from 'react'
 import { ANIO_BASE, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
-import type { Escenario } from '../tipos'
+import type { Escenario, Medida } from '../tipos'
 import { miles, pct } from '../formato'
+import { MEDIDAS, radioReubicacion, umbralHospital } from '../medida'
 
 interface Props {
   escenario: Escenario
@@ -49,21 +50,36 @@ export function Palancas({ escenario, onCambiar }: Props) {
           `entre 2015 y 2025, el ${pct(prevision.parte, 0)} de lo que creció la Comunidad. La Comunidad prevé llegar a 8 millones en ${PREVISION_CM.anio}; ` +
           `con esa previsión les tocarían algo menos, entre ${miles(redondeo(prevision.minimo))} y ${miles(redondeo(prevision.maximo))}.`}
         onCambiar={(v) => cambiar({ personas: v })} />
+      <div className="control">
+        <div className="etiqueta"><span>Medir en</span></div>
+        <Segmentos opciones={(['min', 'km'] as Medida[]).map((m) => ({ valor: m, texto: MEDIDAS[m].nombre }))} valor={escenario.medida}
+          onCambiar={(medida) => cambiar({ medida })} nombre="Medir las distancias en" ancho />
+        <div className="pista">
+          {escenario.medida === 'min'
+            ? 'Por carretera, sin tráfico (OpenStreetMap). '
+            : 'En línea recta, sin contar carreteras. '}
+          El hospital queda lejos a más de {umbralHospital(escenario.medida)}{escenario.medida === 'min' ? ' en coche' : ''}.
+        </div>
+      </div>
       <label className="control interruptor">
         <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />
         <span className="interruptor-texto">
           <b>Reubicar en pueblos cercanos con sitio</b>
           <span className="pista">
-            Quien no cabe en su municipio va al pueblo con sitio más cercano, a menos de {escenario.radioKm} km y con hospital cerca.
+            Quien no cabe en su municipio va al pueblo con sitio más cercano, a menos de {radioReubicacion(escenario)} y con hospital cerca.
             Si no hay ninguno, se queda sin sitio. Los colores del mapa no cambian.
           </span>
         </span>
       </label>
-      {escenario.reequilibrio && (
+      {escenario.reequilibrio && (escenario.medida === 'min' ? (
+        <Deslizador etiqueta="Tiempo máximo" valor={escenario.radioMin} texto={`${escenario.radioMin} min`}
+          min={10} max={45} paso={5} pista="En coche, sin tráfico, entre los centros de los pueblos."
+          onCambiar={(v) => cambiar({ radioMin: v })} />
+      ) : (
         <Deslizador etiqueta="Distancia máxima" valor={escenario.radioKm} texto={`${escenario.radioKm} km`}
           min={10} max={50} paso={5} pista="En línea recta entre los centros de los pueblos."
           onCambiar={(v) => cambiar({ radioKm: v })} />
-      )}
+      ))}
 
       <button className="desplegar" aria-expanded={abierto} onClick={() => setAbierto(!abierto)}>
         <span>Supuestos del cálculo</span>
@@ -107,8 +123,8 @@ function Deslizador({ etiqueta, valor, texto, min, max, paso, pista, onCambiar }
   )
 }
 
-function Segmentos({ opciones, valor, onCambiar, nombre, ancho }: {
-  opciones: { valor: number; texto: string }[]; valor: number; onCambiar: (v: number) => void; nombre: string; ancho?: boolean
+function Segmentos<T extends number | string>({ opciones, valor, onCambiar, nombre, ancho }: {
+  opciones: { valor: T; texto: string }[]; valor: T; onCambiar: (v: T) => void; nombre: string; ancho?: boolean
 }) {
   return (
     <div className={`segmentos${ancho ? ' ancho' : ''}`} role="radiogroup" aria-label={nombre}>

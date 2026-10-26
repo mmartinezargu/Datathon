@@ -5,9 +5,9 @@ import { useState } from 'react'
 import { TIPOS } from '../colores'
 import { leerFrase } from '../asistente'
 import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
-import type { Candidato, Escenario, FiltrosMudanza, LecturaFrase, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
-import { decimal, miles, pct } from '../formato'
-import { HOSPITAL_LEJOS_KM } from '../motor'
+import type { Candidato, Escenario, FiltrosMudanza, LecturaFrase, Medida, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
+import { miles, pct } from '../formato'
+import { hospitalCercano, textoHospital, umbralHospital } from '../medida'
 import { Icono } from './Iconos'
 
 const MAX_COMPARAR = 3
@@ -25,7 +25,8 @@ interface Props {
 }
 
 export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, comparados, onComparados, onVerEnMapa }: Props) {
-  const ranking = rankingMudanza(resultados, porIne, filtros)
+  const medida = escenario.medida
+  const ranking = rankingMudanza(resultados, porIne, filtros, medida)
   const porIneRes = new Map(resultados.map((r) => [r.ine, r]))
   const zonas = [...new Set(resultados.map((r) => porIne.get(r.ine)!.zona))].sort((a, b) => a.localeCompare(b, 'es'))
   const cambiar = (cambio: Partial<FiltrosMudanza>) => onFiltros({ ...filtros, ...cambio })
@@ -33,7 +34,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
     onComparados(comparados.includes(ine) ? comparados.filter((x) => x !== ine) : [...comparados, ine])
 
   // Para el comparador: los elegidos, también si ya no pasan los filtros
-  const todos = rankingMudanza(resultados, porIne, { ...filtros, colegio: false, instituto: false, sitioLibre: false, zona: null, tamano: 'todos' })
+  const todos = rankingMudanza(resultados, porIne, { ...filtros, colegio: false, instituto: false, sitioLibre: false, zona: null, tamano: 'todos' }, medida)
   const elegidos = comparados.map((ine) => todos.find((c) => c.ine === ine)).filter((c): c is Candidato => !!c)
 
   return (
@@ -47,7 +48,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
       </section>
 
       <section className="val-tarjeta filtros">
-        <Asistente porIne={porIne} filtros={filtros} onFiltros={onFiltros} />
+        <Asistente porIne={porIne} filtros={filtros} medida={medida} onFiltros={onFiltros} />
 
         <h2>¿Quién se muda?</h2>
         <div className="segmentos ancho" role="radiogroup" aria-label="Perfil">
@@ -63,7 +64,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
           <Casilla texto="Que tenga colegio" valor={filtros.colegio} onCambiar={(colegio) => cambiar({ colegio })} />
           <Casilla texto="Que tenga instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
           <Casilla texto="Que no se llene con la gente que llega" valor={filtros.sitioLibre} onCambiar={(sitioLibre) => cambiar({ sitioLibre })} />
-          <Casilla texto={`Con hospital a menos de ${HOSPITAL_LEJOS_KM} km`} valor={filtros.hospitalCerca} onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
+          <Casilla texto={`Con hospital a menos de ${umbralHospital(medida)}${medida === 'min' ? ' en coche' : ''}`} valor={filtros.hospitalCerca} onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
         </div>
         <div className="filtros-fila">
           <label className="control">
@@ -86,7 +87,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
       </section>
 
       {elegidos.length > 0 && (
-        <Comparador elegidos={elegidos} porIne={porIne} porIneRes={porIneRes} anio={escenario.anio}
+        <Comparador elegidos={elegidos} porIne={porIne} porIneRes={porIneRes} anio={escenario.anio} medida={medida}
           onQuitar={alternar} onVerEnMapa={onVerEnMapa} />
       )}
 
@@ -114,7 +115,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
                   <BarrasSitio c={c} poblacion={r.poblacion} />
                   <p className="cand-frase">{frase(c, escenario.anio)}</p>
                   <p className="ayuda cand-hospital">
-                    <Icono nombre="sanidad" tamano={14} /> Hospital más cercano: {m.hospital_municipio}, a {decimal(m.hospital_km)} km en línea recta
+                    <Icono nombre="sanidad" tamano={14} /> {textoHospital(m, medida)}
                   </p>
                   <div className="cand-acciones">
                     <span className="encaje" title="Lo bien que encaja con tu perfil, comparado con los demás que cumplen lo que pides">
@@ -170,14 +171,16 @@ function BarrasSitio({ c, poblacion }: { c: Candidato; poblacion: number }) {
 }
 
 /** Caja para contarlo con tus palabras: rellena los filtros de abajo, que se pueden retocar a mano. */
-function Asistente({ porIne, filtros, onFiltros }: { porIne: Map<string, Municipio>; filtros: FiltrosMudanza; onFiltros: (f: FiltrosMudanza) => void }) {
+function Asistente({ porIne, filtros, medida, onFiltros }: {
+  porIne: Map<string, Municipio>; filtros: FiltrosMudanza; medida: Medida; onFiltros: (f: FiltrosMudanza) => void
+}) {
   const [frase, setFrase] = useState('')
   const [lectura, setLectura] = useState<LecturaFrase | null>(null)
   const [pensando, setPensando] = useState(false)
   const leer = async (texto: string) => {
     if (!texto.trim() || pensando) return
     setPensando(true)
-    const l = await leerFrase(texto, [...porIne.values()], filtros)
+    const l = await leerFrase(texto, [...porIne.values()], filtros, medida)
     setPensando(false)
     setLectura(l)
     if (l.entendido.length) onFiltros(l.filtros)
@@ -240,8 +243,8 @@ function frase(c: Candidato, anio: number): string {
   return `${texto[0].toUpperCase()}${texto.slice(1)}, contando la gente que llegaría hasta ${anio}.`
 }
 
-function Comparador({ elegidos, porIne, porIneRes, anio, onQuitar, onVerEnMapa }: {
-  elegidos: Candidato[]; porIne: Map<string, Municipio>; porIneRes: Map<string, ResultadoMunicipio>; anio: number
+function Comparador({ elegidos, porIne, porIneRes, anio, medida, onQuitar, onVerEnMapa }: {
+  elegidos: Candidato[]; porIne: Map<string, Municipio>; porIneRes: Map<string, ResultadoMunicipio>; anio: number; medida: Medida
   onQuitar: (ine: string) => void; onVerEnMapa: (ine: string) => void
 }) {
   const sitio = (v: number | null) => (v === null ? 'no tiene' : v >= 0 ? `${miles(v)} más` : `faltan ${miles(-v)}`)
@@ -251,7 +254,10 @@ function Comparador({ elegidos, porIne, porIneRes, anio, onQuitar, onVerEnMapa }
     { nombre: 'Colegios / institutos', valor: (c) => { const k = porIne.get(c.ine)!.capacidad!; return `${k.colegios_primaria} / ${k.colegios_secundaria}` } },
     { nombre: 'Sitio en colegios', valor: (c) => sitio(c.sitio.colegios) },
     { nombre: 'Sitio en el centro de salud', valor: (c) => sitio(c.sitio.sanidad) },
-    { nombre: 'Hospital más cercano', valor: (c) => { const m = porIne.get(c.ine)!; return `${decimal(m.hospital_km)} km (${m.hospital_municipio})` } },
+    {
+      nombre: medida === 'min' ? 'Hospital más cercano (en coche)' : 'Hospital más cercano',
+      valor: (c) => { const h = hospitalCercano(porIne.get(c.ine)!, medida); return `${h.distancia} (${h.municipio})` },
+    },
     { nombre: 'Casa para', valor: (c) => sitio(c.sitio.vivienda) },
     { nombre: 'Tipo', valor: (c) => TIPOS[porIneRes.get(c.ine)!.tipo].nombre },
   ]

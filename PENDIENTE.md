@@ -11,6 +11,8 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - ✅ **Oportunidad condicionada**: oportunidad con el hospital general público más cercano a más de 25 km en línea recta (unos 30 min en coche [est.]). Sale rayada en el mapa, y la ficha dice el hospital más cercano.
 - ✅ **Reubicar en pueblos cercanos**: interruptor en el escenario, con un deslizador para la distancia (10–50 km; por defecto 25). Lo que no cabe va al pueblo con sitio más cercano (y con el hospital cerca). Se ve en las cifras de cabecera, el vaso, un bloque con los 5 traslados más grandes, la ficha («Envía… a» o «Recibe… de»), el mapa (borde discontinuo en los pueblos con los que intercambia gente) y el CSV. Los colores del mapa no cambian.
 - ✅ **Plazo** en «¿y si invertimos aquí?»: colegio, unos 2 años; centro de salud, unos 3 (estimación).
+- ✅ **Minutos en coche** (rama `feature/tiempos-en-minutos`): interruptor «Medir en: Minutos en coche / Km en línea recta» en el escenario; la web abre en minutos. Minutos sin tráfico con OSRM sobre OpenStreetMap (`etl/tiempos.py`), calculados una vez: la web no llama a OSRM. Con minutos, el hospital queda lejos a más de 30 min (el que queda antes en coche, que en 37 de los 155 no es el de la línea recta) y la reubicación usa un deslizador de 10–45 min (por defecto 30). Con km todo sale igual que antes.
+- **Decidir**: hospitales de fuera de la Comunidad. Comprobado con OSRM (sin meterlo en los datos): en 6 pueblos del reto queda antes uno de fuera (Guadalajara: Valdeavero, Ribatejada y Pezuela de las Torres; Ávila: San Martín de Valdeiglesias y Rozas de Puerto Real; Aranda de Duero: Somosierra). Solo cambiaría de lado Ribatejada (37 min al de la CM, 29 al de Guadalajara), que está en tensión: no cambiaría ninguna condicionada ni la reubicación.
 - ✅ **Datasets entregables**: `data/out/diccionario.csv`, `data/out/README.md` (fuentes, CC BY 4.0 y cómo regenerar) y `THIRD_PARTY.md`. Los datos de partida de menos de 25 MB están en `data/raw/` (solo se descarga el planeamiento).
 
 ## Pendiente
@@ -39,13 +41,17 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - 78 municipios en tensión, 37 polos, 33 oportunidades y 7 en consolidación. Limita la vivienda en 77, colegios en 38, sanidad en 21 y el ritmo en 19.
 - «Vivienda vacía que se ocupa» (15 %) es un supuesto sin dato oficial: al 30 % caben 60.286 (71 en tensión); al 50 %, 63.277 (66 en tensión). Tabla completa en `AUDITORIA.md`. **Decidir el valor por defecto.**
 - De las 33 oportunidades, **17 están condicionadas**: tienen el hospital a más de 25 km en línea recta. Sitio libre en las oportunidades (caben − llegan): 20.300 personas; sin las condicionadas, 19.172.
+  - **En minutos (lo que abre la web): 18 condicionadas**, con el hospital a más de 30 min en coche, sin tráfico: las 17 de antes y Villar del Olmo (18,8 km, pero 36 min). Sin las condicionadas, 19.055 de sitio libre. Las cuentas de caben, sin sitio y tipos no cambian con la medida.
 - Con «Reubicar en pueblos cercanos» a 25 km, se reubican **26.856** personas en 37 municipios, de media a 9 km. Siguen sin sitio **50.774**. A 50 km sale lo mismo: a 25 km ya se llenan todos los pueblos con sitio y el hospital cerca.
+  - **En minutos, a 30 min en coche: se reubican 26.346** en 30 municipios, de media a 15 min (10 km en línea recta). Siguen sin sitio **51.284**. A 45 min, 26.524 (siguen sin sitio 51.106); a 20 min, 18.571; a 10 min, 7.304.
+- Minutos frente a km (`uv run tiempos.py`): correlación 0,92 al hospital y 0,82 entre pueblos; mediana 26 min al hospital (18,2 km). 57 pueblos tienen el hospital a más de 25 km y 63 a más de 30 min; 11 están lejos solo en minutos (sobre todo el sureste: Valverde de Alcalá, Corpa, Olmeda de las Fuentes…) y 5 solo en km (Venturada, Cabanillas de la Sierra…). Ningún pueblo con el hospital lejos (en la medida elegida) recibe gente al reubicar.
 - 31 municipios no tienen sitio para nadie sin ampliar (18 por colegios y 13 por sanidad); solo 4 están a menos de un 5 % de su límite.
 - Validación 2015 -> 2025: acierta dónde va **77 de cada 100 personas** (89 por zonas); la tendencia sola, 67. Es decir, coloca en otro municipio al 22,6 % (11,4 % en otra zona; la tendencia sola, 32,7 % y 20,3 %).
 - El WAPE (44,4 %, frente al 64,1 % de la tendencia) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. Se enseña igual en la web.
 - Plan de inversión (`uv run plan_inversion.py`; colegio o centro de salud donde limitan, hasta que manda la vivienda o el ritmo; obras desde 2027 [supuesto]):
   - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
   - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
+  - Reubicando a 30 min en coche (`--medida min`): **16 colegios y 11 centros** en 22 municipios, **240 M€**; lo último abre en 2030. Siguen sin sitio **10.692** (de 51.284), casi todos por vivienda. Sin reubicar, igual que con km.
 - Población de las zonas de salud frente al Censo 2021 (IECM): se aparta un 2,6 % de media en las 286 zonas (1,9 % en las 45 de los pueblos del reto); correlación 0,997.
 
 ## Cómo arrancarla

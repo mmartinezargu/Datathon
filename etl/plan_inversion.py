@@ -2,6 +2,7 @@
 
 Uso (desde etl/):  uv run plan_inversion.py
                    uv run plan_inversion.py --vivienda 0.3   (otra «Vivienda vacía que se ocupa»)
+                   uv run plan_inversion.py --medida min     (minutos en coche en vez de km en línea recta)
 
 Con el escenario por defecto (2035, ritmo de la última década), con y sin
 «Reubicar en pueblos cercanos»: en cada municipio donde falta sitio y manda
@@ -28,9 +29,10 @@ COSTE_CENTRO_SALUD = 8_000_000
 PLAZO_COLEGIO_ANIOS = 2
 PLAZO_CENTRO_SALUD_ANIOS = 3
 HOSPITAL_LEJOS_KM = 25
+HOSPITAL_LEJOS_MIN = 30
 ESCENARIO = {
     "anio": 2035, "personas": round(CRECIMIENTO_DECADA / 10 * 10), "pct_suelo": 0.5, "pct_vivienda": 0.15,
-    "ritmo_max": 0.03, "exigencia": 0.9, "radio_km": 25,
+    "ritmo_max": 0.03, "exigencia": 0.9, "medida": "km", "radio_km": 25, "radio_min": 30,
 }
 # Supuesto de este script, no del motor: las obras empiezan todas a la vez en este año
 INICIO_OBRAS = 2027
@@ -89,6 +91,13 @@ def limites(m: dict, u: dict, colegios_nuevos: int, centros_nuevos: int) -> dict
     return {"vivienda": vivienda, "colegios": colegios, "sanidad": sanidad, "ritmo": ritmo}
 
 
+def hospital_lejos(m: dict) -> bool:
+    """Como hospitalLejos() de motor.ts, con la medida del escenario."""
+    if ESCENARIO["medida"] == "min":
+        return m["hospital_min"] > HOSPITAL_LEJOS_MIN
+    return m["hospital_km"] > HOSPITAL_LEJOS_KM
+
+
 def minimo(lim: dict) -> tuple[str, float]:
     mejor = ("ritmo", math.inf)
     for k, v in lim.items():
@@ -124,7 +133,7 @@ def calcular(universo: list[dict], u: dict, inversiones: dict, reubicar: bool) -
             f["tipo"] = "oportunidad"
         else:
             f["tipo"] = "consolidacion"
-        f["condicionada"] = f["tipo"] == "oportunidad" and f["m"]["hospital_km"] > HOSPITAL_LEJOS_KM
+        f["condicionada"] = f["tipo"] == "oportunidad" and hospital_lejos(f["m"])
 
     if reubicar:
         repartir_cerca(filas)
@@ -132,15 +141,23 @@ def calcular(universo: list[dict], u: dict, inversiones: dict, reubicar: bool) -
 
 
 def repartir_cerca(filas: list[dict]) -> None:
-    """Como reubicar() de motor.ts: de la pareja más cercana a la más lejana, lo que quepa."""
+    """Como reubicar() de motor.ts: de la pareja más cercana a la más lejana, lo que quepa.
+
+    Con medida 'km', en línea recta entre núcleos; con 'min', en coche de núcleo a núcleo (vecinos_min).
+    """
     por_ine = {f["ine"]: f for f in filas}
     exceso = {f["ine"]: -f["margen"] for f in filas if f["margen"] < 0}
-    sitio = {f["ine"]: f["margen"] for f in filas if f["margen"] > 0 and f["m"]["hospital_km"] <= HOSPITAL_LEJOS_KM}
+    sitio = {f["ine"]: f["margen"] for f in filas if f["margen"] > 0 and not hospital_lejos(f["m"])}
     parejas = []
     for o in exceso:
         a = por_ine[o]["m"]
         for d in sitio:
             b = por_ine[d]["m"]
+            if ESCENARIO["medida"] == "min":
+                distancia = a["vecinos_min"].get(d)
+                if distancia is not None and distancia <= ESCENARIO["radio_min"]:
+                    parejas.append((distancia, o, d))
+                continue
             km = math.hypot(a["nucleo_x"] - b["nucleo_x"], a["nucleo_y"] - b["nucleo_y"])
             if km <= ESCENARIO["radio_km"]:
                 parejas.append((km, o, d))
@@ -176,9 +193,14 @@ def main() -> None:
     args = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     args.add_argument("--vivienda", type=float, default=ESCENARIO["pct_vivienda"],
                       help="parte de las viviendas vacías que se ocupa (0-1); por defecto, la de la web")
-    ESCENARIO["pct_vivienda"] = args.parse_args().vivienda
+    args.add_argument("--medida", choices=("km", "min"), default=ESCENARIO["medida"],
+                      help="hospital lejos y reubicación: km en línea recta (por defecto) o minutos en coche, sin tráfico")
+    leidos = args.parse_args()
+    ESCENARIO["pct_vivienda"] = leidos.vivienda
+    ESCENARIO["medida"] = leidos.medida
     if ESCENARIO["pct_vivienda"] != 0.15:
         print(f"Vivienda vacía que se ocupa: {ESCENARIO['pct_vivienda']:.0%} (la web usa 15 %)")
+    print("Medida: " + ("minutos en coche, sin tráfico" if ESCENARIO["medida"] == "min" else "km en línea recta"))
     municipios = json.loads((WEB_DATOS / "municipios.json").read_text(encoding="utf-8"))
     zonas = json.loads((WEB_DATOS / "zonas_salud.json").read_text(encoding="utf-8"))
     universo = [m for m in municipios if m["universo"] and m["capacidad"]]
@@ -203,7 +225,8 @@ def main() -> None:
                 limitan[f["limitante"]] = limitan.get(f["limitante"], 0) + sin_sitio(f)
 
         print(f"\n{'Con' if reubicar else 'Sin'} reubicar en pueblos cercanos"
-              + (f" (a {ESCENARIO['radio_km']} km)" if reubicar else ""))
+              + ("" if not reubicar else f" (a {ESCENARIO['radio_min']} min en coche)" if ESCENARIO["medida"] == "min"
+                 else f" (a {ESCENARIO['radio_km']} km)"))
         print(f"  Municipios donde se invierte:      {len(inversiones)}")
         print(f"  Colegios nuevos:                   {colegios}")
         print(f"  Centros de salud nuevos:           {centros}")
