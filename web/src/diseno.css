@@ -12,7 +12,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .pestanas button.activa .icono { opacity: 1; }
 
 /* ---------- Las 3 columnas del mapa ---------- */
-.cuerpo { grid-template-columns: 300px minmax(0, 1fr) 380px; }
+.cuerpo { grid-template-columns: var(--ancho-escenario, 300px) minmax(0, 1fr) var(--ancho-resultado, 380px); }
 .columna { min-height: 0; }
 .col-escenario, .col-resultado { overflow-y: auto; background: var(--papel); display: flex; flex-direction: column; }
 .col-escenario { border-right: 1px solid var(--linea); }
@@ -35,6 +35,17 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .titulo-columna span:not(.paso) { display: block; font-size: 12px; color: var(--tinta2); }
 .mapa-titulo { position: absolute; top: 0; left: 0; right: 0; height: 52px; background: var(--papel); border-bottom: 1px solid var(--linea); z-index: 2; }
 .mapa-titulo .titulo-columna { padding-top: 10px; }
+.mapa-titulo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.buscador { position: relative; padding: 0 14px; flex: 0 1 230px; min-width: 0; }
+.buscador input {
+  width: 100%; font: inherit; font-size: 13.5px; color: var(--tinta); background: var(--fondo);
+  border: 1px solid var(--linea); border-radius: 10px; padding: 7px 10px;
+}
+.buscador input:focus { outline: 2px solid var(--cielo); outline-offset: 1px; background: var(--papel); }
+.buscador-aviso {
+  position: absolute; top: calc(100% + 4px); right: 14px; font-size: 12px; color: var(--tinta2);
+  background: var(--papel); border: 1px solid var(--linea); border-radius: 8px; padding: 3px 8px; white-space: nowrap;
+}
 .col-mapa .cifras { top: 66px; }
 .col-mapa .cifra { min-width: 0; flex: 1 1 150px; max-width: 230px; padding: 8px 12px; }
 .col-mapa .cifra b { font-size: 22px; }
@@ -193,8 +204,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 
 /* Portátiles pequeños: columnas laterales más estrechas */
 @media (max-width: 1360px) {
-  .cuerpo { grid-template-columns: 270px minmax(0, 1fr) 350px; }
-  .col-mapa .cifra:nth-child(3) { display: none; }
+  .cuerpo { --ancho-escenario: 270px; --ancho-resultado: 350px; }
   .limite { grid-template-columns: 120px 1fr 60px; }
 }
 
@@ -224,7 +234,8 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .inicio-portada, .puertas, .inicio-datos { grid-template-columns: 1fr; }
   .pasos-simples > li { grid-template-columns: 1fr; gap: 8px; padding: 16px; }
   .tipos-simples li { grid-template-columns: 1fr; gap: 3px; }
-  .col-mapa .cifra:nth-child(2) { display: none; }
+  .mapa-titulo .titulo-columna span:not(.paso) { display: none; }
+  .buscador { flex-basis: 190px; padding: 0 10px; }
   .leyenda { left: 8px; right: 8px; bottom: 8px; max-width: none; }
   .bs-fila { grid-template-columns: 112px 1fr 64px; }
 }
@@ -250,6 +261,8 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .interruptor-texto { display: flex; flex-direction: column; font-size: 13.5px; }
 .interruptor-texto b { font-weight: 600; }
 .ficha-reequilibrio { font-size: 13px; background: var(--fondo); border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }
+.ficha-reequilibrio .enlace { font-size: inherit; }
+.ficha-limite { font-size: 13px; background: var(--fondo); border-left: 3px solid; border-radius: 0 8px 8px 0; padding: 8px 10px; margin: 8px 0 0; }
 .estimacion {
   display: inline-block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
   color: var(--tinta2); border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; vertical-align: 1px;
@@ -269,18 +282,79 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .t-cifra { color: var(--tinta2); font-variant-numeric: tabular-nums; }
 .ranking ol.con-envio li button { grid-template-columns: 22px 1fr 48px auto; }
 .ranking ol.con-envio .r-valor { white-space: nowrap; }
+.r-limite { display: block; font-size: 11.5px; font-weight: 500; color: var(--tinta2); }
 
-/* Leyenda plegable en pantallas estrechas: cerrada, solo un botón con los 4 colores */
-.leyenda-boton { display: none; }
+/* Leyenda en pantallas estrechas: más pegada al borde */
 @media (max-width: 899px) {
-  .leyenda { left: 8px; right: auto; bottom: 8px; max-width: calc(100% - 64px); padding: 6px 8px; }
-  .leyenda.abierta { right: 56px; max-height: 60%; overflow-y: auto; }
-  .leyenda:not(.abierta) .leyenda-cuerpo { display: none; }
-  .leyenda.abierta .leyenda-cuerpo { margin-top: 6px; }
-  .leyenda-boton {
-    display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px; cursor: pointer;
-    font-size: 13px; font-weight: 650; color: var(--tinta);
-  }
-  .leyenda-muestras { display: flex; gap: 3px; }
-  .leyenda-muestras i { width: 10px; height: 10px; border-radius: 3px; }
+  .leyenda { left: 8px; right: auto; bottom: 8px; max-width: calc(100% - 64px); }
+  .leyenda.abierta { right: 56px; }
 }
+
+/* ---------- Mapa más limpio: botón «Mapa limpio», leyenda plegada, paneles plegables ---------- */
+/* Las 3 cifras, como siempre; dejan sitio a la derecha para «Mapa limpio» y, si no caben, pasan a dos líneas */
+.col-mapa .cifras { right: 160px; }
+
+/* «Mapa limpio»: esconde las cifras y la leyenda */
+.mapa-limpio {
+  position: absolute; top: 66px; right: 16px; z-index: 1; display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255, 255, 255, 0.95); border: 1px solid var(--linea); border-radius: 12px; padding: 6px 11px;
+  font: inherit; font-size: 13px; font-weight: 650; color: var(--tinta); cursor: pointer;
+}
+.mapa-limpio:hover { background: #fff; }
+.mapa-limpio[aria-pressed="true"] { background: var(--cielo-claro); border-color: var(--cielo); color: var(--cielo); }
+.mapa-limpio:focus-visible, .plegar:focus-visible, .riel:focus-visible, .leyenda-boton:focus-visible { outline: 2px solid var(--cielo); outline-offset: 2px; }
+.col-mapa.limpio .cifras, .col-mapa.limpio .leyenda { display: none; }
+
+/* Leyenda plegada por defecto en todas las pantallas: un botón con los 4 colores */
+.leyenda { padding: 6px 8px; }
+.leyenda.abierta { max-height: calc(100% - 150px); overflow-y: auto; padding: 8px 10px; }
+.leyenda:not(.abierta) .leyenda-cuerpo { display: none; }
+.leyenda.abierta .leyenda-cuerpo { margin-top: 6px; }
+.leyenda-boton {
+  display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 650; color: var(--tinta);
+}
+.leyenda-muestras { display: flex; gap: 3px; }
+.leyenda-muestras i { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Paneles «Escenario» y «Resultado» plegables (solo en pantallas anchas; en el móvil, como siempre) */
+.riel, .plegar { display: none; }
+@media (min-width: 1101px) {
+  .col-escenario, .col-resultado { position: relative; }
+  .cuerpo.sin-escenario { --ancho-escenario: 46px; }
+  .cuerpo.sin-resultado { --ancho-resultado: 46px; }
+  .plegar {
+    display: grid; place-items: center; position: absolute; top: 12px; right: 10px; z-index: 1; width: 30px; height: 30px;
+    border: 1px solid var(--linea); border-radius: 50%; background: var(--papel); color: var(--tinta2); cursor: pointer;
+  }
+  .plegar:hover { color: var(--tinta); background: var(--fondo); }
+  .columna.plegada { overflow: hidden; }
+  .columna.plegada > :not(.riel) { display: none; }
+  .columna.plegada > .riel {
+    display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; height: 100%; padding: 14px 0;
+    border: 0; background: var(--papel); color: var(--tinta2); cursor: pointer; font: inherit;
+  }
+  .riel:hover { background: var(--fondo); color: var(--tinta); }
+  .riel .paso {
+    width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    background: var(--tinta); color: #fff; font-family: var(--disp); font-weight: 800; font-size: 14px;
+  }
+  .riel-texto { writing-mode: vertical-rl; font-family: var(--disp); font-weight: 700; font-size: 15px; color: var(--tinta); }
+}
+
+@media (max-width: 899px) {
+  .leyenda.abierta { max-height: 60%; }
+}
+@media (max-width: 700px) {
+  .col-mapa .cifras { top: 58px; left: 8px; right: 52px; gap: 6px; }
+  .col-mapa .cifra { flex-basis: 140px; max-width: none; padding: 6px 9px; }
+  .mapa-limpio { top: 58px; right: 8px; padding: 7px; }
+  .mapa-limpio span { display: none; }
+}
+
+/* Sección «¿Acierta?» al final de «Cómo funciona» (enlace #fiable) */
+.metodologia .validacion { scroll-margin-top: 12px; margin-top: 14px; }
+.val-titulo { font-size: 28px; line-height: 1.1; }
+.val-cabeza .val-titular { font-family: var(--disp); font-size: 19px; line-height: 1.35; color: var(--tinta); max-width: 52ch; }
+.val-tarjeta h3 { font-size: 17px; margin: 0 0 14px; }
+.barra-nombre small { display: block; font-size: 11.5px; color: var(--tinta2); font-weight: 500; margin-top: 1px; }

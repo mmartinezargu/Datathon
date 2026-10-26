@@ -10,6 +10,8 @@ export interface IngredientesCapacidad {
   suelo_pendiente_ha: number
   colegios_primaria: number
   colegios_secundaria: number
+  ninos_primaria: number // niños de 6 a 11 años en 2025 [est.], a partir de grupos de 5 años del Censo anual
+  ninos_secundaria: number // de 12 a 17 años [est.]
   zbs_codigo: string // zona básica de salud
   zbs_nombre: string
   zbs_poblacion: number
@@ -61,11 +63,18 @@ export interface Inversion {
 /** Inversiones simuladas, por código INE. */
 export type Inversiones = Record<string, Inversion>
 
-/** Umbrales de saturación calculados con la exigencia elegida. */
+/** Curva de niños por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */
+export interface CurvaColegio {
+  a: number
+  b: number
+  ajuste: number // percentil «exigencia» de lo que se aparta cada municipio de la recta
+}
+
+/** Límites de saturación calculados con la exigencia elegida. */
 export interface Umbrales {
-  primaria: number[] // habitantes por colegio, por tramo de tamaño del municipio
-  secundaria: number[]
-  zonaSalud: number[] // habitantes por zona básica, por tramo de tamaño de la zona
+  primaria: CurvaColegio // niños por colegio de primaria según el tamaño del municipio
+  secundaria: CurvaColegio
+  zonaSalud: number // personas que aguanta una zona básica de salud (el mismo para todas)
 }
 
 export type Limite = 'vivienda' | 'colegios' | 'sanidad' | 'ritmo'
@@ -125,4 +134,21 @@ export interface Candidato {
   puntos: number // 0-100: lo bien que encaja con el perfil, comparado con los demás que pasan los filtros
   sitio: Record<Recurso, number | null> // personas que aún caben en cada recurso después de que llegue la gente prevista (null = no aplica)
   razones: Recurso[] // los recursos que más le suben en el ranking, de más a menos
+}
+
+/** Validación 2015→2025 (etl/validacion.py → datos/validacion.json). */
+export interface DatosValidacion {
+  periodo: string
+  datos_hasta: number
+  municipios: number
+  crecimiento_real_total: number
+  modelos: {
+    modelo: string
+    wape: number
+    fuera_municipio: number // parte del total colocada en otro municipio: sum|previsto − real| ÷ 2 ÷ total
+    fuera_zona: number // lo mismo, sumando por zona
+    aciertos_top20: number
+    spearman: number
+  }[]
+  mayores_errores: { ine: string; nombre: string; crecimiento_real: number; crecimiento_previsto: number }[]
 }

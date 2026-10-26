@@ -28,6 +28,7 @@ cd web
 npm install
 npm run dev            # http://localhost:5173
 npm run lint
+npm test               # tests del motor (Vitest, web/tests)
 npm run build && npm run preview   # versión final, http://localhost:4173
 ```
 
@@ -44,7 +45,7 @@ npm run build && npm run preview   # versión final, http://localhost:4173
 - **Presión**: cuánta gente llega (tendencia de cada municipio, escalada al escenario; por defecto 2035, ritmo de la última década).
 - **Capacidad**: el menor de 4 límites (ley del mínimo): vivienda, colegios, sanidad y ritmo.
 - **Tipo**: cruce presión × capacidad → `tensión`, `polo`, `oportunidad`, `consolidación`.
-- Validación 2015→2025: error 44,4 % vs 64 % de la tendencia simple. Es la baza de la propuesta: cualquier cambio en el modelo se vuelve a validar con `uv run validacion.py` y se reporta el nuevo error.
+- Validación 2015→2025: coloca en otro municipio al 22,6 % de las personas (11,4 % en otra zona) vs 32,7 % de la tendencia simple: «acierta dónde va 77 de cada 100». El WAPE (44,4 % vs 64 %) sale casi el doble porque cuenta dos veces a cada persona mal colocada. Es la baza de la propuesta: cualquier cambio en el modelo se vuelve a validar con `uv run validacion.py` y se reporta el nuevo error.
 
 ## Reglas de trabajo
 

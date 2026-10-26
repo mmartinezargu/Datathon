@@ -9,35 +9,49 @@ import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
 import { Mudanza } from './componentes/Mudanza'
 import { Metodologia } from './componentes/Metodologia'
-import { Inicio, type Totales } from './componentes/Inicio'
+import { Inicio, type Destino, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
 import { Reubicacion } from './componentes/Reubicacion'
+import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
-import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, quedanSinSitio, resumenReubicacion } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
-import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
-import { miles, millones, pct } from './formato'
+import type { DatosValidacion, Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
+import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
-type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 type VistaMovil = 'escenario' | 'mapa' | 'resultado'
+type Paneles = { escenario: boolean; resultado: boolean } // true = plegado
 
 // Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
-const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', validacion: 'fiable', metodologia: 'como' }
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', metodologia: 'como' }
+// El antiguo enlace de «¿Es fiable?» lleva a la sección «¿Acierta?», al final de «Cómo funciona»
+const ENLACE_ACIERTA = '#fiable'
 const pestanaDelEnlace = (): Pestana =>
-  (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
+  window.location.hash === ENLACE_ACIERTA ? 'metodologia'
+    : (Object.keys(HASH) as Pestana[]).find((p) => HASH[p] && `#${HASH[p]}` === window.location.hash) ?? 'inicio'
+
+// Paneles plegados del mapa: se recuerdan en el navegador (puede fallar en modo privado: entonces, abiertos)
+const CLAVE_PANELES = 'cabida.paneles'
+function leerPaneles(): Paneles {
+  try {
+    const p = JSON.parse(window.localStorage.getItem(CLAVE_PANELES) ?? '{}')
+    return { escenario: p.escenario === true, resultado: p.resultado === true }
+  } catch {
+    return { escenario: false, resultado: false }
+  }
+}
 
 const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
-  { id: 'validacion', texto: '¿Es fiable?', icono: 'fiable' },
-  { id: 'metodologia', texto: 'Cómo se calcula', icono: 'metodo' },
+  { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
 
 export default function App() {
@@ -51,7 +65,10 @@ export default function App() {
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
   const [resaltado, setResaltado] = useState<Tipo | null>(null)
   const [vistaMovil, setVistaMovil] = useState<VistaMovil>('mapa')
-  const [leyendaAbierta, setLeyendaAbierta] = useState(false) // solo se usa en pantallas estrechas
+  const [leyendaAbierta, setLeyendaAbierta] = useState(false)
+  const [mapaLimpio, setMapaLimpio] = useState(false) // sin cifras ni leyenda encima del mapa
+  const [paneles, setPaneles] = useState<Paneles>(leerPaneles)
+  const [salto, setSalto] = useState(0) // sube cada vez que hay que bajar a «¿Acierta?»
   const [inversiones, setInversiones] = useState<Inversiones>({})
   const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
   const [comparados, setComparados] = useState<string[]>([])
@@ -62,11 +79,28 @@ export default function App() {
     const destino = HASH[p] ? `#${HASH[p]}` : window.location.pathname
     if (destino !== window.location.hash) window.history.pushState(null, '', destino)
   }
+  const irAAcierta = () => {
+    setPestanaEstado('metodologia')
+    if (window.location.hash !== ENLACE_ACIERTA) window.history.pushState(null, '', ENLACE_ACIERTA)
+    setSalto((n) => n + 1)
+  }
   useEffect(() => {
-    const alCambiar = () => setPestanaEstado(pestanaDelEnlace())
+    const alCambiar = () => {
+      setPestanaEstado(pestanaDelEnlace())
+      setSalto((n) => n + 1)
+    }
     window.addEventListener('popstate', alCambiar)
     return () => window.removeEventListener('popstate', alCambiar)
   }, [])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CLAVE_PANELES, JSON.stringify(paneles))
+    } catch {
+      // sin almacenamiento (modo privado): no se recuerda, y ya está
+    }
+  }, [paneles])
+  const plegar = (panel: keyof Paneles, plegado: boolean) => setPaneles((p) => ({ ...p, [panel]: plegado }))
 
   // Cargar los datos que preparó Python
   useEffect(() => {
@@ -112,10 +146,18 @@ export default function App() {
       ? resultados.filter((r) => r.condicionada).map((r) => r.ine) : []),
     [resultados, colorMapa, resaltado],
   )
+  // Con el enlace #fiable, baja a la sección «¿Acierta?» en cuanto está dibujada
+  const cargado = validacion !== null
+  useEffect(() => {
+    if (cargado && pestana === 'metodologia' && window.location.hash === ENLACE_ACIERTA) {
+      document.getElementById('acierta')?.scrollIntoView()
+    }
+  }, [cargado, pestana, salto])
+
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
+      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${caben(r.caben)} sin ampliar`,
     }])),
     [resultados, porIne],
   )
@@ -133,6 +175,7 @@ export default function App() {
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const condicionadas = resultados.filter((r) => r.condicionada).length
+  const delReto = municipios.filter((m) => m.universo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
   // Con la reubicación, los municipios con los que intercambia gente el seleccionado (borde grueso en el mapa)
   const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
@@ -146,7 +189,10 @@ export default function App() {
     })
   const elegir = (ine: string | null) => {
     setSeleccionado(ine)
-    if (ine) setVistaMovil('resultado') // en el móvil, enseña la ficha al pulsar un municipio
+    if (ine) {
+      setVistaMovil('resultado') // en el móvil, enseña la ficha al pulsar un municipio
+      plegar('resultado', false) // y en el portátil abre el panel de resultado si estaba plegado
+    }
   }
 
   return (
@@ -165,9 +211,7 @@ export default function App() {
 
       {pestana === 'inicio' ? (
         <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio, reequilibrio })}
-          onIr={(d) => setPestana(d)} /></main>
-      ) : pestana === 'validacion' ? (
-        <main className="pagina"><Validacion datos={validacion} /></main>
+          onIr={(d: Destino) => (d === 'acierta' ? irAAcierta() : setPestana(d))} /></main>
       ) : pestana === 'metodologia' ? (
         <main className="pagina"><Metodologia escenario={escenario} validacion={validacion} /></main>
       ) : pestana === 'mudanza' ? (
@@ -177,9 +221,12 @@ export default function App() {
             onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (
-        <main className={`cuerpo vista-${vistaMovil}${sel ? ' con-ficha' : ''}`}>
-          {/* 1. Escenario */}
-          <aside className="columna col-escenario" aria-label="Escenario">
+        <main className={`cuerpo vista-${vistaMovil}${sel ? ' con-ficha' : ''}` +
+          `${paneles.escenario ? ' sin-escenario' : ''}${paneles.resultado ? ' sin-resultado' : ''}`}>
+          {/* 1. Escenario (en el portátil se puede plegar; en el móvil va como siempre) */}
+          <aside className={`columna col-escenario${paneles.escenario ? ' plegada' : ''}`} aria-label="Escenario">
+            <Riel numero={1} texto="Escenario" lado="izquierda" onAbrir={() => plegar('escenario', false)} />
+            <BotonPlegar texto="Escenario" lado="izquierda" onPlegar={() => plegar('escenario', true)} />
             <TituloColumna numero={1} texto="Escenario" ayuda="Mueve las palancas" />
             <section className="escenario">
               <p className="frase">Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen</p>
@@ -190,14 +237,22 @@ export default function App() {
           </aside>
 
           {/* 2. Mapa */}
-          <div className="columna col-mapa">
-            <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
+          <div className={`columna col-mapa${mapaLimpio ? ' limpio' : ''}`}>
+            <div className="mapa-titulo">
+              <TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio o búscalo" />
+              <Buscador municipios={delReto} onElegir={elegir} />
+            </div>
             <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados} vecinos={vecinos}
               seleccionado={seleccionado} onSeleccionar={elegir} />
+            <button className="mapa-limpio" aria-pressed={mapaLimpio} onClick={() => setMapaLimpio(!mapaLimpio)}
+              aria-label={mapaLimpio ? 'Ver cifras y leyenda' : 'Mapa limpio: esconder cifras y leyenda'}>
+              <Icono nombre="ojo" tamano={17} /><span>{mapaLimpio ? 'Ver cifras y leyenda' : 'Mapa limpio'}</span>
+            </button>
+            {/* Las 3 cifras: si no caben en una línea, pasan a dos */}
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
-                  (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
+                  (invertido ? ', contando lo que has invertido' : ' sin ampliar servicios') +
                   (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
@@ -206,7 +261,7 @@ export default function App() {
               <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
                 texto={`municipios con sitio al que no llega gente; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
             </div>
-            {/* En pantallas estrechas la leyenda va plegada para no tapar el mapa (diseno.css) */}
+            {/* La leyenda va plegada en un botón para no tapar el mapa */}
             <div className={`leyenda${leyendaAbierta ? ' abierta' : ''}`} aria-label="Leyenda">
               <button className="leyenda-boton" aria-expanded={leyendaAbierta} onClick={() => setLeyendaAbierta(!leyendaAbierta)}>
                 <span className="leyenda-muestras" aria-hidden="true">
@@ -246,20 +301,22 @@ export default function App() {
           </div>
 
           {/* 3. Resultado */}
-          <aside className="columna col-resultado" aria-label="Resultado">
+          <aside className={`columna col-resultado${paneles.resultado ? ' plegada' : ''}`} aria-label="Resultado">
+            <Riel numero={3} texto={sel ? 'Ficha' : 'Resultado'} lado="derecha" onAbrir={() => plegar('resultado', false)} />
+            <BotonPlegar texto="Resultado" lado="derecha" onPlegar={() => plegar('resultado', true)} />
             {sel ? (
               <>
                 <div className="resultado-barra">
                   <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
                 </div>
                 <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} porIne={porIne} escenario={escenario} umbrales={umbrales}
-                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} />
+                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} onElegir={elegir} />
               </>
             ) : (
               <>
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
-                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
+                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto ampliado={invertido > 0}
                     notaLibre={reequilibrio
                       ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
                       : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
@@ -323,6 +380,25 @@ function TituloColumna({ numero, texto, ayuda }: { numero: number; texto: string
   )
 }
 
+/** Panel plegado: una franja estrecha con su nombre; al pulsarla se abre otra vez. */
+function Riel({ numero, texto, lado, onAbrir }: { numero: number; texto: string; lado: 'izquierda' | 'derecha'; onAbrir: () => void }) {
+  return (
+    <button className="riel" onClick={onAbrir} aria-label={`Abrir el panel ${texto}`} title={`Abrir ${texto}`}>
+      <Icono nombre={lado === 'izquierda' ? 'desplegar' : 'plegar'} tamano={18} />
+      <span className="paso">{numero}</span>
+      <span className="riel-texto">{texto}</span>
+    </button>
+  )
+}
+
+function BotonPlegar({ texto, lado, onPlegar }: { texto: string; lado: 'izquierda' | 'derecha'; onPlegar: () => void }) {
+  return (
+    <button className={`plegar plegar-${lado}`} onClick={onPlegar} aria-label={`Plegar el panel ${texto}`} title={`Plegar ${texto}: más sitio para el mapa`}>
+      <Icono nombre={lado === 'izquierda' ? 'plegar' : 'desplegar'} tamano={18} />
+    </button>
+  )
+}
+
 function Cifra({ valor, texto, acento }: { valor: string; texto: string; acento?: string }) {
   return (
     <div className="cifra" style={acento ? { borderTopColor: acento } : undefined}>
@@ -351,9 +427,12 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   onElegir: (ine: string) => void
 }) {
   const [lista, setLista] = useState<Lista>('tension')
+  // Con «Reubicar» activo, a los que tienen sitio se les descuenta lo que reciben de pueblos cercanos
+  const sitio = (r: ResultadoMunicipio) => (r.margen > 0 ? r.margen - r.recibe : r.margen)
   const margen = {
-    valor: (r: ResultadoMunicipio) => Math.abs(r.margen),
-    texto: (r: ResultadoMunicipio) => (r.margen < 0 ? `−${miles(-r.margen)}` : `+${miles(r.margen)}`),
+    valor: (r: ResultadoMunicipio) => Math.abs(sitio(r)),
+    texto: (r: ResultadoMunicipio) => (sitio(r) < 0 ? `−${miles(-sitio(r))}` : `+${miles(sitio(r))}`) +
+      (r.recibe >= 1 ? ` (recibe ${miles(r.recibe)})` : ''),
   }
   // Con «Reubicar» activo, en tensión cuenta lo que sigue sin sitio después de reubicar, no el exceso por tendencia
   const sinSitio = (filas: ResultadoMunicipio[]) => ({
@@ -364,8 +443,8 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   // Si se ha pulsado un tipo en la leyenda, la lista enseña solo ese tipo
   const config = resaltado ? {
     titulo: `${TIPOS[resaltado].nombre}: ${TIPOS[resaltado].que}`,
-    ayuda: 'Personas que sobran (−) o sitio libre (+).',
-    filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(b.margen) - Math.abs(a.margen)),
+    ayuda: reubicar ? 'Personas que sobran (−) o sitio libre (+), después de reubicar.' : 'Personas que sobran (−) o sitio libre (+).',
+    filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(sitio(b)) - Math.abs(sitio(a))),
     ...margen,
     ...(reubicar && resaltado === 'tension' ? sinSitio(resultados.filter((r) => r.tipo === 'tension')) : {}),
     color: () => TIPOS[resaltado].color,
@@ -379,8 +458,9 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
       ...margen, color: () => TIPOS.tension.color,
     },
     oportunidad: {
-      titulo: 'Donde hay sitio y no llega gente', ayuda: 'Personas, en el escenario elegido.',
-      filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => b.margen - a.margen),
+      titulo: 'Donde hay sitio y no llega gente',
+      ayuda: reubicar ? 'Sitio que les queda, después de recibir a la gente reubicada.' : 'Personas, en el escenario elegido.',
+      filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => sitio(b) - sitio(a)),
       ...margen, color: () => TIPOS.oportunidad.color,
     },
     crecimiento: {
@@ -390,7 +470,8 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
       color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
     },
   }[lista]
-  const conEnvio = reubicar && (resaltado ? resaltado === 'tension' : lista === 'tension')
+  // Con la reubicación, la cifra lleva «(envía …)» o «(recibe …)»: columna más ancha
+  const conEnvio = reubicar && (resaltado ? true : lista !== 'crecimiento')
   const top = config.filas.slice(0, 8)
   const max = top.length ? config.valor(top[0]) || 1 : 1
 
@@ -410,7 +491,10 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
         {top.map((r) => (
           <li key={r.ine}>
             <button onClick={() => onElegir(r.ine)}>
-              <span className="r-nombre">{porIne.get(r.ine)?.nombre}</span>
+              <span className="r-nombre">
+                {porIne.get(r.ine)?.nombre}
+                {r.caben < 1 && <small className="r-limite">caben {caben(r.caben)}</small>}
+              </span>
               <span className="r-barra"><span style={{ width: `${(config.valor(r) / max) * 100}%`, background: config.color(r) }} /></span>
               <span className="r-valor">{config.texto(r)}</span>
             </button>

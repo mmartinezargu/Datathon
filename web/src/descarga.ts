@@ -13,7 +13,7 @@ export function csvEscenario(
   const cabecera = [
     'ine', 'municipio', 'zona', 'poblacion_2025', `llegan_hasta_${esc.anio}`, 'caben', 'margen',
     'crecimiento_pct', 'caben_por_vivienda', 'caben_por_colegios', 'caben_por_sanidad', 'caben_por_ritmo',
-    'limita', 'tipo', 'reubicados_recibe', 'reubicados_envia', 'recibe_de', 'envia_a', 'colegios_nuevos', 'centros_salud_nuevos', 'coste_inversion_eur',
+    'limita', 'tipo', 'condicionada', 'hospital_km', 'reubicados_recibe', 'reubicados_envia', 'recibe_de', 'envia_a', 'colegios_nuevos', 'centros_salud_nuevos', 'coste_inversion_eur',
   ]
   const filas = [...resultados]
     .sort((a, b) => a.ine.localeCompare(b.ine))
@@ -21,10 +21,11 @@ export function csvEscenario(
       const m = porIne.get(r.ine)
       const inv = inversiones[r.ine] ?? SIN_INVERSION
       return [
-        r.ine, m?.nombre ?? '', m?.zona ?? '', entero(r.poblacion), entero(r.llegan), entero(r.caben), entero(r.margen),
+        // El margen se calcula con las cifras ya redondeadas, para que cuadre en la hoja: caben − llegan
+        r.ine, m?.nombre ?? '', m?.zona ?? '', entero(r.poblacion), entero(r.llegan), entero(r.caben), String(Math.round(r.caben) - Math.round(r.llegan)),
         decimal(r.crecimiento * 100), entero(r.limites.vivienda), entero(r.limites.colegios),
         entero(r.limites.sanidad), entero(r.limites.ritmo),
-        LIMITES[r.limitante].nombre, TIPOS[r.tipo].nombre, entero(r.recibe), entero(r.envia),
+        LIMITES[r.limitante].nombre, TIPOS[r.tipo].nombre, r.condicionada ? 'sí' : 'no', m ? decimal(m.hospital_km) : '', entero(r.recibe), entero(r.envia),
         traslados(r.llegadas, 'origen', porIne), traslados(r.envios, 'destino', porIne), String(inv.colegios), String(inv.centros), entero(costeInversion(inv)),
       ]
     })

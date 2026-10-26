@@ -7,7 +7,7 @@ import geopandas as gpd
 import pandas as pd
 import pyogrio
 
-from comun import RAW
+from comun import ANIO_BASE, RAW
 
 # ---------- Vivienda ----------
 
@@ -42,26 +42,77 @@ def leer_planeamiento() -> pd.DataFrame:
         & ~clase.str.contains("No Urbanizable")
         & ~clase.str.contains("INCORPORADO")
     )
-    a = a[pendiente]
+    a = a[pendiente].copy()
     a["ine"] = "28" + a["CD_MUNICIPIO"].str[-3:]
-    return (a.groupby("ine")
-             .agg(viv_previstas=("NM_VIV_TOT", "sum"), suelo_pendiente_ha=("NM_AREA", lambda s: s.sum() / 1e4))
-             .reset_index())
+    ambitos = a.groupby(["ine", "DS_NOMB_AMB", "DS_CLAS_SUE"]).agg(
+        viv_previstas=("NM_VIV_TOT", viviendas_ambito), suelo_pendiente_ha=("NM_AREA", lambda s: s.sum() / 1e4))
+    return ambitos.groupby("ine").sum().reset_index()
+
+
+def viviendas_ambito(v: pd.Series) -> float:
+    """Un ámbito partido en varios polígonos repite sus viviendas en cada uno: si todos traen
+    la misma cifra se cuenta una vez; si traen cifras distintas, se suman las distintas
+    (4 ámbitos en la capa de 2025, p. ej. «S-R8 LOS HUEROS» de Villalbilla: 2.832 ×3 y 3.802)."""
+    return v.dropna().drop_duplicates().sum()
 
 
 # ---------- Colegios ----------
+
+# Tipos de centro (TIPO_EXT) que cuentan como colegio de cada nivel. Fuera: educación de adultos,
+# aulas hospitalarias y centros de enseñanzas artísticas, aunque den algún curso de primaria o secundaria.
+TIPOS_PRIMARIA = {
+    "COLEGIO DE EDUCACIÓN PRIMARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL Y PRIMARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL Y PRIMARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+}
+TIPOS_SECUNDARIA = {
+    "INSTITUTO DE EDUCACIÓN SECUNDARIA",
+    "COLEGIO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN SECUNDARIA",
+    "CENTRO PRIVADO DE INFANTIL Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN PRIMARIA Y SECUNDARIA",
+    "CENTRO PRIVADO DE EDUCACIÓN INFANTIL, PRIMARIA Y SECUNDARIA",
+}
+
 
 def leer_colegios() -> pd.DataFrame:
     """Centros educativos en alta (portal de la CM) que dan primaria o secundaria."""
     c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
     c = c[c["SITUACIÓN"] == "ALTA"]
     c["ine"] = "28" + c["CDMUNI"].str.zfill(3)
-    tipo = c["TIPO_ABRV"].fillna("")
-    c["primaria"] = tipo.str.contains("PRI")                      # CP INF-PRI, CPR INF-PRI-SEC…
-    c["secundaria"] = tipo.str.contains("SEC") | tipo.isin(["IES", "CPR ES"])
+    tipo = c["TIPO_EXT"].str.strip()
+    c["primaria"] = tipo.isin(TIPOS_PRIMARIA)
+    c["secundaria"] = tipo.isin(TIPOS_SECUNDARIA)
     return (c.groupby("ine")[["primaria", "secundaria"]].sum()
              .rename(columns={"primaria": "colegios_primaria", "secundaria": "colegios_secundaria"})
              .reset_index())
+
+
+def leer_ninos(pob: pd.DataFrame) -> pd.DataFrame:
+    """Niños en edad de primaria (6-11 años) y de secundaria (12-17) en 2025 [est.].
+
+    El Censo anual (CM) da la población por grupos de 5 años, así que se estima:
+        primaria   ≈ 0,8 × «5-9» + 0,4 × «10-14»
+        secundaria ≈ 0,6 × «10-14» + 0,6 × «15-19»
+    De ahí sale la proporción de niños del municipio, que se aplica a su población
+    del Padrón 2025 (la misma que usa el resto del modelo).
+    """
+    e = pd.read_csv(RAW / "cm_poblacion_por_edad_censo_anual.csv", sep=";", encoding="latin-1",
+                    dtype={"Código territorio": str})
+    e = e[(e["Año"] == ANIO_BASE) & (e["Tipo territorio"] == "Municipios")
+          & (e["Nacionalidad"] == "Total") & (e["Sexo"] == "Total")]
+    e["ine"] = "28" + e["Código territorio"].str[:3]  # el código del portal lleva un dígito de control
+    g = e.pivot_table(index="ine", columns="Edad", values="Valor", aggfunc="sum")
+    proporcion = pd.DataFrame({
+        "ninos_primaria": 0.8 * g["De 5-9 años"] + 0.4 * g["De 10-14 años"],
+        "ninos_secundaria": 0.6 * g["De 10-14 años"] + 0.6 * g["De 15-19 años"],
+    }).div(g["Total"], axis=0)
+    hoy = pob.set_index("ine")[ANIO_BASE]
+    return proporcion.mul(hoy.reindex(proporcion.index), axis=0).round().reset_index()
 
 
 # ---------- Sanidad ----------

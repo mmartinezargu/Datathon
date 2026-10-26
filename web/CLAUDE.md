@@ -19,9 +19,10 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
-| `src/componentes/Metodologia.tsx` | Pestaña «Cómo se calcula»: 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Lee las constantes de `motor.ts` y `mudanza.ts` |
-| `src/componentes/Validacion.tsx` | Pestaña de validación 2015→2025 |
-| `src/componentes/Inicio.tsx` | Portada: la pregunta del reto, el vaso de los 155 y tres puertas (gestor, vecino, ¿es fiable?) |
+| `src/componentes/Metodologia.tsx` | Pestaña «Cómo funciona» (`#como`): 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Al final, la sección «¿Acierta?». Lee las constantes de `motor.ts` y `mudanza.ts` |
+| `src/componentes/Validacion.tsx` | Sección «¿Acierta?» (validación 2015→2025), al final de «Cómo funciona». El enlace `#fiable` baja hasta ella |
+| `src/validacion.ts` | Cifras de la validación que se enseñan («77 de cada 100») |
+| `src/componentes/Inicio.tsx` | Portada: la pregunta del reto, el vaso de los 155 y tres puertas (gestor, vecino, ¿es fiable? → `#fiable`) |
 | `src/componentes/Reubicacion.tsx` | Bloque de la columna de resultado con la reubicación activa: resumen y los 5 traslados más grandes |
 | `src/componentes/Vaso.tsx` | El dibujo del vaso: el vaso = lo que cabe, el agua = lo que llega; si no cabe, rebosa en rojo. Recibe cifras ya calculadas |
 | `src/componentes/Iconos.tsx` | Iconos SVG propios (`<Icono nombre="colegios" />`). Sin librerías de iconos |
@@ -40,7 +41,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 ## Reglas
 
-- Comandos: `npm run dev`, `npm run lint`, `npm run build`. Antes de cerrar un cambio: lint y build sin errores.
+- Comandos: `npm run dev`, `npm run lint`, `npm test`, `npm run build`. Antes de cerrar un cambio: lint, tests y build sin errores.
+- Tests del motor en `tests/` (Vitest, con los datos reales de `public/datos`): si cambias las cifras por defecto a propósito, actualízalas también ahí.
 - Lógica de cálculo solo en `motor.ts` (funciones puras); el ranking ciudadano, en `mudanza.ts`, se apoya en sus resultados. Los componentes no hacen cuentas del modelo.
 - TypeScript estricto: nada de `any`; si falta un tipo, añádelo a `tipos.ts`.
 - No añadas dependencias salvo que sea imprescindible para la demo; nada de librerías de UI pesadas.

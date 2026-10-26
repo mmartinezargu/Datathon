@@ -85,7 +85,7 @@ def redondear_coordenadas(geo: dict, decimales: int) -> None:
 
 COLUMNAS_CAPACIDAD = [
     "viv_principales", "viv_no_principales", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
-    "colegios_primaria", "colegios_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
+    "colegios_primaria", "colegios_secundaria", "ninos_primaria", "ninos_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
 ]
 
 
@@ -95,6 +95,7 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
     df = (df.merge(capacidad.leer_viviendas(), on="ine", how="left")
             .merge(capacidad.leer_planeamiento(), on="ine", how="left")
             .merge(capacidad.leer_colegios(), on="ine", how="left")
+            .merge(capacidad.leer_ninos(pob), on="ine", how="left")
             .merge(sanidad, on="ine", how="left"))
     df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
         df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))
@@ -129,8 +130,8 @@ def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
 
     c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
     c = c[(c["SITUACIÓN"] == "ALTA") & c["UTM_X"].notna() & c["UTM_Y"].notna()]
-    tipo = c["TIPO_ABRV"].fillna("")
-    c = c[tipo.str.contains("PRI|SEC") | tipo.isin(["IES", "CPR ES"])]  # mismos colegios que capacidad.py
+    tipo = c["TIPO_EXT"].str.strip()
+    c = c[tipo.isin(capacidad.TIPOS_PRIMARIA | capacidad.TIPOS_SECUNDARIA)]  # mismos colegios que capacidad.py
     c["ine"] = "28" + c["CDMUNI"].str.zfill(3)
     nucleo = c.assign(x=c["UTM_X"].astype(float), y=c["UTM_Y"].astype(float)).groupby("ine")[["x", "y"]].median()
     centro = mun.set_index("ine").centroid

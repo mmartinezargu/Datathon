@@ -18,6 +18,8 @@ interface Props {
   compacto?: boolean
   /** Explicación del desplegable «¿De dónde sale esto?». Si no se da, no hay desplegable. */
   origen?: ReactNode
+  /** true = la cuenta incluye colegios o centros de salud nuevos: ya no es «sin ampliar servicios». */
+  ampliado?: boolean
 }
 
 // Medidas del dibujo (unidades del SVG)
@@ -27,7 +29,7 @@ const SUELO = 214 // línea del fondo del vaso
 const ALTO_TOTAL = 186 // altura de la columna más alta (lo que llega, o el vaso si sobra sitio)
 const MINIMO = 10 // para que un trozo muy pequeño siga viéndose
 
-export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: Props) {
+export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen, ampliado }: Props) {
   const llegan = dentro + fuera
   const rebosa = fuera > 0
   // Si rebosa, el vaso útil es lo que ya está lleno; el sitio libre de otros municipios va en la nota
@@ -47,12 +49,14 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: 
   const etiquetas: EtiquetaVaso[] = [
     { y: rebosa ? techo : Math.max(SUELO - altoAgua, borde + 46), titulo: 'Llegan', valor: miles(llegan), color: '#15233B' },
     ...(rebosa ? [{ y: borde - altoRojo / 2, titulo: 'No caben', valor: miles(fuera), color: rojo, fuerte: true, medio: true }] : []),
-    { y: rebosa ? borde + altoVaso / 2 : borde, titulo: rebosa ? 'Caben' : 'Caben en total', valor: miles(rebosa ? dentro : capacidad), color: azul, medio: rebosa },
+    { y: rebosa ? borde + altoVaso / 2 : borde, titulo: ampliado ? (rebosa ? 'Caben' : 'Caben en total') : 'Caben sin ampliar',
+      valor: miles(rebosa ? dentro : capacidad), color: azul, medio: rebosa },
   ]
 
+  const sinAmpliar = ampliado ? '' : ' sin ampliar servicios'
   const resumen = rebosa
-    ? `Llegan ${miles(llegan)} personas: caben ${miles(dentro)} y ${miles(fuera)} se quedan sin sitio.`
-    : `Llegan ${miles(llegan)} personas y caben todas: sobra sitio para ${miles(libre)} más.`
+    ? `Llegan ${miles(llegan)} personas: caben ${miles(dentro)}${sinAmpliar} y ${miles(fuera)} se quedan sin sitio.`
+    : `Llegan ${miles(llegan)} personas y caben todas${sinAmpliar}: sobra sitio para ${miles(libre)} más.`
 
   return (
     <figure className={`vaso${compacto ? ' compacto' : ''}`}>
@@ -83,7 +87,7 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen }: 
       </svg>
 
       <figcaption>
-        <p className="vaso-frase">{frase(llegan, dentro, fuera, libre)}</p>
+        <p className="vaso-frase">{frase(llegan, dentro, fuera, libre, sinAmpliar)}</p>
         {rebosa && libre > 0 && notaLibre && (
           <p className="vaso-nota">Queda sitio para {miles(libre)} personas más, {notaLibre}</p>
         )}
@@ -139,11 +143,11 @@ function Etiqueta({ x, y, yTexto, titulo, valor, color, fuerte }: EtiquetaVaso &
 }
 
 /** La idea en una frase: de cada 10 personas que llegan, cuántas caben. */
-function frase(llegan: number, dentro: number, fuera: number, libre: number): string {
+function frase(llegan: number, dentro: number, fuera: number, libre: number, sinAmpliar: string): string {
   if (llegan <= 0) return 'No le llega gente nueva en este escenario.'
-  if (fuera <= 0) return `Caben todas las que llegan y sobra sitio para ${miles(libre)} más.`
+  if (fuera <= 0) return `Caben todas las que llegan${sinAmpliar} y sobra sitio para ${miles(libre)} más.`
   const deDiez = Math.round((dentro / llegan) * 10)
-  if (deDiez === 0) return 'De cada 10 personas que llegan, no cabe ni una.'
-  if (deDiez === 10) return `Caben casi todas: solo ${miles(fuera)} se quedan sin sitio.`
-  return `De cada 10 personas que llegan, ${deDiez === 1 ? 'cabe 1' : `caben ${deDiez}`}.`
+  if (deDiez === 0) return `De cada 10 personas que llegan, no cabe ni una${sinAmpliar}.`
+  if (deDiez === 10) return `Caben casi todas${sinAmpliar}: solo ${miles(fuera)} se quedan sin sitio.`
+  return `De cada 10 personas que llegan, ${deDiez === 1 ? 'cabe 1' : `caben ${deDiez}`}${sinAmpliar}.`
 }
