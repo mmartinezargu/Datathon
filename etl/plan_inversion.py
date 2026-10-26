@@ -54,9 +54,9 @@ def hoy(m: dict) -> float:
 
 def umbrales(universo: list[dict], zonas: list[dict], exigencia: float) -> dict:
     def curva(nivel: str) -> dict:
-        pts = [(math.log(hoy(m)), math.log(m["capacidad"][f"ninos_{nivel}"] / m["capacidad"][f"colegios_{nivel}"]))
+        pts = [(math.log(hoy(m)), math.log(m["capacidad"][f"alumnos_{nivel}"] / m["capacidad"][f"colegios_{nivel}"]))
                for m in universo
-               if m["capacidad"][f"colegios_{nivel}"] > 0 and m["capacidad"][f"ninos_{nivel}"] > 0]
+               if m["capacidad"][f"colegios_{nivel}"] > 0 and m["capacidad"][f"alumnos_{nivel}"] > 0]
         mx = sum(x for x, _ in pts) / len(pts)
         my = sum(y for _, y in pts) / len(pts)
         b = sum((x - mx) * (y - my) for x, y in pts) / sum((x - mx) ** 2 for x, _ in pts)
@@ -68,15 +68,15 @@ def umbrales(universo: list[dict], zonas: list[dict], exigencia: float) -> dict:
 
 def limites(m: dict, u: dict, colegios_nuevos: int, centros_nuevos: int) -> dict:
     c, p, anios = m["capacidad"], hoy(m), ESCENARIO["anio"] - ANIO_BASE
-    vivienda = (c["viv_no_principales"] * ESCENARIO["pct_vivienda"]
+    vivienda = (c["viv_vacias"] * ESCENARIO["pct_vivienda"]
                 + c["viv_previstas"] * ESCENARIO["pct_suelo"]) * c["personas_hogar"]
 
-    niveles = [{"n": c[f"colegios_{x}"], "ninos": c[f"ninos_{x}"], "proporcion": c[f"ninos_{x}"] / p,
+    niveles = [{"n": c[f"colegios_{x}"], "alumnos": c[f"alumnos_{x}"], "proporcion": c[f"alumnos_{x}"] / p,
                 "limite": math.exp(u[x]["a"] + u[x]["b"] * math.log(p) + u[x]["ajuste"])}
-               for x in NIVELES if c[f"colegios_{x}"] > 0 and c[f"ninos_{x}"] > 0]
+               for x in NIVELES if c[f"colegios_{x}"] > 0 and c[f"alumnos_{x}"] > 0]
 
     def caben(x: dict) -> float:
-        return max(0, x["n"] * x["limite"] - x["ninos"]) / x["proporcion"]
+        return max(0, x["n"] * x["limite"] - x["alumnos"]) / x["proporcion"]
     for _ in range(colegios_nuevos if niveles else 0):
         min(niveles, key=caben)["n"] += 1  # el colegio nuevo va al nivel con menos sitio
     colegios = min(caben(x) for x in niveles) if niveles else None
@@ -133,7 +133,7 @@ def repartir_cerca(filas: list[dict]) -> None:
     """Como reubicar() de motor.ts: de la pareja más cercana a la más lejana, lo que quepa."""
     por_ine = {f["ine"]: f for f in filas}
     exceso = {f["ine"]: -f["margen"] for f in filas if f["margen"] < 0}
-    sitio = {f["ine"]: f["margen"] for f in filas if f["margen"] > 0 and not f["condicionada"]}
+    sitio = {f["ine"]: f["margen"] for f in filas if f["margen"] > 0 and f["m"]["hospital_km"] <= HOSPITAL_LEJOS_KM}
     parejas = []
     for o in exceso:
         a = por_ine[o]["m"]

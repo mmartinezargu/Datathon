@@ -1,7 +1,7 @@
 // Tests del motor con los datos reales (web/public/datos). Se ejecutan con «npm test».
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { calcular, calcularUmbrales, escenarioPorDefecto, resumenReubicacion } from '../src/motor'
+import { HOSPITAL_LEJOS_KM, calcular, calcularUmbrales, escenarioPorDefecto, resumenReubicacion } from '../src/motor'
 import type { Municipio, ResultadoMunicipio, ZonaSalud } from '../src/tipos'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
@@ -21,15 +21,15 @@ describe('escenario por defecto (2035, sin inversiones)', () => {
   const r = calcular(municipios, zonas, esc)
 
   it('mantiene las cifras de cabecera y los tipos', () => {
-    expect(Math.round(caben(r))).toBe(60_785)
-    expect(Math.round(esc.personas - caben(r))).toBe(73_641)
-    expect(cuenta(r)).toEqual({ tension: 67, polo: 41, oportunidad: 37, consolidacion: 10 })
+    expect(Math.round(caben(r))).toBe(55_243)
+    expect(Math.round(esc.personas - caben(r))).toBe(79_183)
+    expect(cuenta(r)).toEqual({ tension: 83, polo: 33, oportunidad: 35, consolidacion: 4 })
   })
 
   it('mantiene la reubicación a 25 km', () => {
     const re = resumenReubicacion(calcular(municipios, zonas, { ...esc, reequilibrio: true }))
-    expect(Math.round(re.personas)).toBe(38_010)
-    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(35_631)
+    expect(Math.round(re.personas)).toBe(22_305)
+    expect(Math.round(esc.personas - caben(r) - re.personas)).toBe(56_878)
   })
 })
 
@@ -55,7 +55,23 @@ describe('invertir en un centro de salud', () => {
     expect(cambian.map((x) => x.ine)).toEqual([navalcarnero.ine])
     expect(sin.find((x) => x.ine === navalcarnero.ine)!.tipo).toBe('tension')
     expect(cambian[0].tipo).toBe('polo')
-    expect(cuenta(con).oportunidad).toBe(37)
-    expect(cuenta(con).consolidacion).toBe(10)
+    expect(cuenta(con).oportunidad).toBe(35)
+    expect(cuenta(con).consolidacion).toBe(4)
+  })
+})
+
+describe('reubicación y hospital', () => {
+  const bustarviejo = municipios.find((m) => m.nombre === 'Bustarviejo')!
+
+  it.each([25, 50])('ningún pueblo con el hospital lejos recibe gente, sea del tipo que sea (a %i km)', (radioKm) => {
+    const r = calcular(municipios, zonas, { ...esc, reequilibrio: true, radioKm })
+    const b = r.find((x) => x.ine === bustarviejo.ine)!
+    expect(bustarviejo.hospital_km).toBeGreaterThan(HOSPITAL_LEJOS_KM)
+    expect(b.tipo).toBe('polo') // no es una oportunidad condicionada, y aun así no recibe
+    expect(b.margen).toBeGreaterThan(0) // tiene sitio
+    expect(b.recibe).toBe(0)
+    expect(b.llegadas).toEqual([])
+    const lejos = new Set(municipios.filter((m) => m.hospital_km > HOSPITAL_LEJOS_KM).map((m) => m.ine))
+    expect(resumenReubicacion(r).traslados.filter((t) => lejos.has(t.destino))).toEqual([])
   })
 })

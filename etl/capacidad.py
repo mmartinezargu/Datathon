@@ -12,7 +12,11 @@ from comun import ANIO_BASE, RAW
 # ---------- Vivienda ----------
 
 def leer_viviendas() -> pd.DataFrame:
-    """Censo 2021 (INE): viviendas principales y no principales, y hogares."""
+    """Censo 2021 (INE): viviendas principales y no principales, viviendas vacías y hogares.
+
+    Las vacías salen del consumo eléctrico (tabla 59531): el INE las publica solo para
+    los municipios más grandes, así que a algunos les falta (quedan vacías, NaN).
+    """
     def censo(archivo, columna):
         df = pd.read_csv(RAW / archivo, sep=";", encoding="utf-8-sig", thousands=".", dtype={"Total": "Int64"})
         df = df[df["Municipios"].fillna("").str.match(r"^28\d{3} ")]
@@ -21,9 +25,11 @@ def leer_viviendas() -> pd.DataFrame:
 
     viv = censo("ine_59525_viviendas_censo2021.csv", "Tipo de vivienda (principal o no)")
     hog = censo("ine_59543_hogares_censo2021.csv", "Tamaño del hogar")
+    vac = censo("ine_59531_viviendas_vacias_censo2021.csv", "Consumo eléctrico")
     out = pd.DataFrame({
         "viv_principales": viv["Vivienda principal"],
         "viv_no_principales": viv["Vivienda no principal"],
+        "viv_vacias_ine": vac["Viviendas vacías"].reindex(viv.index),
         "hogares_2021": hog["Total (tamaño del hogar)"],
     })
     return out.reset_index()
@@ -115,9 +121,31 @@ def leer_ninos(pob: pd.DataFrame) -> pd.DataFrame:
     return proporcion.mul(hoy.reindex(proporcion.index), axis=0).round().reset_index()
 
 
+# Alumnos matriculados (ALMUDENA, IECM): el último año que publica (provisional)
+ALUMNOS = {"primaria": "iecm_almudena_501032_alumnos_primaria.csv", "secundaria": "iecm_almudena_501033_alumnos_eso.csv"}
+
+
+def leer_alumnos() -> tuple[pd.DataFrame, str]:
+    """Alumnos matriculados en primaria y en ESO en los colegios de cada municipio (ALMUDENA, IECM).
+
+    Son los alumnos de los centros del municipio, vivan donde vivan: lo que de verdad carga sus colegios.
+    El código de municipio de ALMUDENA lleva un dígito de control al final (0014 = 001).
+    Devuelve (alumnos_primaria y alumnos_secundaria por municipio, año de los datos).
+    """
+    out, anio = [], ""
+    for nivel, archivo in ALUMNOS.items():
+        x = pd.read_csv(RAW / archivo, sep=";", encoding="utf-8-sig", skiprows=1, dtype=str, index_col=False)
+        x.columns = ["tipo", "codigo", "nombre", *x.columns[3:]]
+        x = x[x["codigo"].fillna("").str.fullmatch(r"\d{4}")]
+        anio = x.columns[-1]  # el último año publicado, p. ej. «2024(P)»
+        valor = pd.to_numeric(x[anio].str.replace(".", "", regex=False).str.replace(",", ".", regex=False))
+        out.append(pd.Series(valor.to_numpy(), index="28" + x["codigo"].str[:3], name=f"alumnos_{nivel}"))
+    return pd.concat(out, axis=1).rename_axis("ine").reset_index(), anio
+
+
 # ---------- Sanidad ----------
 
-def leer_sanidad(pob: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def leer_sanidad(pob: pd.DataFrame, anio: int = ANIO_BASE) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Zona básica de salud de cada municipio y cuánta gente atiende.
 
     - Cada zona básica de salud tiene su centro de salud (es la zona que atiende
@@ -125,7 +153,8 @@ def leer_sanidad(pob: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
       porque ahí muchos aparecen como "consultorio" y saldrían zonas sin centro.
     - Cada municipio se asigna a la zona que más superficie suya cubre.
     - La población de la zona viene del Padrón 2019 (en el propio mapa de zonas)
-      y se actualiza con el crecimiento 2019-2025 del municipio principal de la zona.
+      y se actualiza con el crecimiento 2019-`anio` del municipio principal de la zona
+      (2025 en el modelo; validacion.py lo pide a 2021 para compararlo con el Censo).
     Devuelve (zona de cada municipio, lista de las 286 zonas con su población).
     El umbral de saturación lo calcula la web, porque es una palanca.
     """
@@ -141,11 +170,11 @@ def leer_sanidad(pob: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     zona_de_mun = trozos.sort_values("area").groupby("ine").last()[["codigo_geo", "zona_basic"]]
     mun_principal = trozos.sort_values("area").groupby("codigo_geo").last()["ine"]
 
-    factor = pob.set_index("ine")[2025] / pob.set_index("ine")[2019]
+    factor = pob.set_index("ine")[anio] / pob.set_index("ine")[2019]
     zbs = zbs.set_index("codigo_geo")
-    zbs["pob_2025"] = (zbs["pob_pad19"] * mun_principal.map(factor).reindex(zbs.index).fillna(1)).round()
-    out = zona_de_mun.join(zbs[["pob_2025"]], on="codigo_geo")
-    out = out.rename(columns={"codigo_geo": "zbs_codigo", "zona_basic": "zbs_nombre", "pob_2025": "zbs_poblacion"})
-    zonas = zbs.reset_index()[["codigo_geo", "zona_basic", "pob_2025"]].rename(
-        columns={"codigo_geo": "codigo", "zona_basic": "nombre", "pob_2025": "poblacion"})
+    zbs["pob_estimada"] = (zbs["pob_pad19"] * mun_principal.map(factor).reindex(zbs.index).fillna(1)).round()
+    out = zona_de_mun.join(zbs[["pob_estimada"]], on="codigo_geo")
+    out = out.rename(columns={"codigo_geo": "zbs_codigo", "zona_basic": "zbs_nombre", "pob_estimada": "zbs_poblacion"})
+    zonas = zbs.reset_index()[["codigo_geo", "zona_basic", "pob_estimada"]].rename(
+        columns={"codigo_geo": "codigo", "zona_basic": "nombre", "pob_estimada": "poblacion"})
     return out.reset_index(), zonas

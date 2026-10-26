@@ -84,8 +84,9 @@ def redondear_coordenadas(geo: dict, decimales: int) -> None:
 
 
 COLUMNAS_CAPACIDAD = [
-    "viv_principales", "viv_no_principales", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
-    "colegios_primaria", "colegios_secundaria", "ninos_primaria", "ninos_secundaria", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
+    "viv_principales", "viv_no_principales", "viv_vacias", "viv_vacias_sin_dato", "personas_hogar", "viv_previstas", "suelo_pendiente_ha",
+    "colegios_primaria", "colegios_secundaria", "ninos_primaria", "ninos_secundaria",
+    "alumnos_primaria", "alumnos_secundaria", "alumnos_estimados", "zbs_codigo", "zbs_nombre", "zbs_poblacion",
 ]
 
 
@@ -96,9 +97,30 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
             .merge(capacidad.leer_planeamiento(), on="ine", how="left")
             .merge(capacidad.leer_colegios(), on="ine", how="left")
             .merge(capacidad.leer_ninos(pob), on="ine", how="left")
+            .merge(capacidad.leer_alumnos()[0], on="ine", how="left")
             .merge(sanidad, on="ine", how="left"))
     df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]] = (
         df[["viv_previstas", "suelo_pendiente_ha", "colegios_primaria", "colegios_secundaria"]].fillna(0))
+    # Viviendas vacías (consumo eléctrico, INE 59531). Si el INE no da la cifra del municipio,
+    # se usan las no principales (vacías + secundarias) y se marca en viv_vacias_sin_dato
+    df["viv_vacias_sin_dato"] = df["viv_vacias_ine"].isna()
+    df["viv_vacias"] = df["viv_vacias_ine"].fillna(df["viv_no_principales"])
+    sin = df[df["universo"] & df["viv_vacias_sin_dato"]]
+    print(f"Viviendas vacías: sin dato del INE en {len(sin)} de los {int(df['universo'].sum())} municipios del reto "
+          "(se usan las no principales)")
+    # Alumnos matriculados (ALMUDENA). Si tiene colegio de un nivel pero ALMUDENA no le da alumnos
+    # (colegio nuevo o dato que falta), se usan los niños estimados por edad, pasados a alumnos con la
+    # relación alumnos ÷ niños de los demás municipios del reto, y se marca en alumnos_estimados
+    df["alumnos_estimados"] = False
+    for nivel in ("primaria", "secundaria"):
+        col, ninos, alumnos = df[f"colegios_{nivel}"], df[f"ninos_{nivel}"], df[f"alumnos_{nivel}"].fillna(0)
+        ambos = df["universo"] & (col > 0) & (alumnos > 0) & (ninos > 0)
+        relacion = alumnos[ambos].sum() / ninos[ambos].sum()
+        falta = (col > 0) & (alumnos <= 0)
+        df[f"alumnos_{nivel}"] = alumnos.where(~falta, (ninos * relacion).round())
+        df["alumnos_estimados"] |= falta
+        print(f"Alumnos de {nivel}: {int(falta[df['universo']].sum())} municipios del reto con colegio y sin alumnos "
+              f"en ALMUDENA (se estiman con {relacion:.2f} alumnos por niño de esa edad)")
     # Personas por hogar del municipio (Censo 2021): sirve para pasar viviendas a personas
     df["personas_hogar"] = (df[2021] / df["hogares_2021"]).round(3)
     return df, zonas
@@ -154,8 +176,8 @@ def limpio(v):
     """Convierte valores de pandas/numpy a algo que JSON entienda (y redondea)."""
     if pd.isna(v):
         return None
-    if isinstance(v, str):
-        return v
+    if isinstance(v, (str, bool, np.bool_)):
+        return v if isinstance(v, str) else bool(v)
     return round(float(v), 3)
 
 

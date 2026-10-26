@@ -9,6 +9,8 @@ from comun import OUT
 
 PADRON = ("INE, Padrón continuo (tabla 2881)", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 VIVIENDAS = ("INE, Censo 2021 (tabla 59525)", "https://www.ine.es/jaxi/Tabla.htm?tpx=59525&L=0")
+VACIAS = ("INE, Censo 2021, viviendas por intensidad de uso según el consumo eléctrico (tabla 59531)",
+          "https://www.ine.es/jaxi/Tabla.htm?tpx=59531")
 HOGARES = ("INE, Censo 2021 (tablas 59543 y 2881)", "https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0")
 MUNICIPIOS = ("Portal de Datos Abiertos de la Comunidad de Madrid, Municipios",
               "https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d")
@@ -24,6 +26,9 @@ PLANEAMIENTO = ("IDEM, Planeamiento urbanístico refundido 2025",
                 "https://idem.comunidad.madrid/recursos_cat_geo/Catalogo/recursos/Planeamiento/Refundido/vpla_ref_25_gpkg.zip")
 EDAD = ("Portal de Datos Abiertos de la Comunidad de Madrid, Población censada por edad (Censo anual) y Padrón (INE)",
         "https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402")
+ALUMNOS = ("Instituto de Estadística de la Comunidad de Madrid, ALMUDENA (banco de datos municipal): alumnos matriculados "
+           "en educación primaria (tema 501032) y en ESO (tema 501033), último año publicado (2024, provisional)",
+           "https://gestiona.comunidad.madrid/desvan/Inicio.icm?enlace=almudena")
 ESCENARIO = ("Cálculo de CABIDA en la web (web/src/motor.ts) con el escenario elegido; se descarga desde «Llévate los datos»", "")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 
@@ -42,6 +47,10 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "tanto por uno al año", PADRON),
         ("viv_principales", "Viviendas principales (donde vive un hogar habitualmente)", "viviendas", VIVIENDAS),
         ("viv_no_principales", "Viviendas no principales: vacías o de segunda residencia", "viviendas", VIVIENDAS),
+        ("viv_vacias", "Viviendas vacías según su consumo eléctrico (Censo 2021). Si el INE no da la cifra del municipio, "
+         "las no principales (vacías + segunda residencia): ver viv_vacias_sin_dato", "viviendas", VACIAS),
+        ("viv_vacias_sin_dato", "True si el INE no publica las viviendas vacías del municipio y viv_vacias son las no principales",
+         "sí/no", VACIAS),
         ("personas_hogar", "Personas por hogar: población 2021 ÷ hogares del Censo 2021", "personas por hogar", HOGARES),
         ("viv_previstas", "Viviendas previstas en suelo aún pendiente de desarrollar (urbanizable o urbano no consolidado). "
          "Un ámbito partido en varios polígonos se cuenta una sola vez",
@@ -51,9 +60,16 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "sin educación de adultos, aulas hospitalarias ni enseñanzas artísticas)", "centros", COLEGIOS),
         ("colegios_secundaria", "Centros educativos en funcionamiento que dan secundaria", "centros", COLEGIOS),
         ("ninos_primaria", "[est.] Niños en edad de primaria (6-11 años) en 2025: 0,8 × «5-9 años» + 0,4 × «10-14 años» "
-         "del Censo anual, como proporción de la población, aplicada al Padrón 2025", "personas", EDAD),
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. El modelo usa alumnos_* en su lugar "
+         "(solo entra donde alumnos_estimados)", "personas", EDAD),
         ("ninos_secundaria", "[est.] Niños en edad de secundaria (12-17 años) en 2025: 0,6 × «10-14 años» + 0,6 × «15-19 años» "
-         "del Censo anual, como proporción de la población, aplicada al Padrón 2025", "personas", EDAD),
+         "del Censo anual, como proporción de la población, aplicada al Padrón 2025. El modelo usa alumnos_* en su lugar "
+         "(solo entra donde alumnos_estimados)", "personas", EDAD),
+        ("alumnos_primaria", "Alumnos matriculados en educación primaria en los colegios del municipio (vivan donde vivan). "
+         "Es lo que usa el límite de colegios", "alumnos", ALUMNOS),
+        ("alumnos_secundaria", "Alumnos matriculados en ESO en los centros del municipio", "alumnos", ALUMNOS),
+        ("alumnos_estimados", "True si tiene colegio de algún nivel pero ALMUDENA no le da alumnos: ese nivel usa los niños estimados "
+         "por edad × la relación alumnos ÷ niños de los demás municipios del reto", "sí/no", ALUMNOS),
         ("zbs_codigo", "Código de la zona básica de salud a la que se asigna (la que cubre más superficie del municipio)",
          "código", ZONAS_SALUD),
         ("zbs_nombre", "Nombre de esa zona básica de salud", "texto", ZONAS_SALUD),
@@ -78,7 +94,7 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "0 = ya está por encima del límite hoy", "personas", ESCENARIO),
         ("margen", "caben − llegan, con las dos cifras ya redondeadas (negativo = no caben)", "personas", ESCENARIO),
         ("crecimiento_pct", "llegan ÷ poblacion_2025 × 100", "%", ESCENARIO),
-        ("caben_por_vivienda", "Personas que caben según la vivienda (vacía o secundaria y prevista en el planeamiento)", "personas", ESCENARIO),
+        ("caben_por_vivienda", "Personas que caben según la vivienda (vacía y prevista en el planeamiento)", "personas", ESCENARIO),
         ("caben_por_colegios", "Personas que caben según los colegios (el nivel con menos sitio). "
          "Vacío = no tiene colegio de ese nivel: sus alumnos van a otro municipio y el límite no aplica", "personas", ESCENARIO),
         ("caben_por_sanidad", "Personas que caben según su zona básica de salud, por la parte de la zona que son sus vecinos", "personas", ESCENARIO),

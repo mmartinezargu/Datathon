@@ -1,6 +1,6 @@
 # etl/ — preparación de datos y validación
 
-Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, geopandas, pyogrio, shapely, requests, scipy). Añade dependencias con `uv add <paquete>`, nunca con pip.
+Python >= 3.12 gestionado con **uv**. Dependencias en `pyproject.toml` (pandas, geopandas, pyogrio, shapely, requests, scipy, openpyxl). Añade dependencias con `uv add <paquete>`, nunca con pip.
 
 ## Scripts
 

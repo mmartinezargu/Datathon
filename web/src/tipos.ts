@@ -5,13 +5,18 @@
 export interface IngredientesCapacidad {
   viv_principales: number
   viv_no_principales: number // vacías o de segunda residencia (Censo 2021)
+  viv_vacias: number // vacías según el consumo eléctrico (Censo 2021, INE 59531); sin ese dato, las no principales
+  viv_vacias_sin_dato: boolean // el INE no da las vacías del municipio: viv_vacias son las no principales
   personas_hogar: number
   viv_previstas: number // viviendas previstas en suelo aún sin desarrollar (planeamiento 2025)
   suelo_pendiente_ha: number
   colegios_primaria: number
   colegios_secundaria: number
-  ninos_primaria: number // niños de 6 a 11 años en 2025 [est.], a partir de grupos de 5 años del Censo anual
+  ninos_primaria: number // niños de 6 a 11 años en 2025 [est.], a partir de grupos de 5 años del Censo anual (ya no entra en el modelo)
   ninos_secundaria: number // de 12 a 17 años [est.]
+  alumnos_primaria: number // alumnos matriculados en primaria en los colegios del municipio (ALMUDENA, IECM)
+  alumnos_secundaria: number // en ESO
+  alumnos_estimados: boolean // tiene colegio pero ALMUDENA no le da alumnos: ese nivel sale de los niños estimados
   zbs_codigo: string // zona básica de salud
   zbs_nombre: string
   zbs_poblacion: number
@@ -47,7 +52,7 @@ export interface Escenario {
   anio: number // horizonte: 2030, 2035 o 2039
   personas: number // personas que absorben los 155 municipios hasta ese año
   pctSuelo: number // parte del suelo previsto que llega a construirse (0-1)
-  pctVivienda: number // parte de la vivienda vacía o secundaria que se ocupa (0-1)
+  pctVivienda: number // parte de la vivienda vacía que se ocupa (0-1)
   ritmoMax: number // crecimiento máximo prudente al año (0.03 = 3 %)
   exigencia: number // hasta qué percentil se pueden cargar colegios y centros (0.75 = como el 25 % más cargado)
   reequilibrio: boolean // reubicar lo que no cabe en pueblos cercanos con sitio
@@ -63,7 +68,7 @@ export interface Inversion {
 /** Inversiones simuladas, por código INE. */
 export type Inversiones = Record<string, Inversion>
 
-/** Curva de niños por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */
+/** Curva de alumnos por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */
 export interface CurvaColegio {
   a: number
   b: number
@@ -72,7 +77,7 @@ export interface CurvaColegio {
 
 /** Límites de saturación calculados con la exigencia elegida. */
 export interface Umbrales {
-  primaria: CurvaColegio // niños por colegio de primaria según el tamaño del municipio
+  primaria: CurvaColegio // alumnos por colegio de primaria según el tamaño del municipio
   secundaria: CurvaColegio
   zonaSalud: number // personas que aguanta una zona básica de salud (el mismo para todas)
 }
@@ -151,4 +156,18 @@ export interface DatosValidacion {
     spearman: number
   }[]
   mayores_errores: { ine: string; nombre: string; crecimiento_real: number; crecimiento_previsto: number }[]
+  /** Población de las zonas de salud (nuestro método, llevado a 2021) frente al Censo 2021 por zona (IECM, T21SALUD01). */
+  zonas_salud: {
+    todas: ResumenZonas
+    del_reto: ResumenZonas // solo las zonas a las que va algún municipio del reto
+    mas_se_apartan: { codigo: string; nombre: string; estimada_2021: number; censo_2021: number; dif: number; del_reto: boolean }[]
+  }
+}
+
+export interface ResumenZonas {
+  zonas: number
+  correlacion: number
+  dif_media: number // media de (estimada ÷ censo − 1): positivo = nos pasamos
+  dif_abs_media: number
+  dif_abs_mediana: number
 }
