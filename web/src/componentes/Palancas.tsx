@@ -3,7 +3,7 @@
 // en vez de esconderlos, se convierten en controles.
 
 import { useState } from 'react'
-import { ANIO_BASE, RITMO_ANUAL } from '../motor'
+import { ANIO_BASE, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
 import type { Escenario } from '../tipos'
 import { miles, pct } from '../formato'
 
@@ -13,10 +13,12 @@ interface Props {
 }
 
 const ANIOS = [2030, 2035, 2039]
+/** Para el texto: «unas 134.000». */
+const redondeo = (n: number) => Math.round(n / 1000) * 1000
 const EXIGENCIAS = [
-  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio o un centro de salud se considera lleno cuando atiende a tantos vecinos como el 25 % más cargado de los de su tamaño.' },
-  { valor: 0.9, texto: 'Media', ayuda: 'Lleno cuando atiende a tantos vecinos como el 10 % más cargado de los de su tamaño.' },
-  { valor: 0.97, texto: 'Flexible', ayuda: 'Se aceptan cargas como las de los más saturados de su tamaño.' },
+  { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio se considera lleno cuando tiene tantos niños como el 25 % más cargado de los de su tamaño, y un centro de salud cuando atiende a tanta gente como el 25 % de las zonas más pobladas.' },
+  { valor: 0.9, texto: 'Media', ayuda: 'Lleno cuando tiene tanta carga como el 10 % más cargado (colegios de su tamaño; zonas de salud de toda la Comunidad).' },
+  { valor: 0.97, texto: 'Flexible', ayuda: 'Se aceptan cargas como las de los más saturados.' },
 ]
 
 export function Palancas({ escenario, onCambiar }: Props) {
@@ -25,6 +27,7 @@ export function Palancas({ escenario, onCambiar }: Props) {
   const maximo = Math.round(RITMO_ANUAL * anios * 2.5) // hasta 2,5 veces el ritmo actual
   const cambiar = (parcial: Partial<Escenario>) => onCambiar({ ...escenario, ...parcial })
   const exigencia = EXIGENCIAS.find((e) => e.valor === escenario.exigencia) ?? EXIGENCIAS[1]
+  const prevision = segunPrevision(escenario.anio)
 
   function cambiarAnio(anio: number) {
     // Al cambiar el año se mantiene el ritmo anual elegido
@@ -42,7 +45,9 @@ export function Palancas({ escenario, onCambiar }: Props) {
       </div>
       <Deslizador etiqueta="Personas que absorben los 155 municipios" valor={escenario.personas}
         texto={miles(escenario.personas)} min={0} max={maximo} paso={1000}
-        pista={`Ritmo de la última década: ${miles(RITMO_ANUAL * anios)} hasta ${escenario.anio}`}
+        pista={`Por defecto, ${miles(redondeo(RITMO_ANUAL * anios))} personas hasta ${escenario.anio}: lo que ganaron estos 155 municipios ` +
+          `entre 2015 y 2025, el ${pct(prevision.parte, 0)} de lo que creció la Comunidad. La Comunidad prevé llegar a 8 millones en ${PREVISION_CM.anio}; ` +
+          `con esa previsión les tocarían algo menos, entre ${miles(redondeo(prevision.minimo))} y ${miles(redondeo(prevision.maximo))}.`}
         onCambiar={(v) => cambiar({ personas: v })} />
       <label className="control interruptor">
         <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />

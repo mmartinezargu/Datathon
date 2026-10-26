@@ -13,13 +13,14 @@ import { Inicio, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
 import { Reubicacion } from './componentes/Reubicacion'
+import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { Validacion, type DatosValidacion } from './componentes/Validacion'
 import { ANIO_BASE, HOSPITAL_LEJOS_KM, SIN_INVERSION, calcular, calcularUmbrales, costeInversion, escenarioPorDefecto, quedanSinSitio, resumenReubicacion } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { Escenario, FiltrosMudanza, Inversion, Inversiones, Municipio, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
-import { miles, millones, pct } from './formato'
+import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
@@ -115,7 +116,7 @@ export default function App() {
   const etiquetas = useMemo<Record<string, InfoEtiqueta>>(
     () => Object.fromEntries(resultados.map((r) => [r.ine, {
       titulo: porIne.get(r.ine)?.nombre ?? '',
-      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${miles(r.caben)}`,
+      linea: `${r.condicionada ? CONDICIONADA.nombre : TIPOS[r.tipo].nombre}: llegan ${miles(r.llegan)}, caben ${caben(r.caben)} sin ampliar`,
     }])),
     [resultados, porIne],
   )
@@ -133,6 +134,7 @@ export default function App() {
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const condicionadas = resultados.filter((r) => r.condicionada).length
+  const delReto = municipios.filter((m) => m.universo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
   const sel = seleccionado ? resultados.find((r) => r.ine === seleccionado) ?? null : null
   // Con la reubicación, los municipios con los que intercambia gente el seleccionado (borde grueso en el mapa)
   const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
@@ -191,13 +193,16 @@ export default function App() {
 
           {/* 2. Mapa */}
           <div className="columna col-mapa">
-            <div className="mapa-titulo"><TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio" /></div>
+            <div className="mapa-titulo">
+              <TituloColumna numero={2} texto="Mapa" ayuda="Pulsa un municipio o búscalo" />
+              <Buscador municipios={delReto} onElegir={elegir} />
+            </div>
             <Mapa limites={limites} colores={colores} etiquetas={etiquetas} rayados={rayados} vecinos={vecinos}
               seleccionado={seleccionado} onSeleccionar={elegir} />
             <div className="cifras">
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
-                  (invertido ? ', contando lo que has invertido' : ' con los servicios de hoy') +
+                  (invertido ? ', contando lo que has invertido' : ' sin ampliar servicios') +
                   (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
@@ -253,13 +258,13 @@ export default function App() {
                   <button className="volver" onClick={() => setSeleccionado(null)}><Icono nombre="volver" tamano={18} /> Volver a la lista</button>
                 </div>
                 <Ficha r={sel} antes={selAntes ?? sel} m={porIne.get(sel.ine)!} porIne={porIne} escenario={escenario} umbrales={umbrales}
-                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} />
+                  inversion={inversiones[sel.ine] ?? SIN_INVERSION} onInvertir={(inv) => invertir(sel.ine, inv)} onElegir={elegir} />
               </>
             ) : (
               <>
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
-                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto
+                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto ampliado={invertido > 0}
                     notaLibre={reequilibrio
                       ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
                       : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
@@ -351,9 +356,12 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   onElegir: (ine: string) => void
 }) {
   const [lista, setLista] = useState<Lista>('tension')
+  // Con «Reubicar» activo, a los que tienen sitio se les descuenta lo que reciben de pueblos cercanos
+  const sitio = (r: ResultadoMunicipio) => (r.margen > 0 ? r.margen - r.recibe : r.margen)
   const margen = {
-    valor: (r: ResultadoMunicipio) => Math.abs(r.margen),
-    texto: (r: ResultadoMunicipio) => (r.margen < 0 ? `−${miles(-r.margen)}` : `+${miles(r.margen)}`),
+    valor: (r: ResultadoMunicipio) => Math.abs(sitio(r)),
+    texto: (r: ResultadoMunicipio) => (sitio(r) < 0 ? `−${miles(-sitio(r))}` : `+${miles(sitio(r))}`) +
+      (r.recibe >= 1 ? ` (recibe ${miles(r.recibe)})` : ''),
   }
   // Con «Reubicar» activo, en tensión cuenta lo que sigue sin sitio después de reubicar, no el exceso por tendencia
   const sinSitio = (filas: ResultadoMunicipio[]) => ({
@@ -364,8 +372,8 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   // Si se ha pulsado un tipo en la leyenda, la lista enseña solo ese tipo
   const config = resaltado ? {
     titulo: `${TIPOS[resaltado].nombre}: ${TIPOS[resaltado].que}`,
-    ayuda: 'Personas que sobran (−) o sitio libre (+).',
-    filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(b.margen) - Math.abs(a.margen)),
+    ayuda: reubicar ? 'Personas que sobran (−) o sitio libre (+), después de reubicar.' : 'Personas que sobran (−) o sitio libre (+).',
+    filas: resultados.filter((r) => r.tipo === resaltado).sort((a, b) => Math.abs(sitio(b)) - Math.abs(sitio(a))),
     ...margen,
     ...(reubicar && resaltado === 'tension' ? sinSitio(resultados.filter((r) => r.tipo === 'tension')) : {}),
     color: () => TIPOS[resaltado].color,
@@ -379,8 +387,9 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
       ...margen, color: () => TIPOS.tension.color,
     },
     oportunidad: {
-      titulo: 'Donde hay sitio y no llega gente', ayuda: 'Personas, en el escenario elegido.',
-      filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => b.margen - a.margen),
+      titulo: 'Donde hay sitio y no llega gente',
+      ayuda: reubicar ? 'Sitio que les queda, después de recibir a la gente reubicada.' : 'Personas, en el escenario elegido.',
+      filas: resultados.filter((r) => r.tipo === 'oportunidad').sort((a, b) => sitio(b) - sitio(a)),
       ...margen, color: () => TIPOS.oportunidad.color,
     },
     crecimiento: {
@@ -390,7 +399,8 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
       color: (r: ResultadoMunicipio) => colorCrecimiento(r.crecimiento),
     },
   }[lista]
-  const conEnvio = reubicar && (resaltado ? resaltado === 'tension' : lista === 'tension')
+  // Con la reubicación, la cifra lleva «(envía …)» o «(recibe …)»: columna más ancha
+  const conEnvio = reubicar && (resaltado ? true : lista !== 'crecimiento')
   const top = config.filas.slice(0, 8)
   const max = top.length ? config.valor(top[0]) || 1 : 1
 
@@ -410,7 +420,10 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
         {top.map((r) => (
           <li key={r.ine}>
             <button onClick={() => onElegir(r.ine)}>
-              <span className="r-nombre">{porIne.get(r.ine)?.nombre}</span>
+              <span className="r-nombre">
+                {porIne.get(r.ine)?.nombre}
+                {r.caben < 1 && <small className="r-limite">caben {caben(r.caben)}</small>}
+              </span>
               <span className="r-barra"><span style={{ width: `${(config.valor(r) / max) * 100}%`, background: config.color(r) }} /></span>
               <span className="r-valor">{config.texto(r)}</span>
             </button>

@@ -1,9 +1,9 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
+import { ANIO_BASE, COSTE_CENTRO_SALUD, COSTE_COLEGIO, PLAZO_CENTRO_SALUD_ANIOS, PLAZO_COLEGIO_ANIOS, alLimite, costeInversion, nivelesColegio, plazoInversion, quedanSinSitio, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Municipio, ResultadoMunicipio, Traslado, Umbrales } from '../tipos'
-import { decimal, miles, millones, pct } from '../formato'
+import { caben, decimal, miles, millones, pct } from '../formato'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
@@ -18,15 +18,18 @@ interface Props {
   umbrales: Umbrales
   inversion: Inversion
   onInvertir: (inv: Inversion) => void
+  onElegir: (ine: string) => void // abrir la ficha de otro municipio (los de los traslados)
 }
 
 const ORDEN: Limite[] = ['vivienda', 'colegios', 'sanidad', 'ritmo']
 
-export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir }: Props) {
+export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onInvertir, onElegir }: Props) {
   const tipo = TIPOS[r.tipo]
   // Escala de las barras: el mayor de los límites o de lo que llega
   const valores = ORDEN.map((l) => r.limites[l]).filter((v): v is number => v !== null)
   const escala = Math.max(r.llegan, ...valores, 1)
+  const ampliado = inversion.colegios > 0 || inversion.centros > 0
+  const limite = alLimite(r, m, umbrales, inversion)
 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
@@ -42,13 +45,14 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
         </div>
       </div>
 
-      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto
+      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto ampliado={ampliado}
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
-      <p className="ficha-frase">{frase(r, m, escenario.anio)}</p>
-      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} />}
+      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado)}</p>
+      {limite && <p className="ficha-limite" style={{ borderLeftColor: TIPOS.tension.color }}>{textoAlLimite(limite, m)}</p>}
+      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} onElegir={onElegir} />}
 
-      <h3>Personas que caben según cada recurso</h3>
+      <h3>Personas que caben{ampliado ? '' : ' sin ampliar servicios'}, según cada recurso</h3>
       <div className="limites">
         {ORDEN.map((l) => {
           const v = r.limites[l]
@@ -81,13 +85,24 @@ export function Ficha({ r, antes, m, porIne, escenario, umbrales, inversion, onI
 }
 
 /** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
-function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number }) {
+function Reubicados({ r, porIne, radioKm, onElegir }: {
+  r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number; onElegir: (ine: string) => void
+}) {
   const exceso = Math.max(0, -r.margen)
   const quedan = quedanSinSitio(r)
-  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => {
-    const nombres = traslados.slice(0, 5).map((t) => `${porIne.get(t[campo])?.nombre} (${miles(t.personas)}, ${miles(t.km)} km)`)
-    return nombres.join(', ') + (traslados.length > 5 ? ' y otros' : '')
-  }
+  // Cada pueblo se puede pulsar para abrir su ficha
+  const lista = (traslados: Traslado[], campo: 'origen' | 'destino') => (
+    <>
+      {traslados.slice(0, 5).map((t, i) => (
+        <span key={t[campo]}>
+          {i > 0 && ', '}
+          <button className="enlace" onClick={() => onElegir(t[campo])}>{porIne.get(t[campo])?.nombre}</button>
+          {' '}({miles(t.personas)}, {miles(t.km)} km)
+        </span>
+      ))}
+      {traslados.length > 5 && ' y otros'}
+    </>
+  )
   let texto
   if (r.envia >= 1) {
     texto = <>Envía <b>{miles(r.envia)}</b> personas a: {lista(r.envios, 'destino')}.
@@ -107,21 +122,38 @@ function Reubicados({ r, porIne, radioKm }: { r: ResultadoMunicipio; porIne: Map
   )
 }
 
-function frase(r: ResultadoMunicipio, m: Municipio, anio: number): string {
+function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: boolean): string {
   const l = LIMITES[r.limitante].frase
+  const sin = ampliado ? '' : ' sin ampliar servicios'
   switch (r.tipo) {
     case 'tension':
-      return `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero solo caben unas ${miles(r.caben)}: ${l}.`
+      return r.caben < 1
+        ? `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero no cabe nadie${sin}: ${l}.`
+        : `Si sigue la tendencia, ${m.nombre} recibiría unas ${miles(r.llegan)} personas hasta ${anio}, pero solo caben unas ${miles(r.caben)}${sin}: ${l}.`
     case 'polo':
-      return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${miles(r.caben)}: puede crecer sin desbordarse.`
+      return `Recibiría unas ${miles(r.llegan)} personas hasta ${anio} y caben ${caben(r.caben)}${sin}: puede crecer sin desbordarse.`
     case 'oportunidad':
-      return `Caben unas ${miles(r.caben)} personas, pero solo llegarían ${miles(r.llegan)}. ` +
+      return `Caben unas ${miles(r.caben)} personas${sin}, pero solo llegarían ${miles(r.llegan)}. ` +
         (r.condicionada
           ? `Tiene sitio, pero el hospital queda a ${decimal(m.hospital_km)} km: antes de atraer gente hay que asegurar el acceso.`
           : 'Tiene sitio para acoger a más gente.')
     default:
-      return `Llegarían unas ${miles(r.llegan)} personas y caben ${miles(r.caben)}. Crece poco y tiene poco margen.`
+      return `Llegarían unas ${miles(r.llegan)} personas y caben ${caben(r.caben)}${sin}. Crece poco y tiene poco margen.`
   }
+}
+
+/** «Al límite hoy»: por qué no cabe nadie sin ampliar (municipios con caben = 0). */
+function textoAlLimite(x: NonNullable<ReturnType<typeof alLimite>>, m: Municipio): string {
+  const cuanto = x.exceso < 0.001 ? 'justo en el límite' : `un ${pct(x.exceso, 1)} por encima`
+  if (x.recurso === 'sanidad') {
+    return `Al límite hoy: su zona de salud (${m.capacidad!.zbs_nombre}) ya atiende a ${miles(x.hoy)} personas y el límite es ${miles(x.limite)} (${cuanto}). ` +
+      'Cualquier llegada necesita ampliar.'
+  }
+  const centros = x.nivel === 'primaria'
+    ? (x.centros === 1 ? 'su colegio de primaria ya tiene' : 'sus colegios de primaria ya tienen')
+    : (x.centros === 1 ? 'su instituto ya tiene' : 'sus institutos ya tienen')
+  return `Al límite hoy: ${centros} unos ${miles(x.hoy)} niños${x.centros === 1 ? '' : ' por centro'} y el límite para los de su tamaño es ${miles(x.limite)} (${cuanto}). ` +
+    'Cualquier llegada necesita ampliar.'
 }
 
 function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umbrales, inv: Inversion): string {
@@ -131,19 +163,25 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
   switch (r.limitante) {
     case 'colegios': {
       // El nivel que manda es el de menos sitio
-      const niveles = nivelesColegio(m, u, inv.colegios).sort((a, b) => (a.n * a.umbral - p) - (b.n * b.umbral - p))
-      const x = niveles[0]
+      const x = nivelesColegio(m, u, inv.colegios).sort((a, b) => a.caben - b.caben)[0]
       const nuevos = inv.colegios ? ` (con ${inv.colegios === 1 ? 'el nuevo' : `los ${inv.colegios} nuevos`})` : ''
-      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} para ${miles(p)} vecinos: ${miles(p / x.n)} por centro. ` +
-        `Los municipios de su tamaño llegan hasta ${miles(x.umbral)}. (${miles(x.umbral)} × ${x.n}) − ${miles(p)} = ${miles(Math.max(0, x.n * x.umbral - p))} personas.`
+      const edad = x.nombre === 'primaria' ? 'de 6 a 11 años' : 'de 12 a 17 años'
+      return `${x.n} ${x.n === 1 ? 'centro' : 'centros'} de ${x.nombre}${nuevos} para unos ${miles(x.ninos)} niños ${edad} (estimación): ${miles(x.ninos / x.n)} por centro. ` +
+        `Los municipios de su tamaño llegan hasta ${miles(x.limite)} por centro. Plazas libres: (${miles(x.limite)} × ${x.n}) − ${miles(x.ninos)} = ${miles(Math.max(0, x.libres))}. ` +
+        `Como un ${pct(x.proporcion, 1)} de sus vecinos tiene esa edad, caben ${miles(x.caben)} personas.`
     }
     case 'sanidad': {
-      const libre = Math.max(0, umb.zona - c.zbs_poblacion)
+      // La parte del municipio en el sitio libre de la zona (negativa si la zona ya se pasa del límite)
+      const parte = (umb.zona - c.zbs_poblacion) * Math.min(1, p / c.zbs_poblacion)
+      const total = miles(r.limites.sanidad ?? 0)
       const nuevos = inv.centros
-        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas más (${miles(umb.zona)} por centro): ${miles(r.caben)} en total.`
+        ? ` Con ${inv.centros === 1 ? 'el centro de salud nuevo' : `los ${inv.centros} centros de salud nuevos`} se suman ${miles(inv.centros * umb.zona)} plazas (${miles(umb.zona)} por centro)` +
+          (parte < 0 ? `; descontando ese exceso, quedan ${total}.` : `: ${total} en total.`)
         : ''
-      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y las zonas de su tamaño llegan hasta ${miles(umb.zona)}. ` +
-        (libre === 0 ? 'La zona ya está por encima: no queda sitio.' : `Quedan ${miles(libre)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${miles(r.caben)}`}.`) + nuevos
+      return `Su zona básica de salud (${c.zbs_nombre}) atiende a ${miles(c.zbs_poblacion)} personas y una zona aguanta hasta ${miles(umb.zona)}. ` +
+        (parte < 0
+          ? `La zona ya está por encima: a ${m.nombre}, por la parte de sus vecinos, le tocan ${miles(-parte)} personas de más${inv.centros ? '' : ', así que no queda sitio'}.`
+          : `Quedan ${miles(umb.zona - c.zbs_poblacion)} plazas en la zona; a ${m.nombre} le toca la parte de sus vecinos${inv.centros ? '' : `: ${total}`}.`) + nuevos
     }
     case 'vivienda':
       return `${miles(c.viv_no_principales)} viviendas vacías o secundarias × ${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas × ${pct(esc.pctSuelo, 0)}, ` +

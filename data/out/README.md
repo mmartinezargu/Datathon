@@ -8,7 +8,7 @@ Datos generados por CABIDA para los 179 municipios de la Comunidad de Madrid, co
 |---|---|---|---|
 | `tabla_maestra.csv` | Los datos de partida de cada municipio: población 2005–2025, tendencia, vivienda, planeamiento, colegios, zona básica de salud y hospital más cercano | 179 (una por municipio; `universo = True` en los 155 del reto) | `etl/preparar.py` |
 | `validacion_municipios.csv` | Prueba contra el pasado: lo que el modelo, con datos hasta 2015, preveía que crecería cada municipio en 2015–2025, frente a lo que creció de verdad | 155 | `etl/validacion.py` |
-| `diccionario.csv` | Qué significa cada columna de los dos archivos anteriores, en qué unidad va y de qué fuente sale | una por columna | `etl/preparar.py` (las descripciones están en `etl/diccionario.py`) |
+| `diccionario.csv` | Qué significa cada columna de los dos archivos anteriores y del CSV del escenario que se descarga desde la web, en qué unidad va y de qué fuente sale | una por columna | `etl/preparar.py` (las descripciones están en `etl/diccionario.py`) |
 
 Formato: CSV en UTF-8, separador `,` y punto decimal. La clave para cruzar los archivos es `ine`, el código INE de 5 cifras del municipio (`28001` = La Acebeda).
 
@@ -23,6 +23,7 @@ Las cifras del escenario (cuánta gente llega y cuánta cabe con las palancas el
 | Censo 2021: hogares por tamaño (tabla 59543) | INE | https://www.ine.es/jaxi/Tabla.htm?tpx=59543&L=0 |
 | Municipios de la Comunidad de Madrid (zona estadística, superficie) | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/0781c37e-bc64-4143-8029-18865bedbc3d |
 | Centros educativos | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/c750856d-3166-4dac-8e80-d1b824c968b5 |
+| Población censada por edad (Censo anual), para estimar los niños de edad escolar | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/0a14fbfe-783e-4de3-81b1-ff3792bfd402 |
 | Centros, servicios y establecimientos sanitarios | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7 |
 | Zonas básicas de salud | Portal de Datos Abiertos de la Comunidad de Madrid | https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff |
 | Límites municipales | IDEM, Comunidad de Madrid | https://idem.comunidad.madrid/ |

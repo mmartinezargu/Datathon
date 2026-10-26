@@ -35,6 +35,17 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .titulo-columna span:not(.paso) { display: block; font-size: 12px; color: var(--tinta2); }
 .mapa-titulo { position: absolute; top: 0; left: 0; right: 0; height: 52px; background: var(--papel); border-bottom: 1px solid var(--linea); z-index: 2; }
 .mapa-titulo .titulo-columna { padding-top: 10px; }
+.mapa-titulo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.buscador { position: relative; padding: 0 14px; flex: 0 1 230px; min-width: 0; }
+.buscador input {
+  width: 100%; font: inherit; font-size: 13.5px; color: var(--tinta); background: var(--fondo);
+  border: 1px solid var(--linea); border-radius: 10px; padding: 7px 10px;
+}
+.buscador input:focus { outline: 2px solid var(--cielo); outline-offset: 1px; background: var(--papel); }
+.buscador-aviso {
+  position: absolute; top: calc(100% + 4px); right: 14px; font-size: 12px; color: var(--tinta2);
+  background: var(--papel); border: 1px solid var(--linea); border-radius: 8px; padding: 3px 8px; white-space: nowrap;
+}
 .col-mapa .cifras { top: 66px; }
 .col-mapa .cifra { min-width: 0; flex: 1 1 150px; max-width: 230px; padding: 8px 12px; }
 .col-mapa .cifra b { font-size: 22px; }
@@ -225,6 +236,8 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   .pasos-simples > li { grid-template-columns: 1fr; gap: 8px; padding: 16px; }
   .tipos-simples li { grid-template-columns: 1fr; gap: 3px; }
   .col-mapa .cifra:nth-child(2) { display: none; }
+  .mapa-titulo .titulo-columna span:not(.paso) { display: none; }
+  .buscador { flex-basis: 190px; padding: 0 10px; }
   .leyenda { left: 8px; right: 8px; bottom: 8px; max-width: none; }
   .bs-fila { grid-template-columns: 112px 1fr 64px; }
 }
@@ -250,6 +263,8 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .interruptor-texto { display: flex; flex-direction: column; font-size: 13.5px; }
 .interruptor-texto b { font-weight: 600; }
 .ficha-reequilibrio { font-size: 13px; background: var(--fondo); border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }
+.ficha-reequilibrio .enlace { font-size: inherit; }
+.ficha-limite { font-size: 13px; background: var(--fondo); border-left: 3px solid; border-radius: 0 8px 8px 0; padding: 8px 10px; margin: 8px 0 0; }
 .estimacion {
   display: inline-block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
   color: var(--tinta2); border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; vertical-align: 1px;
@@ -269,6 +284,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .t-cifra { color: var(--tinta2); font-variant-numeric: tabular-nums; }
 .ranking ol.con-envio li button { grid-template-columns: 22px 1fr 48px auto; }
 .ranking ol.con-envio .r-valor { white-space: nowrap; }
+.r-limite { display: block; font-size: 11.5px; font-weight: 500; color: var(--tinta2); }
 
 /* Leyenda plegable en pantallas estrechas: cerrada, solo un botón con los 4 colores */
 .leyenda-boton { display: none; }
