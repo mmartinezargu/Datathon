@@ -19,11 +19,15 @@ interface Props {
   colores: Record<string, string>
   /** ine -> texto de la etiqueta flotante */
   etiquetas: Record<string, InfoEtiqueta>
+  /** ine de los municipios que van rayados (oportunidad condicionada) */
+  rayados: Set<string>
+  /** ine de los municipios con los que intercambia gente el seleccionado (reubicación): borde grueso */
+  vecinos: string[]
   seleccionado: string | null
   onSeleccionar: (ine: string | null) => void
 }
 
-export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar }: Props) {
+export function Mapa({ limites, colores, etiquetas, rayados, vecinos, seleccionado, onSeleccionar }: Props) {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapa = useRef<maplibregl.Map | null>(null)
   const listo = useRef(false)
@@ -60,9 +64,21 @@ export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar 
           'fill-opacity': ['case', ['boolean', ['feature-state', 'encima'], false], 0.78, 1],
         },
       })
+      // Rayas blancas encima del color: oportunidad condicionada (hospital lejos)
+      m.addImage('rayas', rayas(), { pixelRatio: 2 })
+      m.addLayer({
+        id: 'rayas', type: 'fill', source: 'municipios',
+        paint: { 'fill-pattern': 'rayas' },
+        filter: ['==', ['get', 'rayado'], true],
+      })
       m.addLayer({
         id: 'borde', type: 'line', source: 'municipios',
         paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.6, 11, 1.4] },
+      })
+      m.addLayer({
+        id: 'intercambio', type: 'line', source: 'municipios',
+        paint: { 'line-color': '#15233B', 'line-width': 2.5, 'line-dasharray': [2, 1] },
+        filter: ['in', ['get', 'ine'], ['literal', []]],
       })
       m.addLayer({
         id: 'seleccion', type: 'line', source: 'municipios',
@@ -71,6 +87,7 @@ export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar 
       })
       listo.current = true
       pintar()
+      resaltar()
     })
 
     // Etiqueta flotante al pasar el ratón
@@ -122,19 +139,38 @@ export function Mapa({ limites, colores, etiquetas, seleccionado, onSeleccionar 
       ...limites,
       features: limites.features.map((f) => ({
         ...f,
-        properties: { ...f.properties, color: colores[String(f.properties?.ine)] ?? null },
+        properties: {
+          ...f.properties,
+          color: colores[String(f.properties?.ine)] ?? null,
+          rayado: rayados.has(String(f.properties?.ine)),
+        },
       })),
     }
     ;(m.getSource('municipios') as maplibregl.GeoJSONSource).setData(datos)
   }
   useEffect(pintar)
 
-  // 3. Resaltar el municipio seleccionado
-  useEffect(() => {
+  // 3. Resaltar el municipio seleccionado y, con la reubicación, los pueblos con los que intercambia gente
+  const claveVecinos = vecinos.join(',')
+  function resaltar() {
     const m = mapa.current
     if (!m || !listo.current) return
     m.setFilter('seleccion', ['==', ['get', 'ine'], seleccionado ?? ''])
-  }, [seleccionado])
+    m.setFilter('intercambio', ['in', ['get', 'ine'], ['literal', claveVecinos ? claveVecinos.split(',') : []]])
+  }
+  useEffect(resaltar, [seleccionado, claveVecinos])
 
   return <div ref={contenedor} className="mapa" />
+}
+
+/** Imagen de rayas diagonales blancas semitransparentes, hecha a mano para no depender de archivos. */
+function rayas(): { width: number; height: number; data: Uint8Array } {
+  const lado = 12
+  const data = new Uint8Array(lado * lado * 4)
+  for (let y = 0; y < lado; y++) {
+    for (let x = 0; x < lado; x++) {
+      if ((x + y) % lado < 3) data.set([255, 255, 255, 200], (y * lado + x) * 4)
+    }
+  }
+  return { width: lado, height: lado, data }
 }

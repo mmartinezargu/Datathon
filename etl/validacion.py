@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
+import diccionario
 from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, WEB_DATOS, leer_poblacion, miles
 from preparar import K_SUAVIZADO, leer_zonas
 
@@ -105,6 +106,7 @@ def main() -> None:
     })
     detalle["error"] = detalle["crecimiento_previsto"] - detalle["crecimiento_real"]
     OUT.mkdir(parents=True, exist_ok=True)
+    diccionario.comprobar("validacion_municipios.csv", list(detalle.columns))
     detalle.to_csv(OUT / "validacion_municipios.csv", index=False, encoding="utf-8")
 
     salida = {

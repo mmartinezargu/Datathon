@@ -6,15 +6,19 @@ Salidas:
   web/public/datos/municipios.json   datos por municipio que lee la web
   web/public/datos/limites.geojson   contornos simplificados para el mapa
   data/out/tabla_maestra.csv         lo mismo en CSV (licencia CC BY 4.0)
+  data/out/diccionario.csv           qué es cada columna de tabla_maestra.csv y validacion_municipios.csv
   web/public/datos/tabla_maestra.csv copia para descargarla desde la web (también sin internet)
 """
 import json
 import shutil
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
+from scipy.spatial import cKDTree
 
 import capacidad
+import diccionario
 from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, RAW, WEB_DATOS, leer_poblacion, miles
 
 # Peso del suavizado: un pueblo con K habitantes se fía a medias de su propia tasa
@@ -99,6 +103,52 @@ def anadir_capacidad(df: pd.DataFrame, pob: pd.DataFrame) -> tuple[pd.DataFrame,
     return df, zonas
 
 
+def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
+    """Núcleo de cada municipio y distancia en línea recta al hospital general público más cercano.
+
+    - Hospitales: registro de centros sanitarios de la CM, «Hospital general» que dependen
+      del servicio de salud de la Comunidad. El CSV repite cada centro una vez por servicio.
+    - Núcleo del municipio: mediana de las coordenadas de sus colegios (donde vive la gente);
+      si no tiene colegios, el centroide de su término municipal.
+      Se exporta en km (UTM 30N) para que la web mida la distancia entre pueblos al reubicar.
+    - En línea recta, no tiempo real: es una aproximación (ver «Cómo se calcula»).
+    """
+    s = pd.read_csv(RAW / "cm_centros_sanitarios.csv", sep=";", encoding="utf-8-sig", dtype=str)
+    s = s[(s["centro_tipo"] == "Hospital general")
+          & (s["dependecia_funcional"] == "Servicios o Institutos de Salud de las CC.AA")]
+    s = s.drop_duplicates("centro_nro_registro")
+    hosp = gpd.GeoDataFrame(geometry=gpd.points_from_xy(s["localizacion_coordenada_x"].astype(float),
+                                                        s["localizacion_coordenada_y"].astype(float)), crs=25830)
+
+    mun = gpd.read_file(RAW / "idem_limites_municipales.geojson").dissolve(by="CD_INE", as_index=False).to_crs(25830)
+    mun = mun.rename(columns={"CD_INE": "ine"})[["ine", "geometry"]]
+    # Municipio de cada hospital: el término municipal en el que cae el punto
+    hosp = gpd.sjoin(hosp, mun, how="left", predicate="within")
+    nombres = dict(zip(df["ine"], df["nombre"]))
+    print(f"Hospitales generales públicos: {len(hosp)}")
+
+    c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
+    c = c[(c["SITUACIÓN"] == "ALTA") & c["UTM_X"].notna() & c["UTM_Y"].notna()]
+    tipo = c["TIPO_ABRV"].fillna("")
+    c = c[tipo.str.contains("PRI|SEC") | tipo.isin(["IES", "CPR ES"])]  # mismos colegios que capacidad.py
+    c["ine"] = "28" + c["CDMUNI"].str.zfill(3)
+    nucleo = c.assign(x=c["UTM_X"].astype(float), y=c["UTM_Y"].astype(float)).groupby("ine")[["x", "y"]].median()
+    centro = mun.set_index("ine").centroid
+    nucleo = nucleo.reindex(mun["ine"])
+    nucleo["x"] = nucleo["x"].fillna(centro.x)
+    nucleo["y"] = nucleo["y"].fillna(centro.y)
+
+    distancia, cual = cKDTree(np.column_stack([hosp.geometry.x, hosp.geometry.y])).query(nucleo[["x", "y"]].to_numpy())
+    out = pd.DataFrame({
+        "ine": nucleo.index,
+        "nucleo_x": (nucleo["x"] / 1000).round(2).to_numpy(),
+        "nucleo_y": (nucleo["y"] / 1000).round(2).to_numpy(),
+        "hospital_km": (distancia / 1000).round(1),
+        "hospital_municipio": hosp["ine"].iloc[cual].map(nombres).to_numpy(),
+    })
+    return df.merge(out, on="ine", how="left")
+
+
 def limpio(v):
     """Convierte valores de pandas/numpy a algo que JSON entienda (y redondea)."""
     if pd.isna(v):
@@ -115,6 +165,7 @@ def main() -> None:
     uni = calcular_tendencia(df[df["universo"]])
     df = df.merge(uni[["ine", "g_propia", "g_zona", "g_suavizada"]], on="ine", how="left")
     df, zonas = anadir_capacidad(df, pob)
+    df = anadir_hospital(df)
 
     n = int(df["universo"].sum())
     hab = int(df.loc[df["universo"], ANIO_BASE].sum())
@@ -133,6 +184,10 @@ def main() -> None:
             "g_propia": None if pd.isna(f["g_propia"]) else round(f["g_propia"], 6),
             "g_zona": None if pd.isna(f["g_zona"]) else round(f["g_zona"], 6),
             "g_suavizada": None if pd.isna(f["g_suavizada"]) else round(f["g_suavizada"], 6),
+            "nucleo_x": float(f["nucleo_x"]),
+            "nucleo_y": float(f["nucleo_y"]),
+            "hospital_km": float(f["hospital_km"]),
+            "hospital_municipio": f["hospital_municipio"],
             "capacidad": None if not f["universo"] else {c: limpio(f[c]) for c in COLUMNAS_CAPACIDAD},
         })
 
@@ -147,8 +202,10 @@ def main() -> None:
     (WEB_DATOS / "limites.geojson").write_text(json.dumps(limites, ensure_ascii=False), encoding="utf-8")
 
     columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
-                *COLUMNAS_CAPACIDAD]
+                *COLUMNAS_CAPACIDAD, "nucleo_x", "nucleo_y", "hospital_km", "hospital_municipio"]
+    diccionario.comprobar("tabla_maestra.csv", columnas)
     df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+    diccionario.escribir()
     shutil.copyfile(OUT / "tabla_maestra.csv", WEB_DATOS / "tabla_maestra.csv")
 
     for nombre in ("municipios.json", "limites.geojson"):

@@ -51,6 +51,10 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .tipo-boton i { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .tipo-boton b { margin-left: auto; padding-left: 10px; font-variant-numeric: tabular-nums; }
 .leyenda-pista { font-size: 11.5px; color: var(--tinta2); margin: 4px 0 0 7px; }
+.leyenda-condicionada { font-size: 11.5px; color: var(--tinta2); margin: 4px 0 0 7px; display: flex; align-items: center; gap: 6px; }
+.leyenda-condicionada i { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.leyenda-condicionada b { margin-left: auto; padding-left: 10px; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.ficha-hospital { display: flex; align-items: center; gap: 6px; }
 
 /* Columna de resultado */
 .col-resultado > .resultado-vaso { padding-top: 4px; }
@@ -228,4 +232,55 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 @media (prefers-reduced-motion: reduce) {
   .vaso-agua, .puerta { transition: none; }
   .puerta:hover { transform: none; }
+}
+
+/* Interruptor del reequilibrio (Palancas) */
+.interruptor { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.interruptor input {
+  appearance: none; flex-shrink: 0; width: 36px; height: 20px; border-radius: 999px; margin: 1px 0 0;
+  background: var(--linea); position: relative; cursor: pointer; transition: background .15s;
+}
+.interruptor input::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s;
+}
+.interruptor input:checked { background: var(--cielo); }
+.interruptor input:checked::after { transform: translateX(16px); }
+.interruptor input:focus-visible { outline: 2px solid var(--cielo); outline-offset: 2px; }
+.interruptor-texto { display: flex; flex-direction: column; font-size: 13.5px; }
+.interruptor-texto b { font-weight: 600; }
+.ficha-reequilibrio { font-size: 13px; background: var(--fondo); border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }
+.estimacion {
+  display: inline-block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--tinta2); border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; vertical-align: 1px;
+}
+
+/* Bloque «Reubicar en pueblos cercanos» (columna de resultado) */
+.reubicacion { border-top: 3px solid var(--cielo); background: var(--papel); padding: 14px 16px; }
+.reubicacion h2 { font-size: 17px; margin: 0 0 6px; }
+.reubicacion p { font-size: 13.5px; margin: 0 0 6px; }
+.traslados { list-style: none; margin: 6px 0 0; padding: 0; }
+.traslados button {
+  width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; text-align: left;
+  border: 0; background: none; padding: 6px; border-radius: 8px; cursor: pointer; font-size: 13px;
+}
+.traslados button:hover { background: var(--fondo); }
+.t-ruta { font-weight: 600; }
+.t-cifra { color: var(--tinta2); font-variant-numeric: tabular-nums; }
+.ranking ol.con-envio li button { grid-template-columns: 22px 1fr 48px auto; }
+.ranking ol.con-envio .r-valor { white-space: nowrap; }
+
+/* Leyenda plegable en pantallas estrechas: cerrada, solo un botón con los 4 colores */
+.leyenda-boton { display: none; }
+@media (max-width: 899px) {
+  .leyenda { left: 8px; right: auto; bottom: 8px; max-width: calc(100% - 64px); padding: 6px 8px; }
+  .leyenda.abierta { right: 56px; max-height: 60%; overflow-y: auto; }
+  .leyenda:not(.abierta) .leyenda-cuerpo { display: none; }
+  .leyenda.abierta .leyenda-cuerpo { margin-top: 6px; }
+  .leyenda-boton {
+    display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px; cursor: pointer;
+    font-size: 13px; font-weight: 650; color: var(--tinta);
+  }
+  .leyenda-muestras { display: flex; gap: 3px; }
+  .leyenda-muestras i { width: 10px; height: 10px; border-radius: 3px; }
 }

@@ -41,6 +41,13 @@ export const TIPOS: Record<Tipo, { color: string; nombre: string; plural: string
   consolidacion: { color: '#A3B1C2', nombre: 'Consolidación', plural: 'en consolidación', que: 'Crece poco y tiene poco margen: mantener los servicios.' },
 }
 
+/** Oportunidad con el hospital lejos: se pinta rayada encima del azul. */
+export const CONDICIONADA = {
+  nombre: 'Oportunidad condicionada',
+  que: 'Hay sitio, pero el hospital queda lejos: antes de atraer gente hay que asegurar el acceso.',
+  fondo: `repeating-linear-gradient(135deg, rgba(255,255,255,.75) 0 2px, transparent 2px 6px), ${TIPOS.oportunidad.color}`,
+}
+
 export const ORDEN_TIPOS: Tipo[] = ['tension', 'polo', 'oportunidad', 'consolidacion']
 
 export const LIMITES: Record<Limite, { nombre: string; frase: string }> = {

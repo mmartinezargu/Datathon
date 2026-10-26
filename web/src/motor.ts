@@ -5,7 +5,7 @@
 //   capacidad = cuánta gente cabe = el menor de 4 límites (ley del mínimo)
 //   tipo      = el cruce de las dos: tensión, polo, oportunidad o consolidación
 
-import type { Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Umbrales, ZonaSalud } from './tipos'
+import type { Escenario, Inversion, Inversiones, Limite, Municipio, ResultadoMunicipio, Tipo, Traslado, Umbrales, ZonaSalud } from './tipos'
 
 export const ANIO_BASE = 2025
 /** Personas que ganaron los 155 municipios en 2015-2025 (Padrón, INE). */
@@ -20,6 +20,13 @@ export const TRAMOS_ZONA = [10_000, 25_000, Infinity] // zonas de salud rurales,
 /** Coste aproximado de construir un colegio y un centro de salud (PENDIENTE.md, tarea 1). */
 export const COSTE_COLEGIO = 9_500_000
 export const COSTE_CENTRO_SALUD = 8_000_000
+/** Plazo orientativo hasta que abre, en años [est.]. */
+export const PLAZO_COLEGIO_ANIOS = 2
+export const PLAZO_CENTRO_SALUD_ANIOS = 3
+/** Más lejos que esto, una oportunidad queda «condicionada»: unos 30 min en coche [est.]. */
+export const HOSPITAL_LEJOS_KM = 25
+/** Reubicación: hasta qué distancia (en línea recta entre núcleos) se busca un pueblo con sitio. */
+export const RADIO_REUBICACION_KM = 25
 export const SIN_INVERSION: Inversion = { colegios: 0, centros: 0 }
 
 export function escenarioPorDefecto(anio = 2035): Escenario {
@@ -30,6 +37,8 @@ export function escenarioPorDefecto(anio = 2035): Escenario {
     pctVivienda: 0.15,
     ritmoMax: 0.03,
     exigencia: 0.9,
+    reequilibrio: false,
+    radioKm: RADIO_REUBICACION_KM,
   }
 }
 
@@ -51,10 +60,78 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
     return { ine: m.ine, poblacion: p, llegan: llegan[i], crecimiento: llegan[i] / p, limites, caben, limitante, margen: caben - llegan[i] }
   })
 
-  // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño)
+  // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño).
+  // Se calcula siempre con lo que llega por tendencia, también con la reubicación activa:
+  // si no, los municipios llenos quedarían con margen 0 y el mapa escondería dónde falta sitio.
   const medPresion = mediana(parciales.map((r) => r.crecimiento))
   const medCapacidad = mediana(parciales.map((r) => r.caben / r.poblacion))
-  return parciales.map((r) => ({ ...r, tipo: clasificar(r, medPresion, medCapacidad) }))
+  const conTipo = parciales.map((r, i) => {
+    const tipo = clasificar(r, medPresion, medCapacidad)
+    return { ...r, tipo, condicionada: tipo === 'oportunidad' && universo[i].hospital_km > HOSPITAL_LEJOS_KM,
+      recibe: 0, envia: 0, envios: [], llegadas: [] }
+  })
+
+  // 4. Reubicación (si se activa): lo que no cabe va a los pueblos cercanos con sitio
+  return esc.reequilibrio ? reubicar(conTipo, universo, esc.radioKm) : conTipo
+}
+
+/**
+ * Reubicación en pueblos cercanos: quien no cabe en su municipio va al pueblo con sitio más cercano.
+ *   1. Se toman todas las parejas (municipio con exceso, municipio con sitio) a ≤ radioKm, en línea recta entre núcleos.
+ *   2. Se ordenan de la más cercana a la más lejana y, en ese orden, se traslada lo que se pueda:
+ *      mín(exceso que le queda al origen, sitio que le queda al destino).
+ * Las oportunidades condicionadas (hospital lejos) no reciben a nadie. Lo que no encuentra sitio cerca se queda sin sitio.
+ * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade los traslados.
+ */
+export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio[], radioKm: number): ResultadoMunicipio[] {
+  const nucleo = new Map(municipios.map((m) => [m.ine, m]))
+  const exceso = new Map(resultados.filter((r) => r.margen < 0).map((r) => [r.ine, -r.margen]))
+  const sitio = new Map(resultados.filter((r) => r.margen > 0 && !r.condicionada).map((r) => [r.ine, r.margen]))
+
+  const parejas: Traslado[] = []
+  for (const origen of exceso.keys()) {
+    const a = nucleo.get(origen)!
+    for (const destino of sitio.keys()) {
+      const b = nucleo.get(destino)!
+      const km = Math.hypot(a.nucleo_x - b.nucleo_x, a.nucleo_y - b.nucleo_y)
+      if (km <= radioKm) parejas.push({ origen, destino, personas: 0, km })
+    }
+  }
+  // De la más cercana a la más lejana (a igual distancia, por código INE, para que salga siempre igual)
+  parejas.sort((p, q) => p.km - q.km || p.origen.localeCompare(q.origen) || p.destino.localeCompare(q.destino))
+
+  const traslados: Traslado[] = []
+  for (const p of parejas) {
+    const personas = Math.min(exceso.get(p.origen)!, sitio.get(p.destino)!)
+    if (personas <= 0) continue
+    exceso.set(p.origen, exceso.get(p.origen)! - personas)
+    sitio.set(p.destino, sitio.get(p.destino)! - personas)
+    traslados.push({ ...p, personas })
+  }
+
+  return resultados.map((r) => {
+    const envios = traslados.filter((t) => t.origen === r.ine).sort((p, q) => q.personas - p.personas)
+    const llegadas = traslados.filter((t) => t.destino === r.ine).sort((p, q) => q.personas - p.personas)
+    const suma = (lista: Traslado[]) => lista.reduce((s, t) => s + t.personas, 0)
+    return { ...r, envios, llegadas, envia: suma(envios), recibe: suma(llegadas) }
+  })
+}
+
+/** Personas que llegan y siguen sin sitio en el municipio, después de reubicar las que se puedan. */
+export function quedanSinSitio(r: ResultadoMunicipio): number {
+  return Math.max(0, -r.margen) - r.envia
+}
+
+/** Resumen de la reubicación para los 155: cuántos se mueven, a cuántos pueblos y a qué distancia media. */
+export function resumenReubicacion(resultados: ResultadoMunicipio[]) {
+  const traslados = resultados.flatMap((r) => r.envios).sort((p, q) => q.personas - p.personas)
+  const personas = traslados.reduce((s, t) => s + t.personas, 0)
+  return {
+    personas,
+    destinos: new Set(traslados.map((t) => t.destino)).size,
+    kmMedio: personas > 0 ? traslados.reduce((s, t) => s + t.personas * t.km, 0) / personas : 0, // media por persona
+    traslados,
+  }
 }
 
 /** Personas que caben según cada recurso. null = ese límite no aplica a este municipio. */
@@ -124,6 +201,11 @@ export function nivelesColegio(m: Municipio, u: Umbrales, nuevos = 0) {
 /** Coste de lo que se decide construir en un municipio, en euros. */
 export function costeInversion(inv: Inversion): number {
   return inv.colegios * COSTE_COLEGIO + inv.centros * COSTE_CENTRO_SALUD
+}
+
+/** Plazo orientativo hasta que esté todo abierto: el de la obra más larga (se construyen a la vez). */
+export function plazoInversion(inv: Inversion): number {
+  return Math.max(inv.colegios ? PLAZO_COLEGIO_ANIOS : 0, inv.centros ? PLAZO_CENTRO_SALUD_ANIOS : 0)
 }
 
 /** Los umbrales que le tocan a un municipio concreto (para explicar la cuenta en su ficha). */

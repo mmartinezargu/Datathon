@@ -14,6 +14,7 @@ export interface Totales {
   capacidad: number // suma de lo que cabe en los 155
   dentro: number // de lo que llega, lo que cabe
   fuera: number // de lo que llega, lo que no cabe
+  reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
 type Destino = 'mapa' | 'mudanza' | 'validacion' | 'metodologia'
@@ -44,7 +45,7 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
         <div className="inicio-vaso">
           <p className="inicio-vaso-titulo">Si sigue el ritmo actual, hasta {t.anio}, con los colegios y centros de salud de hoy:</p>
           <Vaso capacidad={t.capacidad} dentro={t.dentro} fuera={t.fuera} notaLibre="pero en municipios a los que no va la gente."
-            origen={<OrigenTodos llegan={t.dentro + t.fuera} anio={t.anio} />} />
+            origen={<OrigenTodos llegan={t.dentro + t.fuera} anio={t.anio} reequilibrio={t.reequilibrio} />} />
         </div>
       </section>
 

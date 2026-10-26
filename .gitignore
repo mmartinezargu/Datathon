@@ -1,7 +1,16 @@
-# Datos descargados pesados: se vuelven a bajar con `uv run descargar.py`
+# Datos descargados: el planeamiento (pesado) se vuelve a bajar con `uv run descargar.py`
 data/raw/*
 !data/raw/README.md
 !data/raw/ine_2881_poblacion_*.csv
+# Los de menos de 25 MB se suben, para no depender de que los servidores estén en pie
+!data/raw/cm_municipios.csv
+!data/raw/cm_centros_educativos.csv
+!data/raw/cm_centros_sanitarios.csv
+!data/raw/cm_zonas_basicas_salud.zip
+!data/raw/cm_poblacion_por_edad_censo_anual.csv
+!data/raw/ine_59525_viviendas_censo2021.csv
+!data/raw/ine_59543_hogares_censo2021.csv
+!data/raw/idem_limites_municipales.geojson
 
 # Python
 .venv/
