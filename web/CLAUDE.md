@@ -19,7 +19,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «¿Dónde me mudo?»: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |
 | `src/reparto.ts` | Simulador de reparto: divide a los que llegan según el modelo (`escenario.personas`) por perfiles (mezcla supuesta, editable) y los reparte entre los pueblos hasta llenar su `caben`, recorriendo el ranking de cada perfil; eligen primero mayores, luego familias, luego teletrabajo. Función pura |
-| `src/componentes/Simulador.tsx` | Bloque del simulador al final de «Dónde vivir»: % de cada perfil, resumen (caben repartiendo vs. caben según la tendencia) y tabla de pueblos (lleno o no) |
+| `src/componentes/Simulador.tsx` | Pestaña «Repartir» (`#repartir`), el simulador: % de cada perfil, resumen (caben repartiendo vs. caben según la tendencia) y tabla de pueblos (lleno o no) |
 | `src/componentes/Descarga.tsx` | Bloque «Llévate los datos»: CSV del escenario y tabla maestra (CC BY 4.0) |
 | `src/componentes/Metodologia.tsx` | Pestaña «Cómo funciona» (`#como`): 4 pasos en lenguaje llano (sin fórmulas), fuentes con enlace y limitaciones. Las fórmulas van tapadas en «Ver la cuenta exacta». Al final, la sección «¿Acierta?». Lee las constantes de `motor.ts` y `mudanza.ts` |
 | `src/componentes/Validacion.tsx` | Sección «¿Acierta?» (validación 2015→2025), al final de «Cómo funciona». El enlace `#fiable` baja hasta ella |

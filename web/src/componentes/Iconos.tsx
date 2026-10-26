@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react'
 
 export type NombreIcono =
-  | 'inicio' | 'mapa' | 'vivir' | 'fiable' | 'metodo'
+  | 'inicio' | 'mapa' | 'vivir' | 'repartir' | 'fiable' | 'metodo'
   | 'vivienda' | 'colegios' | 'sanidad' | 'ritmo'
   | 'personas' | 'volver' | 'descarga' | 'plegar' | 'desplegar' | 'ojo'
 
@@ -12,6 +12,7 @@ const TRAZOS: Record<NombreIcono, ReactNode> = {
   inicio: <><path d="M4 11.5 12 5l8 6.5" /><path d="M6.5 10v9h11v-9" /><path d="M10 19v-5h4v5" /></>,
   mapa: <><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z" /><path d="M9 4.5v13" /><path d="M15 6.5v13" /></>,
   vivir: <><rect x="5" y="8" width="14" height="11" rx="2" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /><path d="M5 12.5h14" /></>,
+  repartir: <><circle cx="5.5" cy="12" r="2" /><path d="M7.5 12h4" /><path d="M11.5 12 18 6" /><path d="M11.5 12H18" /><path d="M11.5 12 18 18" /><circle cx="19" cy="6" r="1.2" /><circle cx="19" cy="12" r="1.2" /><circle cx="19" cy="18" r="1.2" /></>,
   fiable: <><circle cx="12" cy="12" r="8" /><path d="m8.3 12.2 2.6 2.6 5-5.3" /></>,
   metodo: <><path d="M5 5.5h5.5a2 2 0 0 1 2 2V19a1.6 1.6 0 0 0-1.6-1.6H5z" /><path d="M19 5.5h-5.5a2 2 0 0 0-2 2V19a1.6 1.6 0 0 1 1.6-1.6H19z" /></>,
   vivienda: <><path d="M4 11 12 4.5 20 11" /><path d="M6.5 9.5V19h11V9.5" /><rect x="10" y="13" width="4" height="6" /></>,

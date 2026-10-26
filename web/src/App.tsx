@@ -8,6 +8,7 @@ import { Palancas } from './componentes/Palancas'
 import { Ficha } from './componentes/Ficha'
 import { Descarga } from './componentes/Descarga'
 import { Mudanza } from './componentes/Mudanza'
+import { Simulador } from './componentes/Simulador'
 import { Metodologia } from './componentes/Metodologia'
 import { Inicio, type Destino, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
@@ -23,13 +24,13 @@ import { caben, miles, millones, pct } from './formato'
 import './estilo.css'
 import './diseno.css'
 
-type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'metodologia'
+type Pestana = 'inicio' | 'mapa' | 'mudanza' | 'reparto' | 'metodologia'
 type ColorMapa = 'tipo' | 'crecimiento'
 type VistaMovil = 'escenario' | 'mapa' | 'resultado'
 type Paneles = { escenario: boolean; resultado: boolean } // true = plegado
 
 // Cada pestaña tiene su enlace (cabida.vercel.app/#mapa): sirve para compartirla y para la demo
-const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', metodologia: 'como' }
+const HASH: Record<Pestana, string> = { inicio: '', mapa: 'mapa', mudanza: 'vivir', reparto: 'repartir', metodologia: 'como' }
 // El antiguo enlace de «¿Es fiable?» lleva a la sección «¿Acierta?», al final de «Cómo funciona»
 const ENLACE_ACIERTA = '#fiable'
 const pestanaDelEnlace = (): Pestana =>
@@ -51,6 +52,7 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
+  { id: 'reparto', texto: 'Repartir', icono: 'repartir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
 
@@ -218,6 +220,11 @@ export default function App() {
         <main className="pagina">
           <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
             filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
+            onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
+        </main>
+      ) : pestana === 'reparto' ? (
+        <main className="pagina">
+          <Simulador resultados={resultados} porIne={porIne} escenario={escenario}
             onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : (

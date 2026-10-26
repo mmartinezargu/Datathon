@@ -1,4 +1,4 @@
-// Simulador de reparto, al final de «Dónde vivir»: coge la gente que el modelo prevé que llega, la divide
+// Pestaña «Repartir» (#repartir), el simulador de reparto: coge la gente que el modelo prevé que llega, la divide
 // por perfiles (familias, personas mayores, teletrabajo) y la reparte entre los pueblos según quiénes son
 // (reparto.ts), como si se pudiera dirigir a dónde va cada uno. Se recalcula al escribir.
 
@@ -30,15 +30,18 @@ export function Simulador({ resultados, porIne, escenario, onVerEnMapa }: Props)
   const filas = todos ? reparto.pueblos : reparto.pueblos.slice(0, MAX_FILAS)
 
   return (
-    <section className="val-tarjeta simulador">
-      <h2>¿Y si repartimos a los que llegan? Simula el reparto</h2>
-      <p className="ayuda">
+    <div className="mudanza">
+    <section className="val-cabeza">
+      <h1>¿Y si repartimos a los que llegan?</h1>
+      <p>
         Según el modelo, hasta {escenario.anio} llegan {miles(escenario.personas)} personas a los 155 pueblos. Aquí las repartimos
         según quiénes son, como si se pudiera elegir a dónde va cada uno: cada grupo va a los pueblos que mejor le encajan en
         «Dónde vivir», cada pueblo recibe hasta llenarse y el resto pasa al siguiente.
       </p>
+    </section>
+    <section className="val-tarjeta simulador">
 
-      <h3 className="sim-pregunta">¿Quiénes llegan? (en %)</h3>
+      <h2>¿Quiénes llegan? (en %)</h2>
       <div className="sim-entradas">
         {ORDEN_REPARTO.map((p) => (
           <label key={p} className="control">
@@ -103,5 +106,6 @@ export function Simulador({ resultados, porIne, escenario, onVerEnMapa }: Props)
         colegios, centro de salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
       </p>
     </section>
+    </div>
   )
 }
