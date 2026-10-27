@@ -33,6 +33,27 @@ export function llegadasPorPerfil(total: number, mezcla: Record<Perfil, number>)
   return r
 }
 
+/**
+ * Pone los % que dice la frase y reparte el resto entre los demás grupos en la proporción que tenían
+ * (a partes iguales si todos estaban a 0). Siempre suma 100.
+ */
+export function aplicarMezcla(actual: Record<Perfil, number>, dicha: Partial<Record<Perfil, number>>): Record<Perfil, number> {
+  const fijos = ORDEN_REPARTO.filter((p) => dicha[p] !== undefined)
+  const libres = ORDEN_REPARTO.filter((p) => dicha[p] === undefined)
+  const r = { ...actual }
+  const sumaFijos = fijos.reduce((s, p) => s + dicha[p]!, 0)
+  // Si lo dicho pasa de 100 (o no deja nada libre), se escala a 100 y los demás quedan a 0
+  for (const p of fijos) r[p] = libres.length && sumaFijos <= 100 ? dicha[p]! : Math.round(100 * dicha[p]! / (sumaFijos || 1))
+  const queda = Math.max(0, 100 - fijos.reduce((s, p) => s + r[p], 0))
+  const base = libres.reduce((s, p) => s + Math.max(0, actual[p]), 0)
+  let puestos = 0
+  libres.forEach((p, i) => {
+    r[p] = i === libres.length - 1 ? queda - puestos : Math.round(queda * (base ? Math.max(0, actual[p]) / base : 1 / libres.length))
+    puestos += r[p]
+  })
+  return r
+}
+
 /** Hueco de un pueblo: todas las personas que le caben (nunca negativo). */
 export function hueco(r: ResultadoMunicipio): number {
   return Math.max(0, Math.floor(r.caben))

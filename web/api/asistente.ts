@@ -18,6 +18,7 @@ Lee la frase y responde SOLO con un objeto JSON, sin texto alrededor, con estos 
 - "hospital": true si pide tener un hospital, médico o urgencias cerca, o lo necesita por salud; si no, false.
 - "tamano": "pueblo" (quiere algo pequeño, tranquilo, con campo o naturaleza), "mediano", "grande" (quiere ciudad o muchos servicios) o null. Solo si dice cómo quiere que sea el sitio donde va a vivir: trabajar en una ciudad grande no cuenta.
 - "municipio": el nombre del municipio donde trabaja o cerca del que quiere vivir, tal como lo escribe, o null.
+- "mezcla": si la frase dice qué parte de los que llegan es de cada grupo ("30 % familias", "la mitad jubilados", "un tercio teletrabaja"), el porcentaje de cada grupo: {"familia": 30, "mayor": null, "teletrabajo": null}; null en los grupos que no diga.
 - "zona": una de estas zonas, solo si la nombra o la describe claramente; no la deduzcas del municipio; si no, null: {ZONAS}.
 No te inventes nada: si la frase no lo dice, pon null o false.`
 
@@ -84,11 +85,17 @@ function esquema(zonas: string[]) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['perfil', 'instituto', 'hospital', 'tamano', 'municipio', 'zona'],
+    required: ['perfil', 'instituto', 'hospital', 'mezcla', 'tamano', 'municipio', 'zona'],
     properties: {
       perfil: { type: ['string', 'null'], enum: ['familia', 'mayor', 'teletrabajo', null] },
       instituto: { type: 'boolean' },
       hospital: { type: 'boolean' },
+      mezcla: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['familia', 'mayor', 'teletrabajo'],
+        properties: { familia: { type: ['number', 'null'] }, mayor: { type: ['number', 'null'] }, teletrabajo: { type: ['number', 'null'] } },
+      },
       tamano: { type: ['string', 'null'], enum: ['pueblo', 'mediano', 'grande', null] },
       municipio: { type: ['string', 'null'] },
       zona: { type: ['string', 'null'], enum: [...zonas, null] },
