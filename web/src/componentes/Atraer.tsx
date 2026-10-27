@@ -9,6 +9,7 @@ import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
 import type { Escenario, FiltrosReparto, LecturaFrase, Medida, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, millones } from '../formato'
+import { csvAtraer, descargar } from '../descarga'
 import { costeObra } from '../motor'
 import { MEDIDAS, hospitalCercano, umbralHospital } from '../medida'
 import { Asistente } from './Asistente'
@@ -202,6 +203,11 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
             </div>
           ))}
         </div>
+
+        <button className="desplegar atraer-descarga" disabled={!reparto.pueblos.length}
+          onClick={() => descargar(`cabida_atraer_${escenario.anio}.csv`, csvAtraer(reparto, resultados, porIne, mezcla, filtros))}>
+          Descargar CSV de los pueblos a promocionar<span className="flecha" aria-hidden="true">↓</span>
+        </button>
 
         <details className="atraer-detalle">
         <summary><b>Ver pueblo a pueblo</b> <span className="ayuda">({miles(reparto.pueblos.length)} pueblos)</span></summary>
