@@ -1,4 +1,4 @@
-// Descarga del escenario actual en CSV (licencia CC BY 4.0).
+// Descarga del escenario actual en CSV (licencia CC BY 4.0; la columna hospital_min, ODbL de OpenStreetMap).
 // Pensado para abrirse bien en Excel en español: separador ";", decimales con coma
 // y marca BOM para que respete las tildes. Los números van sin punto de miles para
 // que la hoja de cálculo los lea como números (por eso no se usa formato.ts).

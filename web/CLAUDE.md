@@ -17,7 +17,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/componentes/Mapa.tsx` | Mapa MapLibre de los 155 municipios coloreados por tipo |
 | `src/componentes/Palancas.tsx` | Controles del escenario (supuestos) |
 | `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta». Al final, la línea «En el plan: … → Planificar aquí» |
-| `src/componentes/Plan.tsx` | Pestaña «Plan» (`#plan`): lista de obras editable (plan óptimo, con presupuesto o a mano), resultado con la comparación sin reubicar, calendario (Recharts), parámetros con su fuente, «Ver en el mapa» y CSV. Las cuentas, en `motor.ts` (`planOptimo`, `evaluarPlan`) |
+| `src/componentes/Plan.tsx` | Pestaña «Plan» (`#plan`): lista de obras editable (botones «Plan óptimo» y «A tu medida»: con un presupuesto o a mano), resultado con la comparación sin reubicar, calendario (Recharts), parámetros con su fuente, «Ver en el mapa» y CSV. Las cuentas, en `motor.ts` (`planOptimo`, `evaluarPlan`) |
 | `src/fuentesPlan.ts` | Nombres de las obras y fuente de cada valor por defecto del plan (`PARAMETROS_PLAN` en `motor.ts`) |
 | `src/componentes/Evolucion.tsx` | Gráfico de evolución de población |
 | `src/componentes/Mudanza.tsx` | Pestaña «Dónde vivir» (`#vivir`), para el vecino: caja «Cuéntanoslo con tus palabras», perfil, filtros, ranking con frase y comparador |

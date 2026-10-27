@@ -2,26 +2,26 @@
 
 Regla: el **miércoles 28 no se programa**. Ese día solo se ensaya. Todo lo de abajo tiene que estar el **martes 27 por la noche**.
 
-## Decisiones para el martes 27 (antes de las 14:00)
+## Decisiones del martes 27 (tomadas)
 
-| # | Decisión | Opciones | Recomendación | Quién decide | Estado |
-|---|---|---|---|---|---|
-| 1 | Cifras de coste de «Plan» para las diapositivas | Las de la web: **81,3 M€** reubicando a 25 km y **281,8 M€** sin reubicar. O las de la presentación antigua: 213 M€ y 546 M€, del script `plan_inversion.py` (ya borrado; no se pueden recalcular) | Apuntar solo las que salgan en pantalla (las de la web). Ahora mismo no hay cifras de «Plan» en minutos escritas: si se usan, sacarlas de la web | Quien hizo la pestaña «Plan» | Pendiente |
-| 2 | Medida por defecto de la web y de la demo | Minutos en coche (sin tráfico, OSRM) o km en línea recta. Tiene que ser la misma en las diapositivas | Minutos | El equipo | Pendiente |
-| 3 | Hospitales fuera de la Comunidad de Madrid | Incluirlos o no. Solo cambia de lado Ribatejada (37 min al de la CM, 29 al de Guadalajara), que está en tensión | No incluirlos y decirlo en las limitaciones (en «Cómo funciona» ya pone: «Solo se cuentan hospitales de la Comunidad de Madrid») | El equipo | Pendiente |
-| 4 | Licencia de las columnas de minutos (OpenStreetMap, ODbL) frente a CC BY 4.0 | Publicar `data/out` en CC BY 4.0 indicando que `hospital_min`, `hospital_min_municipio` y `vecinos_min` vienen de OpenStreetMap con ODbL (ya está indicado en `data/out/README.md` y en el diccionario), u otra opción | Si hay duda, preguntar a la organización | El equipo | Pendiente |
-| 5 | Revisión de la PR #12 y prueba en móvil | Una segunda persona revisa la PR y prueba en el móvil el interruptor «Medir en» y los deslizadores en «Plan», «Atraer» y «Dónde vivir» | Hacerlo con la vista previa de Vercel antes de fusionar | Una segunda persona (no quien hizo la PR) | Pendiente |
+| # | Decisión | Qué se decidió | Estado |
+|---|---|---|---|
+| 1 | Cifras de coste de «Plan» para las diapositivas | Las de la web (ver «Cifras para las diapositivas»). En minutos, que es lo que abre la web: **103,0 M€** reubicando a 30 min y **281,8 M€** sin reubicar. En km: 81,3 M€ y 281,8 M€. Las de la presentación antigua (213 y 546 M€) no se usan | ✅ Decidido |
+| 2 | Medida por defecto de la web y de la demo | **Minutos en coche** (sin tráfico, OSRM). Se mantiene también «Km en línea recta» con el interruptor «Medir en»; la web queda como está | ✅ Decidido |
+| 3 | Hospitales fuera de la Comunidad de Madrid | **No se incluyen**. Queda dicho en «Cómo funciona» (limitaciones) y en `data/out/README.md`, con los 6 pueblos afectados. Solo cambiaría de lado Ribatejada | ✅ Decidido |
+| 4 | Licencia de las columnas de minutos (OpenStreetMap, ODbL) frente a CC BY 4.0 | `data/out` sigue en CC BY 4.0, salvo `hospital_min`, `hospital_min_municipio` y `vecinos_min`, que son ODbL 1.0 y piden citar a OpenStreetMap. Escrito en `data/out/README.md`, `THIRD_PARTY.md`, el diccionario y junto a la descarga de la web | ✅ Hecho |
+| 5 | Revisión de la PR #12 y prueba en móvil | PR #12 revisada y fusionada. La prueba en móvil entra en la tarea 6 | ✅ Revisada |
 
-## Orden de mañana
+## Lo que queda (todo cerrado el martes 27 por la noche)
 
-1. Revisar la PR #12.
-2. Probar la vista previa de Vercel (portátil y móvil).
-3. Tomar las decisiones 1 a 4.
-4. Actualizar este archivo con las cifras definitivas de la web.
-5. Fusionar la PR #12 antes de las 14:00.
-6. A partir de entonces, diapositivas y guion de la demo (tareas 7 y 8, que siguen sin responsable).
+1. **Valor por defecto de «vivienda vacía que se ocupa»** (hoy 15 %). Sigue sin decidir (ver «Cifras para las diapositivas»).
+2. **Probarla entera** en portátil y móvil (tarea 6): interruptor «Medir en» y deslizadores en «Plan», «Atraer» y «Dónde vivir».
+3. **Diapositivas** (tarea 7) y **guion de la demo** (tarea 8), con las cifras de abajo. Siguen sin responsable. Las diapositivas tienen que acabar en `entrega/CABIDA_presentacion_final.pdf`: el README («Entrega para el jurado») ya lo enlaza y **hoy el archivo no existe**.
+4. El miércoles 28 no se programa: solo ensayo.
 
 ## Ya hecho
+Fusionado en `main` el 26-27/10: «Repartir» pasa a **«Atraer»** (#13, #15) y el menú junta «Plan» y «Atraer» antes de «Dónde vivir» (#16); **minutos en coche** (#12); y en «Plan», los botones **«Con este presupuesto» y «Añadir a mano» pasan a «A tu medida»** (#14), con «Plan óptimo» y «A tu medida» marcados en azul según cuál esté elegido.
+
 Publicada en **https://cabida.vercel.app** (se actualiza sola al fusionar en `main`). Cada pestaña tiene su enlace: `#mapa`, `#vivir`, `#como`; `#fiable` baja a «¿Acierta?», al final de «Cómo funciona».
 
 Mapa de los 155 municipios con los 4 tipos, cuánta gente llega y cuánta cabe (vivienda, colegios, sanidad, ritmo), palancas y supuestos, ficha con la cuenta, listas y pestaña de validación (error del 44,4 %).
@@ -67,7 +67,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - 31 municipios no tienen sitio para nadie sin ampliar (18 por colegios y 13 por sanidad); solo 4 están a menos de un 5 % de su límite.
 - Validación 2015 -> 2025: acierta dónde va **77 de cada 100 personas** (89 por zonas); la tendencia sola, 67. Es decir, coloca en otro municipio al 22,6 % (11,4 % en otra zona; la tendencia sola, 32,7 % y 20,3 %).
 - El WAPE (44,4 %, frente al 64,1 % de la tendencia) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. Se enseña igual en la web.
-- **Pestaña «Plan»** (`#plan`, 26/10, rama `funcionalidad/plan`): lista de obras editable con 3 maneras de rellenarla (plan óptimo, con presupuesto, a mano). El motor TS es la única fuente (`planOptimo` y `evaluarPlan` en `web/src/motor.ts`, con tests). Valores por defecto con su fuente: ampliar colegio 225 plazas a 6.000 €/plaza (2 años), colegio nuevo 450 a 12.900 € (3 años), instituto 880 a 16.600 € (3 años), centro de salud 7,1 M€ que atiende a 23.078 personas (mediana de las 286 zonas; 3 años); obras desde 2027 [supuesto].
+- **Pestaña «Plan»** (`#plan`, 26/10, rama `funcionalidad/plan`): lista de obras editable con 2 maneras de rellenarla: «Plan óptimo» y «A tu medida» (repartir un presupuesto o añadir obras a mano). El motor TS es la única fuente (`planOptimo` y `evaluarPlan` en `web/src/motor.ts`, con tests). Valores por defecto con su fuente: ampliar colegio 225 plazas a 6.000 €/plaza (2 años), colegio nuevo 450 a 12.900 € (3 años), instituto 880 a 16.600 € (3 años), centro de salud 7,1 M€ que atiende a 23.078 personas (mediana de las 286 zonas; 3 años); obras desde 2027 [supuesto].
   - Un centro de salud sirve a **toda su zona básica** (capacidad de la zona = límite + centros × 23.078; cada municipio se lleva su parte por población). Lo que gana una obra se mide en los 155 (con la reubicación), no solo en su pueblo.
   - Plan óptimo reubicando a 25 km: **7 ampliaciones de colegio, 2 institutos y 6 centros de salud** (uno por zona) en 15 municipios, **81,3 M€**; lo último abre en 2030. Pasan a caber **41.455**, a 1.960 € por persona; siguen sin sitio **9.319** (de 50.774), todos por vivienda.
   - Cada pueblo con lo suyo (sin reubicar): **26 ampliaciones, 13 institutos y 8 centros** en 42 municipios, **281,8 M€**; lo último abre en 2030. Pasan a caber 53.755 (5.242 € por persona); siguen sin sitio **23.874** (de 77.630), casi todos por vivienda.
@@ -75,7 +75,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 - Antes de la pestaña «Plan» (colegio a 9,5 M€ y centro a 8 M€; ya no se pueden recalcular):
   - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
   - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
-  - Ojo: la pestaña «Plan» con km no da estas cifras (da 281,8 M€ y 81,3 M€, las de arriba), porque usa otros costes y otro método. **Sin cifras de plan en minutos** hasta decidir con cuáles se queda la presentación.
+  - Ojo: la pestaña «Plan» no da estas cifras (da las de arriba), porque usa otros costes y otro método. **Para las diapositivas valen las de la web** (decidido el 27/10).
 - Población de las zonas de salud frente al Censo 2021 (IECM): se aparta un 2,6 % de media en las 286 zonas (1,9 % en las 45 de los pueblos del reto); correlación 0,997.
 
 ## Cómo arrancarla
