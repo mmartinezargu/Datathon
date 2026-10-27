@@ -61,8 +61,8 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'plan', texto: 'Plan', icono: 'plan' },
-  { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'atraer', texto: 'Atraer', icono: 'repartir' },
+  { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
 
