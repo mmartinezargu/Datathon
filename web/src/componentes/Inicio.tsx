@@ -25,6 +25,12 @@ const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: strin
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
 
+/** Las otras dos herramientas del gestor, además del mapa. */
+const ATAJOS: { destino: Destino; icono: NombreIcono; nombre: string; que: string }[] = [
+  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir y cuánto cuesta' },
+  { destino: 'atraer', icono: 'repartir', nombre: 'Atraer', que: 'A dónde atraer a cada tipo de vecino' },
+]
+
 export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino) => void }) {
   const t = totales
   return (
@@ -60,12 +66,18 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
         ))}
       </section>
 
-      <p className="inicio-atajos">
-        También para el gestor:{' '}
-        <button className="enlace" onClick={() => onIr('plan')}><b>Plan</b>, qué construir y cuánto cuesta</button>
-        {' · '}
-        <button className="enlace" onClick={() => onIr('atraer')}><b>Atraer</b>, a dónde atraer a cada tipo de vecino</button>
-      </p>
+      <section className="atajos" aria-label="También para el gestor">
+        <p className="atajos-titulo">También para el gestor</p>
+        <div className="atajos-fila">
+          {ATAJOS.map((a) => (
+            <button key={a.destino} className="atajo" onClick={() => onIr(a.destino)}>
+              <span className="atajo-icono"><Icono nombre={a.icono} tamano={22} /></span>
+              <span className="atajo-texto"><b>{a.nombre}</b><span>{a.que}</span></span>
+              <span className="atajo-flecha" aria-hidden="true">→</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <p className="inicio-pie">
         Todo sale de datos abiertos del INE, el Portal de Datos Abiertos de la Comunidad de Madrid y el IDEM.{' '}
