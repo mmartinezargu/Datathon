@@ -49,7 +49,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 
 ## Extras: solo si todo lo anterior está terminado
 - ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
-- Tiempos en coche y transporte público a sanidad y educación (endpoint SPARQL de la Cátedra).
+- Tiempos en transporte público a sanidad y educación (los de coche ya están, con OSRM). El endpoint SPARQL de la Cátedra no se ha usado: si sale en las preguntas, es un siguiente paso, no una fuente.
 - Plazas escolares reales del endpoint en vez del límite de niños por colegio.
 
 ## Cifras para las diapositivas (escenario por defecto: 2035)

@@ -42,4 +42,4 @@ Para la versión final: `npm run build && npm run preview` (http://localhost:417
 
 ## Fuentes
 
-Padrón continuo y Censo 2021 (INE); Portal de Datos Abiertos de la Comunidad de Madrid (municipios, centros educativos, centros sanitarios, zonas básicas de salud, población por edad); IDEM (límites municipales y planeamiento refundido); Cátedra LoDCOREMadrid (endpoint SPARQL).
+Padrón continuo y Censo 2021 (INE); Instituto de Estadística de la Comunidad de Madrid (alumnos matriculados, ALMUDENA); Portal de Datos Abiertos de la Comunidad de Madrid (municipios, centros educativos, centros sanitarios, zonas básicas de salud, población por edad); IDEM (límites municipales y planeamiento refundido); OpenStreetMap (minutos en coche, calculados con OSRM). La lista completa, con enlaces y licencias, está en [`data/out/README.md`](data/out/README.md).
