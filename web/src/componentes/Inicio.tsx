@@ -17,10 +17,10 @@ export interface Totales {
   reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
-export type Destino = 'mapa' | 'mudanza' | 'acierta' | 'metodologia'
+export type Destino = 'mapa' | 'plan' | 'atraer' | 'mudanza' | 'acierta' | 'metodologia'
 
 const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: string; boton: string }[] = [
-  { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan, por qué, y qué pasa si se construye un colegio o un centro de salud.', boton: 'Abrir el mapa' },
+  { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan y por qué, qué hay que construir y a dónde conviene atraer a la gente.', boton: 'Abrir el mapa' },
   { destino: 'mudanza', icono: 'vivir', quien: 'Busco dónde vivir', que: 'Dinos quién eres y qué necesitas, y te enseñamos dónde habrá sitio para ti.', boton: 'Buscar municipio' },
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
@@ -59,6 +59,13 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
           </button>
         ))}
       </section>
+
+      <p className="inicio-atajos">
+        También para el gestor:{' '}
+        <button className="enlace" onClick={() => onIr('plan')}><b>Plan</b>, qué construir y cuánto cuesta</button>
+        {' · '}
+        <button className="enlace" onClick={() => onIr('atraer')}><b>Atraer</b>, a dónde atraer a cada tipo de vecino</button>
+      </p>
 
       <p className="inicio-pie">
         Todo sale de datos abiertos del INE, el Portal de Datos Abiertos de la Comunidad de Madrid y el IDEM.{' '}
