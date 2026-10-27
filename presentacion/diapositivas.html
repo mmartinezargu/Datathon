@@ -439,7 +439,7 @@ function ir(n) {
   i = Math.max(0, Math.min(diapos.length - 1, n));
   diapos.forEach((d, k) => d.classList.toggle('activa', k === i));
   document.getElementById('cont').textContent = (i + 1) + ' / ' + diapos.length;
-  if (!todas) history.replaceState(null, '', '#' + (i + 1));
+  if (!todas) try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
 }
 addEventListener('resize', ajustar);
 addEventListener('keydown', (e) => {

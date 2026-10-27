@@ -376,7 +376,7 @@ function ir(n, alFinal) {
   diapos.forEach((d, k) => d.classList.toggle('activa', k === i));
   mostrar(diapos[i], alFinal ? pasos(diapos[i]).length : 0);
   document.getElementById('cont').textContent = (i + 1) + ' / ' + diapos.length;
-  if (!todas) history.replaceState(null, '', '#' + (i + 1));
+  if (!todas) try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
 }
 function adelante() { const d = diapos[i]; pasos(d).length > d._n ? mostrar(d, d._n + 1) : ir(i + 1); }
 function atras() { const d = diapos[i]; d._n > 0 ? mostrar(d, d._n - 1) : ir(i - 1, true); }
