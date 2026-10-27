@@ -3,25 +3,26 @@
 
 import { useState } from 'react'
 import { leerFrase } from '../asistente'
-import type { FiltrosMudanza, LecturaFrase, Municipio } from '../tipos'
+import type { FiltrosMudanza, LecturaFrase, Medida, Municipio } from '../tipos'
 
 interface Props {
   porIne: Map<string, Municipio>
   actual: FiltrosMudanza // lo que hay ahora, por si la frase no dice quién es
+  medida: Medida // para explicar «hospital cerca» en minutos en coche o en km
   ejemplos: string[]
   boton: string
   noEntendido: string // qué probar si no se entiende la frase
   onLectura: (l: LecturaFrase) => void // solo se llama si ha entendido algo
 }
 
-export function Asistente({ porIne, actual, ejemplos, boton, noEntendido, onLectura }: Props) {
+export function Asistente({ porIne, actual, medida, ejemplos, boton, noEntendido, onLectura }: Props) {
   const [frase, setFrase] = useState('')
   const [lectura, setLectura] = useState<LecturaFrase | null>(null)
   const [pensando, setPensando] = useState(false)
   const leer = async (texto: string) => {
     if (!texto.trim() || pensando) return
     setPensando(true)
-    const l = await leerFrase(texto, [...porIne.values()], actual)
+    const l = await leerFrase(texto, [...porIne.values()], actual, medida)
     setPensando(false)
     setLectura(l)
     if (l.entendido.length) onLectura(l)

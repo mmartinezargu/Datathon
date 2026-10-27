@@ -6,8 +6,9 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 | Archivo | Rol |
 |---|---|
-| `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo. También el plan de obras (`planOptimo`, `evaluarPlan`, `inversionesDe`): es la única fuente de sus cifras |
-| `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros —también «hospital cerca» con `HOSPITAL_LEJOS_KM`—, sitio que queda por recurso) y `interpretarFrase` (asistente sin IA: frase → filtros por palabras clave y nombres de municipio). Funciones puras sobre los resultados del motor |
+| `src/motor.ts` | Motor de cálculo: presión, capacidad (ley del mínimo de 4 límites) y tipo. Se recalcula al mover palancas, debe ser instantáneo. También el plan de obras (`planOptimo`, `evaluarPlan`, `inversionesDe`): es la única fuente de sus cifras. «Hospital lejos» y las parejas al reubicar siguen la medida del escenario (`hospitalLejos`, `parejasCercanas`) |
+| `src/medida.ts` | Textos de las dos medidas del interruptor «Medir en»: minutos en coche, sin tráfico (`'min'`, por defecto en la web) o km en línea recta (`'km'`, por defecto en el motor y los tests). La regla está en `hospitalLejos` (`motor.ts`) |
+| `src/mudanza.ts` | Ranking de «¿Dónde me mudo?» (perfiles, filtros —también «hospital cerca» con `hospitalLejos` y la medida del escenario—, sitio que queda por recurso) y `interpretarFrase` (asistente sin IA: frase → filtros por palabras clave y nombres de municipio). Funciones puras sobre los resultados del motor |
 | `src/asistente.ts` | Lee la frase del vecino: pregunta a `/api/asistente` (IA) y, si no hay red o tarda más de 8 s, usa `interpretarFrase` |
 | `api/asistente.ts` | Función de Vercel: pasa la frase a la IA (Groq; Oracle como alternativa) y devuelve JSON con perfil, instituto, hospital, tamaño, municipio y zona. La web valida cada campo con `lecturaDeIA` (`mudanza.ts`) |
 | `src/descarga.ts` | CSV del escenario actual para descargar (formato Excel en español) |

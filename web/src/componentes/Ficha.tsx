@@ -2,8 +2,9 @@
 
 import { ANIO_BASE, alLimite, aperturaObra, costeObra, nivelesColegio, quedanSinSitio, umbralesDe } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
-import type { Escenario, Inversion, Limite, Municipio, Obra, ResultadoMunicipio, TipoObra, Traslado, Umbrales } from '../tipos'
+import type { Escenario, Inversion, Limite, Medida, Municipio, Obra, ResultadoMunicipio, TipoObra, Traslado, Umbrales } from '../tipos'
 import { caben, decimal, miles, millones, pct } from '../formato'
+import { MEDIDAS, distanciaTraslado, hospitalCercano, radioReubicacion, textoHospital } from '../medida'
 import { Evolucion } from './Evolucion'
 import { Icono } from './Iconos'
 import { Vaso } from './Vaso'
@@ -41,16 +42,16 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
         <div className="ayuda">{m.zona}; {miles(r.poblacion)} vecinos hoy</div>
         <div className="ayuda ficha-hospital">
           <Icono nombre="sanidad" tamano={15} />
-          Hospital más cercano: {m.hospital_municipio}, a {decimal(m.hospital_km)} km en línea recta
+          {textoHospital(m, escenario.medida)}
         </div>
       </div>
 
       <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto ampliado={ampliado}
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
-      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado)}</p>
+      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado, escenario.medida)}</p>
       {limite && <p className="ficha-limite" style={{ borderLeftColor: TIPOS.tension.color }}>{textoAlLimite(limite, m)}</p>}
-      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} radioKm={escenario.radioKm} onElegir={onElegir} />}
+      {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} escenario={escenario} onElegir={onElegir} />}
 
       <h3>Personas que caben{ampliado ? '' : ' sin ampliar servicios'}, según cada recurso</h3>
       <div className="limites">
@@ -85,8 +86,8 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
 }
 
 /** Con la reubicación activa: a qué pueblos cercanos envía gente, o de cuáles la recibe. */
-function Reubicados({ r, porIne, radioKm, onElegir }: {
-  r: ResultadoMunicipio; porIne: Map<string, Municipio>; radioKm: number; onElegir: (ine: string) => void
+function Reubicados({ r, porIne, escenario, onElegir }: {
+  r: ResultadoMunicipio; porIne: Map<string, Municipio>; escenario: Escenario; onElegir: (ine: string) => void
 }) {
   const exceso = Math.max(0, -r.margen)
   const quedan = quedanSinSitio(r)
@@ -97,7 +98,7 @@ function Reubicados({ r, porIne, radioKm, onElegir }: {
         <span key={t[campo]}>
           {i > 0 && ', '}
           <button className="enlace" onClick={() => onElegir(t[campo])}>{porIne.get(t[campo])?.nombre}</button>
-          {' '}({miles(t.personas)}, {miles(t.km)} km)
+          {' '}({miles(t.personas)}, {distanciaTraslado(t, escenario.medida)})
         </span>
       ))}
       {traslados.length > 5 && ' y otros'}
@@ -110,7 +111,7 @@ function Reubicados({ r, porIne, radioKm, onElegir }: {
   } else if (r.recibe >= 1) {
     texto = <>Recibe <b>{miles(r.recibe)}</b> de: {lista(r.llegadas, 'origen')}.</>
   } else if (exceso >= 1) {
-    texto = <>No hay ningún pueblo con sitio a menos de {radioKm} km: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
+    texto = <>No hay ningún pueblo con sitio a menos de {radioReubicacion(escenario)}: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
   } else {
     return null
   }
@@ -122,7 +123,7 @@ function Reubicados({ r, porIne, radioKm, onElegir }: {
   )
 }
 
-function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: boolean): string {
+function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: boolean, medida: Medida): string {
   const l = LIMITES[r.limitante].frase
   const sin = ampliado ? '' : ' sin ampliar servicios'
   switch (r.tipo) {
@@ -135,7 +136,8 @@ function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: bool
     case 'oportunidad':
       return `Caben unas ${miles(r.caben)} personas${sin}, pero solo llegarían ${miles(r.llegan)}. ` +
         (r.condicionada
-          ? `Tiene sitio, pero el hospital queda a ${decimal(m.hospital_km)} km: antes de atraer gente hay que asegurar el acceso.`
+          ? `Tiene sitio, pero el hospital queda a ${hospitalCercano(m, medida).distancia}${medida === 'min' ? ` ${MEDIDAS.min.como}` : ''}: ` +
+            'antes de atraer gente hay que asegurar el acceso.'
           : 'Tiene sitio para acoger a más gente.')
     default:
       return `Llegarían unas ${miles(r.llegan)} personas y caben ${caben(r.caben)}${sin}. Crece poco y tiene poco margen.`

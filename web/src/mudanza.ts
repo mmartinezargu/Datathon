@@ -2,9 +2,10 @@
 // Solo usa lo que ya calcula el motor: cuánto sitio les queda a los colegios, al centro de salud
 // y a la vivienda después de que llegue la gente prevista. No hay precios ni tiempos de viaje.
 
-import type { Candidato, FiltrosMudanza, LecturaFrase, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from './tipos'
+import type { Candidato, FiltrosMudanza, LecturaFrase, Medida, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from './tipos'
 import { miles } from './formato'
-import { HOSPITAL_LEJOS_KM } from './motor'
+import { hospitalLejos } from './motor'
+import { MEDIDAS, umbralHospital } from './medida'
 
 export const PERFILES: Record<Perfil, { nombre: string; que: string; pesos: Record<Recurso, number> }> = {
   familia: { nombre: 'Familia con hijos', que: 'Colegios con sitio, centro de salud y casa.', pesos: { colegios: 0.45, sanidad: 0.25, vivienda: 0.3 } },
@@ -33,13 +34,14 @@ export function sitioQueda(r: ResultadoMunicipio): Record<Recurso, number | null
   return Object.fromEntries(RECURSOS.map((k) => [k, r.limites[k] === null ? null : r.limites[k]! - r.llegan])) as Record<Recurso, number | null>
 }
 
-export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMudanza): boolean {
+/** «Hospital cerca» usa la medida del escenario (minutos en coche o km en línea recta). */
+export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMudanza, medida: Medida): boolean {
   const c = m.capacidad!
   const t = TAMANOS[f.tamano]
   return (!f.colegio || c.colegios_primaria > 0)
     && (!f.instituto || c.colegios_secundaria > 0)
     && (!f.sitioLibre || r.margen >= 0)
-    && (!f.hospitalCerca || m.hospital_km <= HOSPITAL_LEJOS_KM)
+    && (!f.hospitalCerca || !hospitalLejos(m, medida))
     && (!f.zona || m.zona === f.zona)
     && r.poblacion >= t.desde && r.poblacion < t.hasta
 }
@@ -49,8 +51,8 @@ export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMud
  * a sus vecinos (así un pueblo y una ciudad se comparan igual) y se suman las posiciones con los
  * pesos del perfil. 100 = el mejor de los que pasan los filtros en todo lo que le importa al perfil.
  */
-export function rankingMudanza(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, f: FiltrosMudanza): Candidato[] {
-  const filas = resultados.filter((r) => cumpleFiltros(r, porIne.get(r.ine)!, f))
+export function rankingMudanza(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, f: FiltrosMudanza, medida: Medida): Candidato[] {
+  const filas = resultados.filter((r) => cumpleFiltros(r, porIne.get(r.ine)!, f, medida))
   const pesos = PERFILES[f.perfil].pesos
   const sitios = filas.map(sitioQueda)
   const posicion = Object.fromEntries(RECURSOS.map((k) =>
@@ -164,7 +166,7 @@ function municipioNombrado(texto: string, municipios: Municipio[]): { ine: strin
  * con lo que hemos entendido en palabras sencillas para que el vecino lo pueda corregir.
  * La frase describe la situación entera: los filtros parten de cero, salvo el perfil si no se dice.
  */
-export function interpretarFrase(frase: string, municipios: Municipio[], actual: FiltrosMudanza): LecturaFrase {
+export function interpretarFrase(frase: string, municipios: Municipio[], actual: FiltrosMudanza, medida: Medida): LecturaFrase {
   const entendido: string[] = []
   const { ine, resto: t } = municipioNombrado(normalizar(frase), municipios)
 
@@ -198,7 +200,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
       : /\b(ciudad|municipio grande|sitio grande)\b/.test(t) ? 'grande' : null
   const zona = zonasConCandidatos(municipios).find((z) => buscar(t, normalizar(z)).length)
     ?? Object.entries(ALIAS_ZONA).find(([alias]) => buscar(t, alias).length)?.[1] ?? null
-  completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null, zona, municipios)
+  completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null, zona, municipios, medida)
 
   return { filtros, entendido, origen: 'palabras', perfilDicho: perfil !== null }
 }
@@ -210,8 +212,8 @@ export function zonasConCandidatos(municipios: Municipio[]): string[] {
 
 /** Pone el tamaño y la zona en los filtros y lo explica. El municipio nombrado manda sobre la zona. */
 function completar(filtros: FiltrosMudanza, entendido: string[], tamano: Tamano | null, m: Municipio | null,
-  zona: string | null, municipios: Municipio[]) {
-  if (filtros.hospitalCerca) entendido.push(`Con el hospital a menos de ${miles(HOSPITAL_LEJOS_KM)} km en línea recta.`)
+  zona: string | null, municipios: Municipio[], medida: Medida) {
+  if (filtros.hospitalCerca) entendido.push(`Con el hospital a menos de ${umbralHospital(medida)} ${MEDIDAS[medida].como}.`)
   if (tamano) {
     filtros.tamano = tamano
     const { desde, hasta } = TAMANOS[tamano]
@@ -239,7 +241,7 @@ function completar(filtros: FiltrosMudanza, entendido: string[], tamano: Tamano 
  * cada campo se comprueba contra los valores posibles y lo que no encaja se ignora.
  * Las explicaciones las escribimos nosotros, no la IA. Devuelve null si no ha entendido nada.
  */
-export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: FiltrosMudanza): LecturaFrase | null {
+export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: FiltrosMudanza, medida: Medida): LecturaFrase | null {
   if (typeof datos !== 'object' || datos === null) return null
   const d = datos as Record<string, unknown>
   const entendido: string[] = []
@@ -257,7 +259,7 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   const tamano = typeof d.tamano === 'string' && d.tamano in TAMANOS && d.tamano !== 'todos' ? d.tamano as Tamano : null
   const ine = typeof d.municipio === 'string' ? municipioNombrado(normalizar(d.municipio), municipios).ine : null
   completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null,
-    typeof d.zona === 'string' ? d.zona : null, municipios)
+    typeof d.zona === 'string' ? d.zona : null, municipios, medida)
 
   return entendido.length ? { filtros, entendido, origen: 'ia', perfilDicho: perfil !== null || instituto } : null
 }

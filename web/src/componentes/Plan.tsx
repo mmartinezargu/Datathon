@@ -11,6 +11,7 @@ import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '..
 import { LIMITES, TIPOS } from '../colores'
 import { csvPlan, descargar } from '../descarga'
 import { decimal, miles, millones } from '../formato'
+import { radioReubicacion } from '../medida'
 import type { Escenario, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoPlan, TipoObra, ZonaSalud } from '../tipos'
 import { Buscador } from './Buscador'
 
@@ -108,7 +109,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
             </button>
           </div>
           <Calendario r={resultado} desde={obras.length ? Math.min(...obras.map((o) => o.inicio)) : parametros.anioInicio} />
-          <ComoSeConsigue r={resultado} radioKm={esc.radioKm} />
+          <ComoSeConsigue r={resultado} esc={esc} />
         </aside>
       </div>
     </div>
@@ -321,13 +322,17 @@ function Calendario({ r, desde }: { r: ResultadoPlan; desde: number }) {
   )
 }
 
-function ComoSeConsigue({ r, radioKm }: { r: ResultadoPlan; radioKm: number }) {
+function ComoSeConsigue({ r, esc }: { r: ResultadoPlan; esc: Escenario }) {
   const re = resumenReubicacion(r.resultados)
   return (
     <section className="plan-como">
       <h2>Cómo se consigue</h2>
       <ul>
-        <li>Nadie se muda lejos: {decimal(re.kmMedio)} km de media en línea recta, y nunca a más de {radioKm} km de su pueblo.</li>
+        {esc.medida === 'min' ? (
+          <li>Nadie se muda lejos: {miles(re.minMedio)} min de media en coche, sin tráfico, y nunca a más de {radioReubicacion(esc)} de su pueblo.</li>
+        ) : (
+          <li>Nadie se muda lejos: {decimal(re.kmMedio)} km de media en línea recta, y nunca a más de {radioReubicacion(esc)} de su pueblo.</li>
+        )}
         <li>La Administración decide dónde se construye vivienda.</li>
         <li>Sin esa vivienda en los pueblos con sitio, la reubicación no ocurre.</li>
       </ul>

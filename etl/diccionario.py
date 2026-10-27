@@ -29,6 +29,8 @@ EDAD = ("Portal de Datos Abiertos de la Comunidad de Madrid, Población censada 
 ALUMNOS = ("Instituto de Estadística de la Comunidad de Madrid, ALMUDENA (banco de datos municipal): alumnos matriculados "
            "en educación primaria (tema 501032) y en ESO (tema 501033), último año publicado (2024, provisional)",
            "https://gestiona.comunidad.madrid/desvan/Inicio.icm?enlace=almudena")
+OSRM = ("OSRM (router.project-osrm.org, perfil de coche, sin tráfico) sobre OpenStreetMap (© colaboradores de OpenStreetMap, "
+        "ODbL); hospitales: Portal de Datos Abiertos de la Comunidad de Madrid, Centros sanitarios", "https://project-osrm.org")
 ESCENARIO = ("Cálculo de CABIDA en la web (web/src/motor.ts) con el escenario elegido; se descarga desde «Llévate los datos»", "")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 
@@ -89,6 +91,12 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("hospital_km", "Distancia en línea recta desde el núcleo del municipio (mediana de sus colegios; si no tiene, "
          "centroide del término) hasta el hospital general público más cercano de la Comunidad de Madrid", "km", SANITARIOS),
         ("hospital_municipio", "Municipio en el que está ese hospital", "texto", SANITARIOS),
+        ("hospital_min", "Minutos en coche, sin tráfico, desde el núcleo del municipio hasta el hospital general público "
+         "de la Comunidad de Madrid al que se llega antes (puede no ser el más cercano en línea recta)", "minutos", OSRM),
+        ("hospital_min_municipio", "Municipio en el que está ese hospital", "texto", OSRM),
+        ("vecinos_min", "Solo municipios del reto: minutos en coche, sin tráfico, desde su núcleo hasta el de cada otro "
+         "municipio del reto al que se llega en 60 minutos o menos, como texto JSON {\"código INE\": minutos}. "
+         "Sirve para reubicar en pueblos cercanos midiendo en minutos", "minutos", OSRM),
     ],
     # Lo genera la web (web/src/descarga.ts), no el ETL: si cambian sus columnas, cámbialas también aquí.
     # Separador «;» y decimales con coma, para abrirlo en Excel en español.
@@ -109,15 +117,26 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("caben_por_ritmo", "Personas que caben sin crecer más del ritmo máximo al año", "personas", ESCENARIO),
         ("limita", "El recurso que pone el límite (el de menos sitio)", "texto", ESCENARIO),
         ("tipo", "Tensión, polo de crecimiento, oportunidad o consolidación", "texto", ESCENARIO),
-        ("condicionada", "Oportunidad con el hospital general público más cercano a más de 25 km en línea recta", "sí/no", ESCENARIO),
+        ("medida", "Cómo se mide la distancia en este escenario: «minutos en coche» (sin tráfico) o «km en línea recta». "
+         "Decide condicionada, el hospital cerca al reubicar y la cifra de recibe_de y envia_a", "texto", ESCENARIO),
+        ("condicionada", "Oportunidad con el hospital general público más cercano lejos: a más de 30 minutos en coche, "
+         "sin tráfico, o a más de 25 km en línea recta (según medida)", "sí/no", ESCENARIO),
         ("hospital_km", "Distancia en línea recta al hospital general público más cercano (ver tabla_maestra.csv)", "km", SANITARIOS),
+        ("hospital_min", "Minutos en coche, sin tráfico, al hospital general público al que se llega antes (ver tabla_maestra.csv)",
+         "minutos", OSRM),
         ("reubicados_recibe", "Con «Reubicar en pueblos cercanos»: personas que no caben en otros pueblos y vienen aquí", "personas", ESCENARIO),
         ("reubicados_envia", "Con «Reubicar en pueblos cercanos»: personas que no caben aquí y van a pueblos cercanos", "personas", ESCENARIO),
-        ("recibe_de", "De qué pueblos vienen: «Municipio (personas; km)», separados por «|»", "texto", ESCENARIO),
-        ("envia_a", "A qué pueblos van: «Municipio (personas; km)», separados por «|»", "texto", ESCENARIO),
-        ("colegios_nuevos", "Colegios nuevos simulados en «¿Y si invertimos aquí?»", "centros", ESCENARIO),
-        ("centros_salud_nuevos", "Centros de salud nuevos simulados", "centros", ESCENARIO),
-        ("coste_inversion_eur", "Coste aproximado de lo simulado (unos 9,5 M€ por colegio y 8 M€ por centro de salud)", "euros", ESCENARIO),
+        ("recibe_de", "De qué pueblos vienen: «Municipio (personas; min)» en coche o «Municipio (personas; km)» en línea recta, "
+         "según medida, separados por «|»", "texto", ESCENARIO),
+        ("envia_a", "A qué pueblos van: «Municipio (personas; min)» o «Municipio (personas; km)», según medida, "
+         "separados por «|»", "texto", ESCENARIO),
+        ("plan_plazas_primaria", "Con el plan de la pestaña «Plan»: plazas de primaria nuevas en el municipio (ampliar un colegio "
+         "o construir uno)", "plazas", ESCENARIO),
+        ("plan_plazas_eso", "Con el plan: plazas de ESO nuevas en el municipio (institutos)", "plazas", ESCENARIO),
+        ("plan_centros_salud", "Con el plan: centros de salud nuevos en su zona básica de salud (un centro sirve a toda la zona, "
+         "esté en el municipio que esté)", "centros", ESCENARIO),
+        ("plan_coste_eur", "Con el plan: coste de las obras que se hacen en este municipio (valores por defecto y su fuente "
+         "en la pestaña «Plan»)", "euros", ESCENARIO),
     ],
     "validacion_municipios.csv": [
         ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),

@@ -9,7 +9,8 @@ import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
 import type { Escenario, FiltrosReparto, LecturaFrase, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, millones } from '../formato'
-import { HOSPITAL_LEJOS_KM, costeObra } from '../motor'
+import { costeObra } from '../motor'
+import { MEDIDAS, umbralHospital } from '../medida'
 import { Asistente } from './Asistente'
 import { Icono } from './Iconos'
 
@@ -50,10 +51,11 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
   obras, onIrAlPlan, onVerEnMapa }: Props) {
   const [todos, setTodos] = useState(false)
   const llegan = useMemo(() => llegadasPorPerfil(escenario.personas, mezcla), [escenario.personas, mezcla])
-  const reparto = useMemo(() => repartir(resultados, porIne, llegan, filtros), [resultados, porIne, llegan, filtros])
+  const medida = escenario.medida
+  const reparto = useMemo(() => repartir(resultados, porIne, llegan, filtros, medida), [resultados, porIne, llegan, medida, filtros])
   const hayPlan = obras.length > 0
-  const repartoSinPlan = useMemo(() => (hayPlan ? repartir(resultadosSinPlan, porIne, llegan, filtros) : reparto),
-    [hayPlan, resultadosSinPlan, porIne, llegan, filtros, reparto])
+  const repartoSinPlan = useMemo(() => (hayPlan ? repartir(resultadosSinPlan, porIne, llegan, filtros, medida) : reparto),
+    [hayPlan, resultadosSinPlan, porIne, llegan, medida, filtros, reparto])
   const sinDirigir = useMemo(() => cabenSinDirigir(resultados), [resultados])
   const porIneRes = useMemo(() => new Map(resultados.map((r) => [r.ine, r])), [resultados])
   const zonas = useMemo(() => [...new Set(resultados.map((r) => porIne.get(r.ine)!.zona))].sort((a, b) => a.localeCompare(b, 'es')),
@@ -89,7 +91,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
       </section>
 
       <section className="val-tarjeta filtros simulador">
-        <Asistente porIne={porIne} actual={FILTROS_INICIALES} ejemplos={EJEMPLOS} boton="Calcular"
+        <Asistente porIne={porIne} actual={FILTROS_INICIALES} medida={medida} ejemplos={EJEMPLOS} boton="Calcular"
           noEntendido="Prueba a decir a quién queréis atraer (familias, jubilados, teletrabajo), una zona o un municipio, o si debe ser a pueblos pequeños o con hospital cerca."
           onLectura={alLeer} />
 
@@ -111,7 +113,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
 
         <h2>¿Dónde queréis atraerlos?</h2>
         <div className="casillas">
-          <Casilla texto={`Todos con hospital a menos de ${HOSPITAL_LEJOS_KM} km`} valor={filtros.hospitalCerca}
+          <Casilla texto={`Todos con hospital a menos de ${umbralHospital(medida)}${medida === 'min' ? ' en coche' : ''}`} valor={filtros.hospitalCerca}
             onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
           <Casilla texto="Familias: solo pueblos con instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
         </div>
@@ -221,7 +223,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
         <p className="nota">
           Cada grupo va primero a los pueblos que mejor le encajan (colegios con sitio para las familias, centro de salud para las
           personas mayores, casas para quien teletrabaja); las familias solo a pueblos con colegio y las personas mayores, con el
-          hospital a menos de {HOSPITAL_LEJOS_KM} km. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
+          hospital a menos de {umbralHospital(medida)} {MEDIDAS[medida].como}. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
           son, y cada pueblo recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
           salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
         </p>

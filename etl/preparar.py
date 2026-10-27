@@ -173,30 +173,35 @@ def estimar_suelo_sin_cifra(df: pd.DataFrame, ambitos: pd.DataFrame) -> pd.DataF
     return df
 
 
-def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
-    """Núcleo de cada municipio y distancia en línea recta al hospital general público más cercano.
+def terminos_municipales() -> gpd.GeoDataFrame:
+    """Términos municipales (IDEM), uno por código INE, en UTM 30N."""
+    mun = gpd.read_file(RAW / "idem_limites_municipales.geojson").dissolve(by="CD_INE", as_index=False).to_crs(25830)
+    return mun.rename(columns={"CD_INE": "ine"})[["ine", "geometry"]]
 
-    - Hospitales: registro de centros sanitarios de la CM, «Hospital general» que dependen
-      del servicio de salud de la Comunidad. El CSV repite cada centro una vez por servicio.
-    - Núcleo del municipio: mediana de las coordenadas de sus colegios (donde vive la gente);
-      si no tiene colegios, el centroide de su término municipal.
-      Se exporta en km (UTM 30N) para que la web mida la distancia entre pueblos al reubicar.
-    - En línea recta, no tiempo real: es una aproximación (ver «Cómo se calcula»).
+
+def hospitales(mun: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Hospitales generales públicos de la CM, con el municipio (`ine`) en el que caen, en UTM 30N.
+
+    Registro de centros sanitarios de la CM: «Hospital general» que dependen del servicio de
+    salud de la Comunidad. El CSV repite cada centro una vez por servicio.
     """
     s = pd.read_csv(RAW / "cm_centros_sanitarios.csv", sep=";", encoding="utf-8-sig", dtype=str)
     s = s[(s["centro_tipo"] == "Hospital general")
           & (s["dependecia_funcional"] == "Servicios o Institutos de Salud de las CC.AA")]
     s = s.drop_duplicates("centro_nro_registro")
-    hosp = gpd.GeoDataFrame(geometry=gpd.points_from_xy(s["localizacion_coordenada_x"].astype(float),
+    hosp = gpd.GeoDataFrame({"registro": s["centro_nro_registro"].to_numpy()},
+                            geometry=gpd.points_from_xy(s["localizacion_coordenada_x"].astype(float),
                                                         s["localizacion_coordenada_y"].astype(float)), crs=25830)
-
-    mun = gpd.read_file(RAW / "idem_limites_municipales.geojson").dissolve(by="CD_INE", as_index=False).to_crs(25830)
-    mun = mun.rename(columns={"CD_INE": "ine"})[["ine", "geometry"]]
     # Municipio de cada hospital: el término municipal en el que cae el punto
-    hosp = gpd.sjoin(hosp, mun, how="left", predicate="within")
-    nombres = dict(zip(df["ine"], df["nombre"]))
-    print(f"Hospitales generales públicos: {len(hosp)}")
+    return gpd.sjoin(hosp, mun, how="left", predicate="within").drop(columns="index_right").reset_index(drop=True)
 
+
+def nucleos(mun: gpd.GeoDataFrame) -> pd.DataFrame:
+    """Núcleo de cada municipio, en metros (UTM 30N), con índice `ine`.
+
+    Mediana de las coordenadas de sus colegios (donde vive la gente); si no tiene colegios,
+    el centroide de su término municipal.
+    """
     c = pd.read_csv(RAW / "cm_centros_educativos.csv", sep=";", encoding="utf-8-sig", dtype=str)
     c = c[(c["SITUACIÓN"] == "ALTA") & c["UTM_X"].notna() & c["UTM_Y"].notna()]
     tipo = c["TIPO_EXT"].str.strip()
@@ -207,6 +212,23 @@ def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
     nucleo = nucleo.reindex(mun["ine"])
     nucleo["x"] = nucleo["x"].fillna(centro.x)
     nucleo["y"] = nucleo["y"].fillna(centro.y)
+    return nucleo
+
+
+def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
+    """Núcleo de cada municipio y hospital general público más cercano, de dos formas.
+
+    - En línea recta (hospital_km): el hospital más cercano en km, desde el núcleo.
+      El núcleo se exporta en km (UTM 30N) para que la web mida la distancia entre pueblos al reubicar.
+    - En coche, sin tráfico (hospital_min): el hospital más cercano por tiempo, que puede ser otro.
+      Lo calcula tiempos.py con OSRM (data/raw/tiempos_osrm.json), junto con los minutos entre
+      los pueblos del reto (vecinos_min).
+    """
+    mun = terminos_municipales()
+    hosp = hospitales(mun)
+    nombres = dict(zip(df["ine"], df["nombre"]))
+    print(f"Hospitales generales públicos: {len(hosp)}")
+    nucleo = nucleos(mun)
 
     distancia, cual = cKDTree(np.column_stack([hosp.geometry.x, hosp.geometry.y])).query(nucleo[["x", "y"]].to_numpy())
     out = pd.DataFrame({
@@ -216,6 +238,18 @@ def anadir_hospital(df: pd.DataFrame) -> pd.DataFrame:
         "hospital_km": (distancia / 1000).round(1),
         "hospital_municipio": hosp["ine"].iloc[cual].map(nombres).to_numpy(),
     })
+
+    archivo = RAW / "tiempos_osrm.json"
+    if not archivo.exists():
+        raise SystemExit(f"Falta {archivo.name}: ejecuta antes «uv run tiempos.py» (minutos en coche con OSRM)")
+    t = json.loads(archivo.read_text(encoding="utf-8"))
+    out["hospital_min"] = out["ine"].map(lambda i: t["hospital"][i]["min"])
+    out["hospital_min_municipio"] = out["ine"].map(lambda i: nombres.get(t["hospital"][i]["ine"]))
+    # Minutos desde cada pueblo del reto hasta los demás a 60 min o menos (del más cercano al más lejano)
+    out["vecinos_min"] = out["ine"].map(lambda i: t["vecinos"].get(i, {}))
+    otro = (out["hospital_min_municipio"] != out["hospital_municipio"]).sum()
+    print(f"Minutos en coche (OSRM, {t['fecha']}): en {otro} municipios el hospital más cercano por tiempo "
+          f"está en otro municipio que el más cercano en línea recta")
     return df.merge(out, on="ine", how="left")
 
 
@@ -258,6 +292,9 @@ def main() -> None:
             "nucleo_y": float(f["nucleo_y"]),
             "hospital_km": float(f["hospital_km"]),
             "hospital_municipio": f["hospital_municipio"],
+            "hospital_min": float(f["hospital_min"]),
+            "hospital_min_municipio": f["hospital_min_municipio"],
+            "vecinos_min": f["vecinos_min"],
             "capacidad": None if not f["universo"] else {c: limpio(f[c]) for c in COLUMNAS_CAPACIDAD},
         })
 
@@ -272,9 +309,13 @@ def main() -> None:
     (WEB_DATOS / "limites.geojson").write_text(json.dumps(limites, ensure_ascii=False), encoding="utf-8")
 
     columnas = ["ine", "nombre", "zona", "superficie_km2", "universo", *anios, "g_propia", "g_zona", "g_suavizada",
-                *COLUMNAS_CAPACIDAD, "nucleo_x", "nucleo_y", "hospital_km", "hospital_municipio"]
+                *COLUMNAS_CAPACIDAD, "nucleo_x", "nucleo_y", "hospital_km", "hospital_municipio",
+                "hospital_min", "hospital_min_municipio", "vecinos_min"]
     diccionario.comprobar("tabla_maestra.csv", columnas)
-    df[columnas].to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+    tabla = df[columnas].copy()
+    # En el CSV, los vecinos van como texto JSON ({"28002": 12.3, ...}); vacío si no es del reto
+    tabla["vecinos_min"] = tabla["vecinos_min"].map(lambda v: json.dumps(v) if v else "")
+    tabla.to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
     diccionario.escribir()
     shutil.copyfile(OUT / "tabla_maestra.csv", WEB_DATOS / "tabla_maestra.csv")
 

@@ -52,3 +52,9 @@ cd etl && uv run python -c "import importlib.metadata as md;[print(d, md.version
 ## Datos
 
 Los datos de partida son abiertos (INE, Portal de Datos Abiertos de la Comunidad de Madrid, IDEM). El detalle de las fuentes y su licencia está en [`data/out/README.md`](data/out/README.md).
+
+### OpenStreetMap y OSRM
+
+Los minutos en coche (al hospital y entre pueblos) se calculan una vez, al preparar los datos (`etl/tiempos.py`), con el servidor público de [OSRM](https://project-osrm.org) (Open Source Routing Machine, licencia BSD-2-Clause). La web no llama a OSRM: usa los minutos ya guardados.
+
+OSRM calcula las rutas con los mapas de **OpenStreetMap**: © colaboradores de OpenStreetMap. Los datos de OpenStreetMap están disponibles bajo la licencia **Open Database License (ODbL) 1.0**: https://www.openstreetmap.org/copyright. Las columnas `hospital_min`, `hospital_min_municipio` y `vecinos_min` (y `data/raw/tiempos_osrm.json`) salen de esos datos.

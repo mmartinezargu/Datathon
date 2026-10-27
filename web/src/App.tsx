@@ -19,8 +19,9 @@ import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA } from './reparto'
+import { MEDIDAS, umbralHospital } from './medida'
 import {
-  ANIO_BASE, HOSPITAL_LEJOS_KM, PARAMETROS_PLAN, SIN_INVERSION, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
+  ANIO_BASE, PARAMETROS_PLAN, SIN_INVERSION, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
   inversionesDe, inversionesPorZona, nuevaObra, obraSugerida, quedanSinSitio, resumenReubicacion,
 } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
@@ -70,7 +71,8 @@ export default function App() {
   const [zonas, setZonas] = useState<ZonaSalud[] | null>(null)
   const [limites, setLimites] = useState<GeoJSON.FeatureCollection | null>(null)
   const [validacion, setValidacion] = useState<DatosValidacion | null>(null)
-  const [escenario, setEscenario] = useState<Escenario>(escenarioPorDefecto())
+  // La web abre midiendo en minutos en coche (el motor y los tests parten de km)
+  const [escenario, setEscenario] = useState<Escenario>(() => escenarioPorDefecto(2035, 'min'))
   const [seleccionado, setSeleccionado] = useState<string | null>(null)
   const [pestana, setPestanaEstado] = useState<Pestana>(pestanaDelEnlace)
   const [colorMapa, setColorMapa] = useState<ColorMapa>('tipo')
@@ -305,7 +307,8 @@ export default function App() {
                   ? `no encuentran sitio cerca${invertido ? ', aun con el plan' : ': ahí hay que invertir'}`
                   : invertido ? 'se quedarían sin sitio, aun con el plan' : 'se quedarían sin sitio: ahí hay que invertir'} />
               <Cifra valor={String(cuenta.oportunidad)} acento={TIPOS.oportunidad.color}
-                texto={`municipios con sitio al que no llega gente${invertido ? ' con el plan' : ''}; en ${condicionadas} el hospital queda a más de ${HOSPITAL_LEJOS_KM} km`} />
+                texto={`municipios con sitio al que no llega gente${invertido ? ' con el plan' : ''}; en ${condicionadas} el hospital queda a más de ` +
+                  `${umbralHospital(escenario.medida)}${escenario.medida === 'min' ? ` ${MEDIDAS.min.como}` : ''}`} />
             </div>
             {/* La leyenda va plegada en un botón para no tapar el mapa */}
             <div className={`leyenda${leyendaAbierta ? ' abierta' : ''}`} aria-label="Leyenda">
@@ -332,7 +335,7 @@ export default function App() {
                     </div>
                     {condicionadas > 0 && (!resaltado || resaltado === 'oportunidad') && (
                       <div className="leyenda-condicionada" title={CONDICIONADA.que}>
-                        <i style={{ background: CONDICIONADA.fondo }} /> Rayado: {CONDICIONADA.nombre.toLowerCase()} (hospital a más de {HOSPITAL_LEJOS_KM} km)<b>{condicionadas}</b>
+                        <i style={{ background: CONDICIONADA.fondo }} /> Rayado: {CONDICIONADA.nombre.toLowerCase()} (hospital a más de {umbralHospital(escenario.medida)}{escenario.medida === 'min' ? ' en coche' : ''})<b>{condicionadas}</b>
                       </div>
                     )}
                     <div className="leyenda-pista">{resaltado ? 'Pulsa otra vez para ver todos.' : 'Pulsa un tipo para verlo solo.'}</div>
@@ -373,7 +376,7 @@ export default function App() {
                       : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
                     origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} reequilibrio={reequilibrio} />} />
                 </section>
-                {reequilibrio && <Reubicacion resumen={reubicacion} sinSitio={sinSitio} porIne={porIne} onElegir={elegir} />}
+                {reequilibrio && <Reubicacion resumen={reubicacion} medida={escenario.medida} sinSitio={sinSitio} porIne={porIne} onElegir={elegir} />}
                 <Listas resultados={resultados} porIne={porIne} resaltado={resaltado} reubicar={reequilibrio} onElegir={elegir} />
               </>
             )}

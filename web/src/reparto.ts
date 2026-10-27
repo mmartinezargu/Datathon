@@ -8,7 +8,7 @@
 // los tres avanzan al mismo ritmo y, si no hay sitio para todos, falta para todos.
 
 import { FILTROS_INICIALES, cambiarPerfil, rankingMudanza } from './mudanza'
-import type { FiltrosMudanza, FiltrosReparto, Municipio, Perfil, Reparto, ResultadoMunicipio } from './tipos'
+import type { FiltrosMudanza, FiltrosReparto, Medida, Municipio, Perfil, Reparto, ResultadoMunicipio } from './tipos'
 
 export const ORDEN_REPARTO: Perfil[] = ['familia', 'mayor', 'teletrabajo']
 
@@ -56,15 +56,19 @@ export function filtrosDePerfil(perfil: Perfil, f: FiltrosReparto): FiltrosMudan
   }
 }
 
+/**
+ * «Hospital cerca» usa la medida del escenario (minutos en coche o km en línea recta), como en «Dónde vivir».
+ * Por defecto 'km', como el motor; la web pasa la del escenario.
+ */
 export function repartir(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, llegan: Record<Perfil, number>,
-  filtros: FiltrosReparto = FILTROS_REPARTO): Reparto {
+  filtros: FiltrosReparto = FILTROS_REPARTO, medida: Medida = 'km'): Reparto {
   const libre = new Map(resultados.map((r) => [r.ine, hueco(r)]))
   const recibe = new Map<string, Record<Perfil, number>>()
   const cuantos = ORDEN_REPARTO.map((p) => Math.max(0, Math.round(llegan[p])))
   const todos = cuantos.reduce((s, n) => s + n, 0)
   const turnos = ORDEN_REPARTO.map((perfil, k) => ({
     perfil,
-    lista: rankingMudanza(resultados, porIne, filtrosDePerfil(perfil, filtros)).map((c) => c.ine),
+    lista: rankingMudanza(resultados, porIne, filtrosDePerfil(perfil, filtros), medida).map((c) => c.ine),
     i: 0, // el pueblo de su lista por el que va
     quedan: cuantos[k],
     tanda: todos ? Math.max(1, Math.round(VUELTA * cuantos[k] / todos)) : 0, // su parte de cada vuelta

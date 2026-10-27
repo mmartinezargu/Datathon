@@ -6,7 +6,8 @@
 // Las cifras salen del código (motor.ts, mudanza.ts) y de los datos, no se escriben a mano:
 // los supuestos se muestran con el valor que tengan ahora las palancas.
 
-import { ANIO_BASE, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, MARGEN_MINIMO, PARAMETROS_PLAN, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
+import { MEDIDAS, radioReubicacion, umbralHospital } from '../medida'
+import { ANIO_BASE, CRECIMIENTO_DECADA, CRECIMIENTO_DECADA_CM, HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, MARGEN_MINIMO, PARAMETROS_PLAN, POBLACION_CM, PREVISION_CM, RITMO_ANUAL, segunPrevision } from '../motor'
 import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '../fuentesPlan'
 import type { TipoObra } from '../tipos'
 import { PERFILES } from '../mudanza'
@@ -35,6 +36,7 @@ const FUENTES = [
   { nombre: 'Zonas básicas de salud', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'A qué centro de salud va cada municipio y cuánta gente atiende', url: 'https://datos.comunidad.madrid/dataset/924044d0-b75e-402c-8c13-96ace11da0ff' },
   { nombre: 'Censo 2021: población por zona básica de salud (tabla T21SALUD01)', quien: 'Instituto de Estadística de la Comunidad de Madrid', para: 'Comprobar la población de cada zona de salud («¿Acierta?»)', url: 'https://web.comunidad.madrid/iestadis/fijas/estructu/demograficas/censos/icensos21_zbsal.htm' },
   { nombre: 'Centros sanitarios', quien: 'Portal de Datos Abiertos de la Comunidad de Madrid', para: 'Dónde están los hospitales generales públicos', url: 'https://datos.comunidad.madrid/dataset/d8a0a444-adf5-4c04-8999-0eac3de52cb7' },
+  { nombre: 'Tiempos en coche, sin tráfico (OSRM sobre OpenStreetMap; © colaboradores de OpenStreetMap, licencia ODbL)', quien: 'Project OSRM y OpenStreetMap', para: 'Minutos en coche al hospital y entre pueblos', url: 'https://www.openstreetmap.org/copyright' },
   { nombre: 'Límites municipales y planeamiento urbanístico refundido 2025', quien: 'IDEM, Comunidad de Madrid', para: 'El mapa y las viviendas previstas en suelo sin desarrollar', url: 'https://idem.comunidad.madrid/' },
 ]
 
@@ -49,6 +51,9 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
 }) {
   const anios = escenario.anio - ANIO_BASE
   const prevision = segunPrevision(escenario.anio)
+  const enMin = escenario.medida === 'min'
+  // «30 min en coche, sin tráfico» o «25 km en línea recta»
+  const hospitalLejos = `${umbralHospital(escenario.medida)} ${MEDIDAS[escenario.medida].como}`
   const { nuestro, tendencia } = modelosClave(validacion)
 
   return (
@@ -103,7 +108,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               ))}
             </ul>
             <p>
-              Una oportunidad con el hospital a más de {HOSPITAL_LEJOS_KM} km sale <b>rayada</b>:
+              Una oportunidad con el hospital a más de {umbralHospital(escenario.medida)}{enMin ? ' en coche' : ''} sale <b>rayada</b>:
               es una <span className="chip" style={{ background: CONDICIONADA.fondo }}>{CONDICIONADA.nombre.toLowerCase()}</span>.
               Hay sitio, pero antes de atraer gente hay que asegurar el acceso.
             </p>
@@ -137,7 +142,7 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
         </p>
         <p>
           <b>Reubicar en pueblos cercanos.</b> Con el interruptor de las palancas, quien no cabe en su pueblo va al pueblo con sitio
-          más cercano, a menos de {escenario.radioKm} km en línea recta y con el hospital cerca; se reparte empezando por las parejas
+          más cercano, a menos de {enMin ? `${escenario.radioMin} min en coche, sin tráfico,` : `${escenario.radioKm} km en línea recta`} y con el hospital cerca; se reparte empezando por las parejas
           de pueblos más próximas. Si no hay ninguno a esa distancia, se queda sin sitio, y los colores del mapa no cambian.
         </p>
         <p>
@@ -228,7 +233,11 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
           <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
           <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos alumnos como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso pone en otro municipio a {Math.round(nuestro.fuera_municipio * 100)} de cada 100 personas.</li>
-          <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos 30 minutos en coche (estimación).</li>
+          {enMin ? (
+            <li><b>Los minutos en coche son sin tráfico.</b> Salen de OSRM, que calcula la ruta por carretera con los mapas de OpenStreetMap y la velocidad de cada vía. No cuentan atascos ni transporte público. Se miden desde el centro del pueblo (donde están sus colegios). Con «Km en línea recta» se usa la distancia de siempre.</li>
+          ) : (
+            <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del pueblo (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos {HOSPITAL_LEJOS_MIN} minutos en coche (estimación). Con «Minutos en coche» se usa el tiempo por carretera, sin tráfico.</li>
+          )}
           <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los pueblos de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
           <li><b>Faltan datos que también importan</b>: precios de la vivienda, empleo y transporte.</li>
         </ul>
@@ -320,15 +329,17 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
             </ul>
             <p>
               <b>Reubicar en pueblos cercanos (si se activa).</b> Se forman todas las parejas de un pueblo al que le sobra gente y otro
-              con sitio a {escenario.radioKm} km o menos entre sus centros (el de destino, con el hospital a {HOSPITAL_LEJOS_KM} km o menos, sea del tipo que sea), y se ordenan de
+              con sitio a {radioReubicacion(escenario)} o menos entre sus centros{enMin ? ', sin tráfico y del pueblo de origen al de destino' : ''} (el
+              de destino, con el hospital a {hospitalLejos} o menos, sea del tipo que sea), y se ordenan de
               la más cercana a la más lejana. En ese orden, cada pareja traslada lo que pueda:
             </p>
             <p className="formula">personas = mín(lo que aún no cabe en el origen, el sitio que aún le queda al destino)</p>
             <p className="ayuda">El tipo se calcula con lo que llega por tendencia, antes de este paso.</p>
             <p className="ayuda">Para no marcar «en tensión» por un puñado de personas, tienen que faltar al menos {MARGEN_MINIMO}.</p>
             <p>
-              <b>Oportunidad condicionada:</b> una oportunidad cuyo hospital general público más cercano está a más de {HOSPITAL_LEJOS_KM} km
-              en línea recta, medidos desde la mediana de las coordenadas de sus colegios (si no tiene, desde el centro de su término).
+              <b>Oportunidad condicionada:</b> una oportunidad cuyo hospital general público más cercano está a más de {hospitalLejos},
+              {enMin ? ' medidos con OSRM hasta el hospital al que se llega antes (puede no ser el más cercano en línea recta), desde' : ' medidos desde'} la
+              mediana de las coordenadas de sus colegios (si no tiene, desde el centro de su término).
             </p>
           </section>
 
@@ -355,13 +366,13 @@ export function Metodologia({ escenario, validacion, sinDatoVacias, sueloEstimad
               ))}
             </ul>
             <p>
-              En «Dónde vivir», la casilla «Con hospital a menos de {HOSPITAL_LEJOS_KM} km» deja solo los pueblos con un hospital
-              general público a esa distancia o menos, en línea recta; viene marcada para las personas mayores.
+              En «Dónde vivir», la casilla «Con hospital a menos de {umbralHospital(escenario.medida)}{enMin ? ' en coche' : ''}» deja solo los pueblos con un hospital
+              general público a esa distancia o menos, {MEDIDAS[escenario.medida].como}; viene marcada para las personas mayores.
             </p>
             <p>
               En «Atraer», los grupos llenan los pueblos en ese orden, por turnos y a la par (cada grupo, en proporción a cuántos son), hasta lo que le cabe a cada uno (el menor de sus
               cuatro límites). Las familias solo van a pueblos con colegio y las personas mayores, a pueblos con un hospital general
-              público a menos de {HOSPITAL_LEJOS_KM} km en línea recta. Qué parte de los que llegan es de cada grupo es un supuesto
+              público a menos de {hospitalLejos}. Qué parte de los que llegan es de cada grupo es un supuesto
               que se puede cambiar.
             </p>
           </section>
