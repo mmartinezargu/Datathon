@@ -16,7 +16,7 @@ Regla: el **miércoles 28 no se programa**. Ese día solo se ensaya. Todo lo de 
 
 1. **Valor por defecto de «vivienda vacía que se ocupa»** (hoy 15 %). Sigue sin decidir (ver «Cifras para las diapositivas»).
 2. **Probarla entera** en portátil y móvil (tarea 6): interruptor «Medir en» y deslizadores en «Plan», «Atraer» y «Dónde vivir».
-3. **Diapositivas** (tarea 7) y **guion de la demo** (tarea 8), con las cifras de abajo. Siguen sin responsable.
+3. **Diapositivas** (tarea 7) y **guion de la demo** (tarea 8), con las cifras de abajo. Siguen sin responsable. Las diapositivas tienen que acabar en `entrega/CABIDA_presentacion_final.pdf`: el README («Entrega para el jurado») ya lo enlaza y **hoy el archivo no existe**.
 4. El miércoles 28 no se programa: solo ensayo.
 
 ## Ya hecho
