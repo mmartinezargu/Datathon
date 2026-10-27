@@ -62,4 +62,4 @@ Los minutos en coche salen antes, de `etl/tiempos.py` (OSRM) → `data/raw/tiemp
 
 ## Fuentes
 
-Padrón continuo y Censo 2021 (INE); Portal de Datos Abiertos de la Comunidad de Madrid (municipios, centros educativos y sanitarios, zonas básicas de salud, población por edad); IDEM (límites municipales y planeamiento refundido); Cátedra LoDCOREMadrid (endpoint SPARQL).
+Padrón continuo y Censo 2021 (INE); Portal de Datos Abiertos de la Comunidad de Madrid (municipios, centros educativos y sanitarios, zonas básicas de salud, población por edad); Instituto de Estadística de la Comunidad de Madrid (alumnos, ALMUDENA); IDEM (límites municipales y planeamiento refundido); OpenStreetMap (minutos en coche, OSRM). El endpoint SPARQL de la Cátedra LoDCOREMadrid **no se usa**: no lo pongas como fuente.
