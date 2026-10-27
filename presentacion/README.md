@@ -18,6 +18,7 @@ Las tipografías se bajan de Google Fonts: sin internet se ven con una tipograf�
 |---|---|
 | `diapositivas.html` | La presentación de la final (11 diapositivas). Su PDF es [`../entrega/CABIDA_presentacion_final.pdf`](../entrega/CABIDA_presentacion_final.pdf) |
 | `diapositivas_detalladas.html` | Primera versión, más informativa (8 diapositivas, con más texto, gráficos y enlaces). Su PDF es [`CABIDA_presentacion_detallada.pdf`](CABIDA_presentacion_detallada.pdf). Sirve de apoyo si preguntan por algún detalle |
+| `GUION.md` | Guion de los 10 minutos: quién habla, qué se pulsa en la demo, tiempos, plan B y preguntas probables |
 | `mapa.svg`, `mapa-oscuro.svg` | Mapa de los 155 municipios coloreados por tipo (escenario 2035) |
 | `img/` | Capturas de la web publicada, usadas en la versión detallada |
 
