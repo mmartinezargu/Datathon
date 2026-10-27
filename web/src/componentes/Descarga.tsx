@@ -29,7 +29,10 @@ export function Descarga({ resultados, porIne, escenario, obras }: Props) {
         <a href="datos/tabla_maestra.csv" download>Tabla con los datos de partida</a> (población 2005–2025, viviendas,
         colegios y sanidad de cada municipio). Licencia{' '}
         <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noreferrer">CC BY 4.0</a>:
-        puedes reutilizarlos citando a CABIDA.
+        puedes reutilizarlos citando a CABIDA. Los minutos en coche (<code>hospital_min</code>, <code>hospital_min_municipio</code> y{' '}
+        <code>vecinos_min</code>) salen de{' '}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>{' '}
+        (© colaboradores de OpenStreetMap, licencia ODbL): si los reutilizas, cita también a OpenStreetMap.
       </p>
     </section>
   )

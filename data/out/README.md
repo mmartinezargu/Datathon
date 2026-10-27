@@ -45,7 +45,26 @@ Se pueden copiar, redistribuir, transformar y usar con cualquier fin, también c
 
 Los datos de partida son de sus autores (INE, Comunidad de Madrid), que los publican como datos abiertos con reutilización libre citando la fuente.
 
-Las columnas de minutos en coche (`hospital_min`, `hospital_min_municipio`, `vecinos_min`) se calculan con OSRM sobre datos de OpenStreetMap (© colaboradores de OpenStreetMap, licencia ODbL 1.0, https://www.openstreetmap.org/copyright). Al reutilizarlas hay que citar también a OpenStreetMap, y pueden estar sujetas a las condiciones de la ODbL.
+### Excepción: las columnas de minutos en coche (ODbL 1.0)
+
+Tres columnas no son CC BY 4.0, sino **Open Database License (ODbL) 1.0**, porque se calculan con OSRM sobre mapas de OpenStreetMap (© colaboradores de OpenStreetMap, https://www.openstreetmap.org/copyright):
+
+| Columna | Dónde está |
+|---|---|
+| `hospital_min` | `tabla_maestra.csv` y el CSV del escenario que se descarga desde la web |
+| `hospital_min_municipio` | `tabla_maestra.csv` |
+| `vecinos_min` | `tabla_maestra.csv` |
+
+Qué significa para quien las reutilice:
+
+- Hay que citar a OpenStreetMap: «© colaboradores de OpenStreetMap».
+- Si se publica una base de datos derivada de esas columnas, se mantiene la ODbL (atribución y compartir igual) para esa parte.
+- El resto de columnas sigue siendo CC BY 4.0. Quien no quiera la ODbL puede quitar esas tres columnas y quedarse con datos solo CC BY 4.0, o usar `hospital_km`, que se calcula en línea recta y no depende de OpenStreetMap.
+- Los minutos se calcularon una sola vez (`etl/tiempos.py`) con el servidor público de OSRM, con una pausa entre peticiones y guardando cada respuesta. La web no llama a OSRM.
+
+## Límite de los datos de hospitales
+
+Solo se cuentan los hospitales generales públicos de la Comunidad de Madrid. Algunos pueblos de la frontera tienen uno más cerca fuera: Valdeavero, Ribatejada y Pezuela de las Torres (Guadalajara), San Martín de Valdeiglesias y Rozas de Puerto Real (Ávila) y Somosierra (Aranda de Duero). Solo cambiaría de lado Ribatejada (37 min al de la Comunidad frente a 29 al de Guadalajara); no cambiaría ninguna oportunidad condicionada ni la reubicación. Es una decisión del equipo y está explicada en «Cómo funciona».
 
 ## Cómo regenerarlos
 
