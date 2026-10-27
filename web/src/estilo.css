@@ -414,3 +414,5 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .atraer-ajustes[open] summary, .atraer-detalle[open] summary { margin-bottom: 8px; }
 .atraer-grupo li small { display: block; color: var(--tinta2); font-size: 11.5px; line-height: 1.35; margin-top: 1px; }
 .atraer-descarga { margin-top: 12px; }
+.inicio-atajos { text-align: center; font-size: 14px; color: var(--tinta2); margin: 14px 0 0; line-height: 1.8; }
+.inicio-atajos .enlace { font-size: 14px; }
