@@ -216,7 +216,7 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 /* ---------- Pestaña «Plan» ---------- */
 .plan { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 .plan .val-cabeza h1 { max-width: none; }
-.plan-botones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.plan-botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .plan-boton {
   display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; cursor: pointer;
   border: 1px solid var(--linea); background: var(--papel); border-radius: 12px; padding: 10px 14px;
@@ -230,8 +230,12 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .plan-boton:disabled, .desplegar:disabled { opacity: 0.45; cursor: default; }
 .plan-panel { background: var(--papel); border: 1px solid var(--linea); border-left: 4px solid var(--cielo); border-radius: var(--radio); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .plan-panel .control { margin: 0; width: 100%; }
+.plan-seccion { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; width: 100%; }
+.plan-seccion + .plan-seccion { border-top: 1px solid var(--linea); padding-top: 14px; }
+.plan-seccion h3 { font-family: var(--disp); font-size: 14.5px; margin: 0; }
+.plan-seccion > .buscador { flex: none; width: 100%; max-width: 320px; padding: 0; }
 .plan-panel .plan-boton { width: auto; }
-.plan-campos { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+.plan-campos { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 16px; }
 .plan-campos .control { margin: 0; width: auto; flex: 1 1 160px; }
 .plan-campos input, .plan-panel input[type="text"] { display: block; width: 100%; margin-top: 4px; font: inherit; padding: 6px 9px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; }
 .plan-panel .buscador { margin-top: 4px; }

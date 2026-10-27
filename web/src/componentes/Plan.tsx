@@ -1,5 +1,5 @@
 // Pestaña «Plan» (#plan): qué hace falta construir para que quepa la gente.
-// Para profesionales: una sola lista de obras que se rellena de tres maneras (plan óptimo, con un presupuesto o a mano),
+// Para profesionales: una sola lista de obras que se rellena de dos maneras (plan óptimo, o a tu medida: con un presupuesto o a mano),
 // todo editable, con los valores por defecto de CABIDA y su fuente. Las cuentas las hace motor.ts.
 
 import { useMemo, useState } from 'react'
@@ -31,7 +31,7 @@ interface Props {
 }
 
 const TIPOS_OBRA = Object.keys(NOMBRE_OBRA) as TipoObra[]
-type Modo = 'presupuesto' | 'mano' | null
+type Modo = 'optimo' | 'medida' | null // cuál de los dos botones está elegido
 
 export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, parametros, onParametros, opciones, onOpciones, onFicha, onVerEnMapa }: Props) {
   const [modo, setModo] = useState<Modo>(null)
@@ -70,23 +70,23 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
       </section>
 
       <div className="plan-botones" role="group" aria-label="Rellenar la lista">
-        <button className="plan-boton principal" onClick={() => { setModo(null); rellenar({}) }}>
+        <button className={`plan-boton${modo === 'optimo' ? ' principal' : ''}`} aria-pressed={modo === 'optimo'}
+          onClick={() => { setModo('optimo'); rellenar({}) }}>
           <b>Plan óptimo</b><span>Lo que haga falta, donde más gente cabe por cada euro</span>
         </button>
-        <button className={`plan-boton${modo === 'presupuesto' ? ' activo' : ''}`} aria-expanded={modo === 'presupuesto'}
-          onClick={() => setModo(modo === 'presupuesto' ? null : 'presupuesto')}>
-          <b>Con este presupuesto</b><span>Lo reparte lo mejor posible</span>
-        </button>
-        <button className={`plan-boton${modo === 'mano' ? ' activo' : ''}`} aria-expanded={modo === 'mano'}
-          onClick={() => setModo(modo === 'mano' ? null : 'mano')}>
-          <b>Añadir a mano</b><span>Una obra en el municipio que elijas</span>
+        <button className={`plan-boton${modo === 'medida' ? ' principal' : ''}`} aria-pressed={modo === 'medida'}
+          onClick={() => setModo('medida')}>
+          <b>A tu medida</b><span>Con un presupuesto o añadiendo obras a mano</span>
         </button>
       </div>
-      {modo === 'presupuesto' && <Presupuesto delReto={delReto} porIne={porIne} opciones={opciones} onRepartir={rellenar} />}
-      {modo === 'mano' && (
+      {modo === 'medida' && (
         <div className="plan-panel">
-          <p className="ayuda">Elige un municipio: se añade la obra que suelta su límite, y en la lista puedes cambiarla.</p>
-          <Buscador municipios={delReto} onElegir={anadir} texto="Añadir municipio" />
+          <Presupuesto delReto={delReto} porIne={porIne} opciones={opciones} onRepartir={rellenar} />
+          <div className="plan-seccion">
+            <h3>O añade una obra a mano</h3>
+            <p className="ayuda">Elige un municipio: se añade la obra que suelta su límite, y en la lista puedes cambiarla.</p>
+            <Buscador municipios={delReto} onElegir={anadir} texto="Añadir municipio" />
+          </div>
         </div>
       )}
 
@@ -127,11 +127,12 @@ function Presupuesto({ delReto, porIne, opciones, onRepartir }: {
   const valido = totalM > 0
 
   return (
-    <form className="plan-panel" onSubmit={(e) => {
+    <form className="plan-seccion" onSubmit={(e) => {
       e.preventDefault()
       if (!valido) return
       onRepartir({ presupuestoTotal: totalM * 1e6, presupuestoAnual: anualM > 0 ? anualM * 1e6 : undefined, soloMunicipios: solo.length ? solo : undefined })
     }}>
+      <h3>Reparte un presupuesto</h3>
       <div className="plan-campos">
         <label className="control"><span className="etiqueta">Presupuesto total (M€)</span>
           <input type="text" inputMode="decimal" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="Por ejemplo, 100" required /></label>
@@ -165,7 +166,7 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
     <section className="val-tarjeta">
       <h2>Obras del plan</h2>
       {obras.length === 0 ? (
-        <p className="vacio">La lista está vacía. Pulsa «Plan óptimo» para rellenarla, o añade obras con los otros dos botones.</p>
+        <p className="vacio">La lista está vacía. Pulsa «Plan óptimo» para rellenarla, o usa «A tu medida» para repartir un presupuesto o añadir obras a mano.</p>
       ) : (
         <div className="tabla-scroll">
           <table className="plan-tabla">
