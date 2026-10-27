@@ -161,6 +161,34 @@ function municipioNombrado(texto: string, municipios: Municipio[]): { ine: strin
   return { ine: (cerca ?? elegidos[0]).ine, resto }
 }
 
+// Porcentajes de quién llega, para «Atraer»: «30 % familias», «el 20 % jubilados», «teletrabajo al 50 %», «la mitad familias»
+const GRUPO = '(familias?|jubilad[oa]s?|personas mayores|mayores|abuel[oa]s?|pensionistas?|teletrabaj\\w*|gente que teletrabaja)'
+const PORCENTAJE = '(\\d{1,3}(?:[.,]\\d+)?) ?(?:%|por ?ciento)'
+
+function perfilDeGrupo(palabra: string): Perfil {
+  return /^famil/.test(palabra) ? 'familia' : /teletrabaj/.test(palabra) ? 'teletrabajo' : 'mayor'
+}
+
+/** Los % de cada grupo que dice la frase (ya normalizada), o null si no dice ninguno. */
+export function mezclaDeFrase(t: string): Partial<Record<Perfil, number>> | null {
+  const m: Partial<Record<Perfil, number>> = {}
+  const poner = (palabra: string, n: number) => { if (n >= 0 && n <= 100) m[perfilDeGrupo(palabra)] = n }
+  const num = (x: string) => Math.round(Number(x.replace(',', '.')))
+  for (const r of t.matchAll(new RegExp(`${PORCENTAJE} (?:son )?(?:de )?(?:(?:las|los) )?${GRUPO}`, 'g'))) poner(r[2], num(r[1]))
+  for (const r of t.matchAll(new RegExp(`${GRUPO} (?:al |un |el |: ?)?${PORCENTAJE}`, 'g'))) poner(r[1], num(r[2]))
+  for (const r of t.matchAll(new RegExp(`\\bla mitad (?:son )?(?:de )?(?:(?:las|los) )?${GRUPO}`, 'g'))) poner(r[1], 50)
+  return Object.keys(m).length ? m : null
+}
+
+/** «Llegan: 30 % familias con hijos; el resto, repartido entre los demás como estaba.» */
+const GRUPOS: Record<Perfil, string> = { familia: 'familias con hijos', mayor: 'personas mayores', teletrabajo: 'teletrabajo' }
+
+function textoMezcla(m: Partial<Record<Perfil, number>>): string {
+  const dichos = (['familia', 'mayor', 'teletrabajo'] as Perfil[]).filter((p) => m[p] !== undefined)
+  const lista = dichos.map((p) => `${miles(m[p]!)} % ${GRUPOS[p]}`).join(', ')
+  return `Llegan: ${lista}${dichos.length < 3 ? '; el resto, repartido entre los demás como estaba' : ''}.`
+}
+
 /**
  * Lee una frase como «somos 4 y trabajo en Getafe» y devuelve los filtros que le encajan,
  * con lo que hemos entendido en palabras sencillas para que el vecino lo pueda corregir.
@@ -169,6 +197,8 @@ function municipioNombrado(texto: string, municipios: Municipio[]): { ine: strin
 export function interpretarFrase(frase: string, municipios: Municipio[], actual: FiltrosMudanza, medida: Medida): LecturaFrase {
   const entendido: string[] = []
   const { ine, resto: t } = municipioNombrado(normalizar(frase), municipios)
+  const mezcla = mezclaDeFrase(t)
+  const lineasPerfil: string[] = [] // si la frase da porcentajes, habla de grupos, no de una persona: no se dicen
 
   // Perfil
   const sinHijos = /\b(sin|no tengo|no tenemos) (hijos|ninos|crios)/.test(t)
@@ -179,18 +209,22 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
   let perfil: Perfil | null = null
   if (hijos || instituto) {
     perfil = 'familia'
-    entendido.push(instituto ? 'Con hijos en edad de instituto: buscamos colegio e instituto.' : 'Con niños: buscamos que haya colegio.')
+    lineasPerfil.push(instituto ? 'Con hijos en edad de instituto: buscamos colegio e instituto.' : 'Con niños: buscamos que haya colegio.')
   } else if (!sinHijos && cuantos >= 3) {
     perfil = 'familia'
-    entendido.push(`Sois ${miles(cuantos)}: os tratamos como una familia con hijos.`)
+    lineasPerfil.push(`Sois ${miles(cuantos)}: os tratamos como una familia con hijos.`)
   } else if (/\b(jubilad[oa]s?|pension\w*|abuel[oa]s?|tercera edad|mayor|mayores|([6-9]\d|1[01]\d) anos)\b/.test(t)) {
     perfil = 'mayor'
-    entendido.push(`${PERFILES.mayor.nombre}: ${PERFILES.mayor.que.toLowerCase()}`)
+    lineasPerfil.push(`${PERFILES.mayor.nombre}: ${PERFILES.mayor.que.toLowerCase()}`)
   } else if (/(teletrabaj|\bremoto\b|desde casa|freelance)/.test(t)) {
     perfil = 'teletrabajo'
-    entendido.push(`${PERFILES.teletrabajo.nombre}: ${PERFILES.teletrabajo.que.toLowerCase()}`)
+    lineasPerfil.push(`${PERFILES.teletrabajo.nombre}: ${PERFILES.teletrabajo.que.toLowerCase()}`)
   }
-  const filtros = cambiarPerfil(FILTROS_INICIALES, perfil ?? actual.perfil)
+  if (mezcla) {
+    entendido.push(textoMezcla(mezcla))
+    if (instituto) entendido.push('Familias: solo pueblos con instituto.')
+  } else entendido.push(...lineasPerfil)
+  const filtros = cambiarPerfil(FILTROS_INICIALES, mezcla ? actual.perfil : perfil ?? actual.perfil)
   if (instituto) filtros.instituto = true
   if (/\b(hospital\w*|medic[oa]s?|urgencias)\b/.test(t)) filtros.hospitalCerca = true
 
@@ -202,7 +236,7 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
     ?? Object.entries(ALIAS_ZONA).find(([alias]) => buscar(t, alias).length)?.[1] ?? null
   completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null, zona, municipios, medida)
 
-  return { filtros, entendido, origen: 'palabras', perfilDicho: perfil !== null }
+  return { filtros, entendido, origen: 'palabras', perfilDicho: perfil !== null && !mezcla, mezcla }
 }
 
 /** Zonas donde hay algún municipio del estudio (las que tiene sentido filtrar). */
@@ -247,12 +281,19 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   const entendido: string[] = []
   const perfil = typeof d.perfil === 'string' && d.perfil in PERFILES ? d.perfil as Perfil : null
   const instituto = d.instituto === true
-  if (perfil === 'familia' || instituto) {
+  // % de quién llega: solo números entre 0 y 100, de los grupos que existen
+  const m = typeof d.mezcla === 'object' && d.mezcla !== null ? d.mezcla as Record<string, unknown> : {}
+  const dichos = (Object.keys(PERFILES) as Perfil[]).filter((p) => typeof m[p] === 'number' && Number.isFinite(m[p]) && (m[p] as number) >= 0 && (m[p] as number) <= 100)
+  const mezcla = dichos.length ? Object.fromEntries(dichos.map((p) => [p, Math.round(m[p] as number)])) as Partial<Record<Perfil, number>> : null
+  if (mezcla) {
+    entendido.push(textoMezcla(mezcla))
+    if (instituto) entendido.push('Familias: solo pueblos con instituto.')
+  } else if (perfil === 'familia' || instituto) {
     entendido.push(instituto ? 'Con hijos en edad de instituto: buscamos colegio e instituto.' : 'Familia con hijos: buscamos que haya colegio.')
   } else if (perfil) {
     entendido.push(`${PERFILES[perfil].nombre}: ${PERFILES[perfil].que.toLowerCase()}`)
   }
-  const filtros = cambiarPerfil(FILTROS_INICIALES, instituto ? 'familia' : perfil ?? actual.perfil)
+  const filtros = cambiarPerfil(FILTROS_INICIALES, mezcla ? actual.perfil : instituto ? 'familia' : perfil ?? actual.perfil)
   if (instituto) filtros.instituto = true
   if (d.hospital === true) filtros.hospitalCerca = true
 
@@ -261,5 +302,5 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   completar(filtros, entendido, tamano, municipios.find((x) => x.ine === ine) ?? null,
     typeof d.zona === 'string' ? d.zona : null, municipios, medida)
 
-  return entendido.length ? { filtros, entendido, origen: 'ia', perfilDicho: perfil !== null || instituto } : null
+  return entendido.length ? { filtros, entendido, origen: 'ia', perfilDicho: (perfil !== null || instituto) && !mezcla, mezcla } : null
 }

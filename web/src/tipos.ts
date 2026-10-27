@@ -190,6 +190,7 @@ export interface LecturaFrase {
   entendido: string[] // lo que hemos sacado de la frase, en palabras sencillas (vacío = no hemos entendido nada)
   origen: 'ia' | 'palabras' // la IA (api/asistente.ts) o el asistente de palabras clave (sin internet)
   perfilDicho: boolean // la frase dice quién es (si no, el perfil de `filtros` es el que ya había)
+  mezcla: Partial<Record<Perfil, number>> | null // % de quién llega que dice la frase («30 % familias»); null si no dice ninguno
 }
 
 /** Un municipio en el ranking de «¿Dónde me mudo?». */

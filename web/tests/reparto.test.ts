@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, calcular, escenarioPorDefecto } from '../src/motor'
-import { FILTROS_INICIALES, TAMANOS, rankingMudanza } from '../src/mudanza'
-import { FILTROS_REPARTO, MEZCLA_SUPUESTA, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../src/reparto'
+import { FILTROS_INICIALES, TAMANOS, mezclaDeFrase, rankingMudanza } from '../src/mudanza'
+import { FILTROS_REPARTO, MEZCLA_SUPUESTA, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../src/reparto'
 import type { FiltrosReparto, Municipio, ZonaSalud } from '../src/tipos'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
@@ -92,5 +92,23 @@ describe('«Atraer» y «Dónde vivir» con la medida en minutos en coche', () =
     expect(min.every(cercaMin)).toBe(true)
     expect(km.every(cercaKm)).toBe(true)
     expect(min.map((m) => m.ine).sort()).not.toEqual(km.map((m) => m.ine).sort())
+  })
+})
+
+describe('porcentajes de quién llega («30 % familias»)', () => {
+  it('el lector de palabras clave los entiende', () => {
+    expect(mezclaDeFrase('hay un 30% de familias')).toEqual({ familia: 30 })
+    expect(mezclaDeFrase('30 % familias y 50 % jubilados')).toEqual({ familia: 30, mayor: 50 })
+    expect(mezclaDeFrase('el 20 por ciento son jubilados, teletrabajo al 40%')).toEqual({ mayor: 20, teletrabajo: 40 })
+    expect(mezclaDeFrase('la mitad familias')).toEqual({ familia: 50 })
+    expect(mezclaDeFrase('somos 4 y trabajo en getafe')).toBeNull()
+  })
+
+  it('pone lo dicho y reparte el resto como estaba, siempre sumando 100', () => {
+    expect(aplicarMezcla(MEZCLA_SUPUESTA, { familia: 30 })).toEqual({ familia: 30, mayor: 28, teletrabajo: 42 })
+    expect(aplicarMezcla(MEZCLA_SUPUESTA, { familia: 30, mayor: 50 })).toEqual({ familia: 30, mayor: 50, teletrabajo: 20 })
+    expect(aplicarMezcla({ familia: 0, mayor: 0, teletrabajo: 100 }, { familia: 30 })).toEqual({ familia: 30, mayor: 0, teletrabajo: 70 })
+    const pasado = aplicarMezcla(MEZCLA_SUPUESTA, { familia: 80, mayor: 50 })
+    expect(pasado.familia + pasado.mayor + pasado.teletrabajo).toBe(100)
   })
 })

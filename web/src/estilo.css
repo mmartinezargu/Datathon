@@ -408,3 +408,9 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 .atraer-grupo li { margin: 3px 0; }
 .atraer-grupo li span { color: var(--tinta2); margin-left: 6px; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .atraer-grupos { grid-template-columns: 1fr; } }
+
+.atraer-ajustes, .atraer-detalle { margin-top: 16px; border-top: 1px solid var(--linea); padding-top: 12px; }
+.atraer-ajustes summary, .atraer-detalle summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 14px; }
+.atraer-ajustes[open] summary, .atraer-detalle[open] summary { margin-bottom: 8px; }
+.atraer-grupo li small { display: block; color: var(--tinta2); font-size: 11.5px; line-height: 1.35; margin-top: 1px; }
+.atraer-descarga { margin-top: 12px; }

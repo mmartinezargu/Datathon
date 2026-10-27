@@ -6,7 +6,7 @@
 import { LIMITES, TIPOS } from './colores'
 import { NOMBRE_OBRA } from './fuentesPlan'
 import { SIN_INVERSION, aperturaObra, costeObra, inversionesDe } from './motor'
-import type { Escenario, Medida, Municipio, Obra, ResultadoMunicipio, Traslado } from './tipos'
+import type { Escenario, FiltrosReparto, Medida, Municipio, Obra, Perfil, Reparto, ResultadoMunicipio, Traslado } from './tipos'
 
 const NOMBRE_MEDIDA: Record<Medida, string> = { min: 'minutos en coche', km: 'km en línea recta' }
 
@@ -49,6 +49,39 @@ export function csvPlan(obras: Obra[], ganaPorObra: number[], porIne: Map<string
     o.tipo === 'centro_salud' ? porIne.get(o.ine)?.capacidad?.zbs_nombre ?? '' : '', entero(ganaPorObra[i] ?? 0),
     (ganaPorObra[i] ?? 0) >= 1 ? entero(costeObra(o) / ganaPorObra[i]) : '',
   ])
+  return '\ufeff' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
+}
+
+/**
+ * La pestaña «Atraer»: una fila por pueblo que recibe gente, de más a menos. Cuántos de cada grupo convendría atraer,
+ * lo que le cabe, qué lo llena y para qué grupo promocionarlo. Los supuestos (% de cada grupo y filtros) van en cada fila.
+ */
+export function csvAtraer(reparto: Reparto, resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>,
+  mezcla: Record<Perfil, number>, filtros: FiltrosReparto): string {
+  const porIneRes = new Map(resultados.map((r) => [r.ine, r]))
+  const GRUPO: Record<Perfil, string> = { familia: 'familias con hijos', mayor: 'personas mayores', teletrabajo: 'teletrabajo' }
+  const PERFILES: Perfil[] = ['familia', 'mayor', 'teletrabajo']
+  const textoFiltros = [
+    filtros.zona ?? 'cualquier zona', filtros.tamano === 'todos' ? '' : `tamaño: ${filtros.tamano}`,
+    filtros.hospitalCerca ? 'todos con hospital cerca' : '', filtros.instituto ? 'familias solo con instituto' : '',
+  ].filter(Boolean).join(', ')
+  const cabecera = [
+    'ine', 'municipio', 'zona', 'atraer_familias', 'atraer_mayores', 'atraer_teletrabajo', 'atraer_total', 'le_caben', 'lleno',
+    'lo_llena', 'promocionar_sobre_todo_a', 'caben_por_colegios', 'caben_por_sanidad', 'caben_por_vivienda', 'hospital_km', 'hospital_min',
+    'supuesto_familias_pct', 'supuesto_mayores_pct', 'supuesto_teletrabajo_pct', 'filtros',
+  ]
+  const filas = reparto.pueblos.map((f) => {
+    const r = porIneRes.get(f.ine)!
+    const m = porIne.get(f.ine)
+    const principal = PERFILES.reduce((a, b) => (f.porPerfil[b] > f.porPerfil[a] ? b : a))
+    return [
+      f.ine, m?.nombre ?? '', m?.zona ?? '', entero(f.porPerfil.familia), entero(f.porPerfil.mayor), entero(f.porPerfil.teletrabajo),
+      entero(f.total), entero(Math.max(0, Math.floor(r.caben))), f.lleno ? 'sí' : 'no', f.lleno ? LIMITES[r.limitante].nombre : '',
+      GRUPO[principal], entero(r.limites.colegios), entero(r.limites.sanidad), entero(r.limites.vivienda),
+      m ? decimal(m.hospital_km) : '', m ? decimal(m.hospital_min) : '',
+      String(mezcla.familia), String(mezcla.mayor), String(mezcla.teletrabajo), textoFiltros,
+    ]
+  })
   return '\ufeff' + [cabecera, ...filas].map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
 }
 
