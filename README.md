@@ -9,7 +9,7 @@
 | **La web (MVP)** | https://cabida.vercel.app: funciona en el navegador, también en el móvil |
 | **Los datasets elaborados** | Carpeta [`data/out/`](data/out/): [`tabla_maestra.csv`](data/out/tabla_maestra.csv) (datos de partida de los 179 municipios), [`validacion_municipios.csv`](data/out/validacion_municipios.csv) (prueba contra 2015-2025) y [`diccionario.csv`](data/out/diccionario.csv) (qué significa cada columna). Fuentes, licencia (CC BY 4.0; las columnas de minutos en coche, ODbL por venir de OpenStreetMap) y cómo regenerarlos en su [README](data/out/README.md) |
 | **Los datos de cada escenario** | Se descargan en CSV desde la web: «Llévate los datos» (mapa), «Plan» y «Atraer» |
-| **La presentación** | [`entrega/CABIDA_presentacion_final.pdf`](entrega/CABIDA_presentacion_final.pdf) |
+| **La presentación** | [`entrega/CABIDA_presentacion_final.pdf`](entrega/CABIDA_presentacion_final.pdf). Con sus animaciones: carpeta [`presentacion/`](presentacion/) (se abre `diapositivas.html` en el navegador) |
 | **La propuesta inicial** | Los 3 PDF de [`entrega/`](entrega/): aproximación técnica, fuentes de datos e interfaz |
 | **El código** | Este repositorio: `etl/` (Python) y `web/` (React + TypeScript). Licencias de terceros en [`THIRD_PARTY.md`](THIRD_PARTY.md) |
 
@@ -22,6 +22,7 @@
 | `data/raw/` | Datos originales (los pesados no se suben: se bajan con `descargar.py`) |
 | `data/out/` | Datos generados, en CSV con licencia CC BY 4.0 (las columnas de minutos en coche, ODbL) |
 | `entrega/` | Los 3 PDF de la propuesta y la presentación final |
+| `presentacion/` | Las diapositivas de la final en HTML (con animaciones) y cómo verlas |
 | `plans/` | Planes de trabajo |
 
 ## Cómo arrancarlo

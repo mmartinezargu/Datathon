@@ -11,7 +11,8 @@ Para cada uno de los 155 municipios de la Comunidad de Madrid con menos de 50.00
 | `data/raw/` | Datos originales. Los pesados NO se suben (se bajan con `descargar.py`) |
 | `data/out/` | CSV generados (CC BY 4.0; `hospital_min`, `hospital_min_municipio` y `vecinos_min` son ODbL, de OpenStreetMap): `tabla_maestra.csv`, `validacion_municipios.csv` |
 | `web/public/datos/` | JSON/GeoJSON generados por `preparar.py` que consume la web |
-| `entrega/` | Los 3 PDF de la propuesta (aproximación técnica, fuentes, interfaz) |
+| `entrega/` | Los 3 PDF de la propuesta (aproximación técnica, fuentes, interfaz) y la presentación final (`CABIDA_presentacion_final.pdf`) |
+| `presentacion/` | Código fuente de las diapositivas (HTML suelto, sin dependencias): `diapositivas.html` es la de la final (con animaciones, 12 diapositivas) y `diapositivas_detalladas.html` la versión informativa de apoyo. Las cifras salen de la web: si cambian, se cambian aquí y en `PENDIENTE.md` |
 | `plans/` | Planes de trabajo. `PENDIENTE.md` (raíz) = lista de tareas para la final |
 
 ## Comandos

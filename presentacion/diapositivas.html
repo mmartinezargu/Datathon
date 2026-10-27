@@ -8,45 +8,72 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Public+Sans:wght@400..700&display=swap" rel="stylesheet" />
 <style>
-/* Mismos colores y tipografías que la web (web/src/estilo.css y web/src/colores.ts).
-   En pantalla se pasa de una en una (flechas, espacio, F = pantalla completa; con ?todas se ven todas seguidas).
-   Al imprimir o exportar a PDF salen las 8 a 1920×1080, una por página. */
+/* Versión «una idea por diapositiva». Mismos colores y tipografías que la web.
+   En pantalla: flecha derecha / espacio = siguiente idea (cada diapositiva va soltando sus ideas de una en una);
+   flecha izquierda = atrás; F = pantalla completa; con ?todas se ven todas seguidas, con todo visible.
+   Al exportar a PDF sale cada diapositiva entera, 1920×1080. */
 :root {
-  --tinta: #15233B; --tinta2: #4E5D70; --tinta3: #8392A5;
-  --cielo: #2F6FEB; --cielo-claro: #E4EDFD;
-  --fondo: #EEF4FA; --papel: #FFFFFF; --linea: #D8E1EA;
+  --noche: #0B1424; --tinta: #15233B; --gris: #5B6B80; --gris-n: #92A3BA;
+  --papel: #F5F7FA; --linea: #D8E1EA;
+  --cielo: #2F6FEB; --tension: #D7263D; --polo: #1B998B; --consol: #A3B1C2;
   --trigo: #FBD050; --naranja: #F6A229; --teja: #C9305E; --morado: #6E2A8C;
-  --tension: #D7263D; --polo: #1B998B; --oportunidad: #2F6FEB; --consolidacion: #A3B1C2;
+  --marca: linear-gradient(90deg, #FBD050 0%, #F6A229 33%, #C9305E 66%, #6E2A8C 100%);
   --disp: "Bricolage Grotesque", "Segoe UI", sans-serif;
   --texto: "Public Sans", "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
 @page { size: 1920px 1080px; margin: 0; }
-html, body { margin: 0; background: #0b1424; }
-body { font-family: var(--texto); color: var(--tinta); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
-h1, h2 { font-family: var(--disp); margin: 0; letter-spacing: -0.02em; }
+html, body { margin: 0; background: #000; }
+body { font-family: var(--texto); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+h1, h2, p { margin: 0; }
 a { color: inherit; }
 
-.slide {
-  width: 1920px; height: 1080px; position: relative; overflow: hidden;
-  background: var(--fondo); page-break-after: always; break-after: page; padding: 80px 120px;
-}
+.slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; page-break-after: always; break-after: page;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 140px; }
 .slide:last-of-type { page-break-after: auto; break-after: auto; }
-.franja { position: absolute; left: 0; right: 0; bottom: 0; height: 14px;
-  background: linear-gradient(90deg, #FBD050 0 25%, #F6A229 25% 50%, #C9305E 50% 75%, #6E2A8C 75% 100%); }
-.pie { position: absolute; left: 120px; right: 120px; bottom: 40px; display: flex; justify-content: space-between;
-  font-size: 22px; color: var(--tinta3); font-weight: 600; letter-spacing: .02em; }
+.oscuro { background: var(--noche); color: #fff; }
+.claro { background: var(--papel); color: var(--tinta); }
+.oscuro .sub { color: var(--gris-n); }
+.claro .sub { color: var(--gris); }
 
-/* ---------- Pase de diapositivas (solo en pantalla) ---------- */
+/* ---------- Tipografía ---------- */
+.kicker { font: 600 42px var(--texto); letter-spacing: .01em; margin-bottom: 30px; }
+.oscuro .kicker { color: var(--trigo); }
+.claro .kicker { color: var(--teja); }
+.titulo { font-family: var(--disp); font-weight: 800; font-size: 190px; line-height: .98; letter-spacing: -0.02em; }
+.titulo.m { font-size: 150px; }
+.titulo.s { font-size: 120px; line-height: 1.02; }
+.gigante { font-family: var(--disp); font-weight: 800; font-size: 420px; line-height: .86; letter-spacing: -0.015em; }
+.sub { font: 400 54px/1.25 var(--texto); max-width: 1400px; margin-top: 38px; }
+.sub b { font-weight: 600; }
+.marca { background: var(--marca); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.rojo { color: var(--tension); } .azul { color: var(--cielo); } .verde { color: var(--polo); } .trigo { color: var(--trigo); }
+.verde-g { background: linear-gradient(90deg, #35D0BD, #1B998B); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.tenue { opacity: .55; }
+
+/* ---------- Enlaces a la web: el propio texto ---------- */
+a.web { text-decoration: underline dotted; text-decoration-thickness: 4px; text-underline-offset: 14px; text-decoration-color: rgba(120,160,255,.9); }
+a.web:hover { background: rgba(120,160,255,.18); }
+a.caja { color: inherit; text-decoration: none; display: block; position: relative; border-radius: 28px; }
+a.caja:hover { outline: 5px solid var(--cielo); outline-offset: 10px; }
+
+/* ---------- Ideas que aparecen de una en una (solo en el pase) ---------- */
+.r { transition: opacity .7s ease, transform .7s ease; }
+@media screen {
+  body.pase .r:not(.on) { opacity: 0; transform: translateY(46px); pointer-events: none; }
+  body.pase svg .r:not(.on) { transform: none; }
+}
+
+/* ---------- Pase (solo en pantalla) ---------- */
 @media screen {
   body { overflow: hidden; }
   .slide { position: absolute; left: 50%; top: 50%; display: none; transform: translate(-50%, -50%) scale(var(--s, 1)); }
-  .slide.activa { display: block; }
+  .slide.activa { display: flex; }
   body.todas { overflow: auto; }
-  body.todas .slide { position: relative; left: auto; top: auto; display: block; transform: none; zoom: var(--s, 1); }
+  body.todas .slide { position: relative; left: auto; top: auto; display: flex; transform: none; zoom: var(--s, 1); }
 }
 .nav { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 10px;
-  background: rgba(21,35,59,.88); color: #fff; border-radius: 999px; font: 600 14px var(--texto); opacity: 0; transition: opacity .25s; z-index: 10; }
+  background: rgba(40,40,40,.85); color: #fff; border-radius: 999px; font: 600 14px var(--texto); opacity: 0; transition: opacity .25s; z-index: 10; }
 body.mueve .nav, .nav:hover { opacity: 1; }
 body.todas .nav { display: none; }
 .nav button { all: unset; cursor: pointer; padding: 4px 12px; border-radius: 999px; font-size: 20px; line-height: 1; }
@@ -54,158 +81,91 @@ body.todas .nav { display: none; }
 .nav span { min-width: 64px; text-align: center; }
 @media print { .nav { display: none; } }
 
-/* ---------- Enlaces a la web (el propio texto) ---------- */
-a.web { text-decoration: underline dotted; text-decoration-thickness: 3px; text-underline-offset: 9px; text-decoration-color: var(--cielo); }
-a.web:hover { background: var(--cielo-claro); }
-.demo a.web, .portada a.web { text-decoration-color: #9CC0FF; }
-.demo a.web:hover, .portada a.web:hover { background: rgba(255,255,255,.12); }
-a.leg { text-decoration: none; color: inherit; }
-a.caja { display: block; text-decoration: none; color: inherit; position: relative; }
-a.caja::after { content: "↗"; position: absolute; right: 18px; top: 12px; font: 700 26px var(--disp); color: var(--cielo); opacity: .75; }
-a.caja:hover { outline: 4px solid var(--cielo); outline-offset: 3px; }
-.ico { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ico { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- 1. Portada ---------- */
-.portada { background: var(--tinta); color: #fff; padding: 70px 120px; }
-.portada .izq { width: 980px; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 1; }
-.portada .evento { font-size: 28px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--trigo); margin-bottom: 28px; }
-.portada h1 { font-size: 230px; font-weight: 800; letter-spacing: .03em; line-height: .88; }
-.portada .pregunta { font-family: var(--disp); font-weight: 600; font-size: 58px; line-height: 1.1; margin: 40px 0 0; max-width: 820px; color: #E4EDFD; }
-.portada .cifras { display: grid; grid-template-columns: 230px 290px 330px; gap: 30px; margin-top: 64px; }
-.portada .cifra b { display: block; font-family: var(--disp); font-weight: 800; font-size: 72px; line-height: 1; letter-spacing: -0.02em; }
-.portada .cifra span { display: block; margin-top: 8px; font-size: 24px; line-height: 1.25; color: #B8C6D8; }
-.portada .equipo { margin-top: 54px; font-size: 30px; line-height: 1.45; color: #B8C6D8; }
-.portada .equipo b { display: block; color: #fff; font-family: var(--disp); font-size: 32px; margin-bottom: 4px; }
-.portada .pie { color: #8FA3BC; font-size: 28px; bottom: 44px; left: 120px; right: auto; }
-.portada .mapa { position: absolute; right: 40px; top: 90px; height: 900px; display: block; }
-.portada .mapa img { height: 100%; display: block; }
-.portada .mapa-leyenda { position: absolute; right: 70px; bottom: 56px; display: flex; gap: 22px; font-size: 22px; color: #B8C6D8; }
-.portada .mapa-leyenda i { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 8px; vertical-align: -2px; }
+.portada .fondo { position: absolute; right: -90px; top: 40px; height: 1000px; opacity: .9; }
+.portada .centro { position: relative; z-index: 1; text-align: left; align-self: flex-start; margin-left: 40px; }
+.portada .centro .titulo { font-size: 300px; letter-spacing: -0.02em; }
+.portada .lema { font: 500 64px/1.15 var(--disp); max-width: 1000px; margin-top: 36px; color: #E8EEF7; }
+.portada .equipo { position: absolute; left: 180px; bottom: 70px; font-size: 30px; color: var(--gris-n); letter-spacing: .01em; text-align: left; }
+.portada .equipo b { color: #fff; font-weight: 600; }
 
-/* ---------- 2. El problema ---------- */
-.problema h2 { font-size: 78px; font-weight: 800; line-height: 1.04; max-width: 1650px; }
-.problema h2 em { font-style: normal; color: var(--oportunidad); }
-.problema h2 strong { color: var(--tension); }
-.problema .cuerpo { display: grid; grid-template-columns: 620px 1fr; gap: 70px; margin-top: 56px; align-items: start; }
-.vaso svg { width: 620px; height: 571px; display: block; }
-.vaso text { font-family: var(--disp); }
-.limites > p { font-size: 34px; line-height: 1.3; margin: 0 0 30px; color: var(--tinta2); max-width: 1000px; }
-.limites > p b { color: var(--tinta); }
-.rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-.limite { background: var(--papel); border: 2px solid var(--linea); border-radius: 22px; padding: 28px 34px; position: relative; }
-.limite .ico { position: absolute; right: 28px; top: 28px; width: 70px; height: 70px; color: var(--tinta3); }
-.limite .n { font-family: var(--disp); font-weight: 800; font-size: 80px; line-height: 1; }
-.limite .n small { font-size: 28px; font-weight: 600; color: var(--tinta2); margin-left: 8px; }
-.limite .t { font-family: var(--disp); font-weight: 700; font-size: 36px; margin-top: 8px; }
-.limite .d { font-size: 27px; color: var(--tinta2); margin-top: 6px; }
-.limite.primero { border-color: var(--tension); }
-.limite.primero .ico { color: var(--tension); }
-.problema .pista { margin-top: 24px; font-size: 26px; color: var(--tinta2); }
+/* ---------- 3. 134.426 ---------- */
+.llegan .sub { max-width: 1700px; }
 
-/* ---------- 3. Cómo lo calculamos ---------- */
-.calculo h2, .acierta h2, .impacto h2 { font-size: 78px; font-weight: 800; line-height: 1.04; max-width: 1650px; }
-.calculo .cuerpo { display: grid; grid-template-columns: 560px 60px 1fr; margin-top: 40px; align-items: center; }
-.calculo .pila { display: flex; flex-direction: column; gap: 14px; }
-.tarjeta { background: var(--papel); border: 2px solid var(--linea); border-radius: 22px; padding: 26px 32px; position: relative; }
-.tarjeta .k { font-size: 24px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta3); }
-.tarjeta .g { font-family: var(--disp); font-weight: 800; font-size: 48px; margin: 4px 0 8px; line-height: 1.05; }
-.tarjeta .d { font-size: 26px; line-height: 1.3; color: var(--tinta2); }
-.tarjeta .g .ico { width: 44px; height: 44px; vertical-align: -8px; margin-right: 12px; color: var(--cielo); }
-.tarjeta .pildoras { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-.pildora { font-family: var(--disp); font-weight: 700; font-size: 26px; padding: 6px 18px 6px 14px; border-radius: 999px; background: var(--cielo-claro); color: var(--cielo); display: inline-flex; align-items: center; gap: 8px; }
-.pildora .ico { width: 28px; height: 28px; }
-.op { font-family: var(--disp); font-weight: 800; font-size: 56px; color: var(--tinta3); text-align: center; line-height: 1; }
-.calculo .flecha { text-align: center; font-size: 60px; color: var(--tinta3); font-family: var(--disp); font-weight: 800; }
-.calculo .mapa-tipos { display: grid; grid-template-columns: 620px 1fr; gap: 24px; align-items: center; }
-.calculo .mapa-tipos img { width: 620px; height: 684px; display: block; }
-.leyenda { display: flex; flex-direction: column; gap: 14px; }
-.leg { display: flex; gap: 18px; align-items: center; background: var(--papel); border: 2px solid var(--linea); border-left: 14px solid var(--c); border-radius: 18px; padding: 16px 22px; }
-.leg b { font-family: var(--disp); font-weight: 800; font-size: 56px; line-height: 1; color: var(--c); min-width: 86px; }
-.leg strong { display: block; font-family: var(--disp); font-size: 30px; line-height: 1.1; }
-.leg span { display: block; font-size: 22px; line-height: 1.25; color: var(--tinta2); margin-top: 2px; }
-.leg.raya b { background: repeating-linear-gradient(135deg, rgba(255,255,255,.8) 0 3px, transparent 3px 9px), var(--oportunidad); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 2px var(--oportunidad); }
+/* ---------- 4. El vaso ---------- */
+.vasoslide { flex-direction: row; justify-content: center; gap: 120px; text-align: left; }
+.vasoslide .texto .titulo { font-size: 150px; }
+.vasoslide .texto .titulo + .titulo { margin-top: 26px; }
+.vasoslide svg { width: 700px; height: 890px; flex: none; display: block; }
+.vasoslide svg text { font-family: var(--disp); }
 
-/* ---------- 4. Demo ---------- */
-.demo { background: var(--tinta); color: #fff; padding: 64px 100px; }
-.demo .pie { color: #6F8099; left: 100px; right: 100px; bottom: 34px; }
-.demo .cab { display: flex; align-items: baseline; gap: 44px; }
-.demo .etiqueta { font-size: 28px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--trigo); }
-.demo h2 { font-size: 100px; font-weight: 800; line-height: 1; }
-.demo .url { font-family: var(--disp); font-weight: 700; font-size: 52px; color: #9CC0FF; margin-left: auto; }
-.pasos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 30px; }
-.paso { border-radius: 22px; overflow: hidden; background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.16); }
-.paso .foto { height: 256px; overflow: hidden; background: #0b1424; position: relative; }
-.paso .foto img { width: 100%; height: 100%; object-fit: cover; object-position: left top; display: block; transform: scale(var(--z, 1)); transform-origin: var(--o, 0 0); }
-.paso .tx { display: flex; gap: 20px; align-items: center; padding: 14px 24px; }
-.paso .num { flex: none; width: 62px; height: 62px; border-radius: 50%; background: var(--trigo); color: var(--tinta); font-family: var(--disp); font-weight: 800; font-size: 34px; display: grid; place-items: center; }
-.paso b { display: block; font-family: var(--disp); font-size: 34px; line-height: 1.1; }
-.paso span { display: block; font-size: 23px; color: #B8C6D8; margin-top: 3px; line-height: 1.2; }
-.demo a.caja::after { color: var(--trigo); top: 10px; right: 14px; text-shadow: 0 1px 6px rgba(0,0,0,.5); background: rgba(21,35,59,.75); border-radius: 8px; padding: 0 8px; }
-.demo a.caja:hover { outline-color: var(--trigo); }
+/* ---------- 5. Producto ---------- */
+.producto { flex-direction: row; justify-content: flex-start; gap: 0; text-align: left; padding-left: 170px; }
+.producto .triada { position: relative; z-index: 1; }
+.producto .triada p { font: 800 220px/1 var(--disp); letter-spacing: -0.02em; margin-bottom: 8px; white-space: nowrap; }
+.producto .triada p small { font: 600 96px var(--disp); letter-spacing: -0.02em; color: #E8EEF7; margin-left: 26px; }
+.producto .mapa { position: absolute; right: 20px; top: 40px; height: 1000px; }
+.producto .mapa img { height: 100%; display: block; }
 
-/* ---------- 5. ¿Acierta? ---------- */
-.acierta h2 em { font-style: normal; color: var(--polo); }
-.acierta .cuerpo { display: grid; grid-template-columns: 560px 1fr; gap: 100px; margin-top: 56px; align-items: center; }
-.linea-t { position: relative; padding-left: 96px; }
-.linea-t::before { content: ""; position: absolute; left: 36px; top: 40px; bottom: 40px; width: 8px; background: var(--linea); border-radius: 4px; }
-.hito { position: relative; margin-bottom: 46px; }
-.hito:last-child { margin-bottom: 0; }
-.hito .anio { position: absolute; left: -96px; top: 0; width: 80px; height: 80px; border-radius: 50%; background: var(--tinta); color: #fff; display: grid; place-items: center; font-family: var(--disp); font-weight: 800; font-size: 25px; }
-.hito.dato .anio { background: var(--tinta2); }
-.hito.fin .anio { background: var(--polo); }
-.hito .anio.ico-c .ico { width: 42px; height: 42px; }
-.hito b { display: block; font-family: var(--disp); font-size: 38px; line-height: 1.1; padding-top: 4px; }
-.hito span { display: block; font-size: 28px; line-height: 1.3; color: var(--tinta2); margin-top: 4px; }
-.barras h3 { font-family: var(--disp); font-size: 34px; margin: 0 0 14px; }
-.grupo { margin-bottom: 44px; }
-.barra { display: flex; align-items: center; gap: 22px; margin-bottom: 12px; }
-.barra .nom { width: 280px; font-size: 26px; font-weight: 600; color: var(--tinta2); text-align: right; line-height: 1.15; }
-.barra .pista { flex: 1; background: var(--linea); border-radius: 12px; height: 64px; }
-.barra .valor { height: 100%; border-radius: 12px; background: var(--tinta3); display: flex; align-items: center; justify-content: flex-end; padding-right: 18px; font-family: var(--disp); font-weight: 800; font-size: 38px; color: #fff; }
-.barra.nuestra .valor { background: var(--polo); }
-.acierta .nota { font-size: 24px; color: var(--tinta2); margin-top: 10px; max-width: 1000px; }
+/* ---------- 6. La regla ---------- */
+.regla .cuatro { display: flex; gap: 56px; margin-top: 90px; justify-content: center; }
+.regla .l { width: 330px; }
+.regla .l .c { width: 190px; height: 190px; border-radius: 50%; margin: 0 auto 22px; background: #fff; border: 2px solid var(--linea); display: grid; place-items: center; color: var(--cielo); box-shadow: 0 16px 40px rgba(21,35,59,.08); }
+.regla .l .c .ico { width: 100px; height: 100px; }
+.regla .l b { display: block; font: 700 54px var(--disp); }
 
-/* ---------- 6. Impacto ---------- */
-.impacto h2 em { font-style: normal; color: var(--polo); }
-.impacto .cuerpo { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 44px; }
-.plan { background: var(--papel); border: 2px solid var(--linea); border-radius: 26px; padding: 30px 44px 34px; }
-.plan.mejor { border: 4px solid var(--polo); }
-.plan .k { font-family: var(--disp); font-weight: 700; font-size: 34px; }
-.plan .k small { display: block; font-family: var(--texto); font-weight: 500; font-size: 24px; color: var(--tinta2); margin-top: 2px; }
-.plan .coste { font-family: var(--disp); font-weight: 800; font-size: 120px; line-height: 1; margin: 14px 0 10px; letter-spacing: -0.02em; }
-.plan.mejor .coste { color: var(--polo); }
-.plan .coste small { font-size: 48px; margin-left: 8px; color: var(--tinta2); font-weight: 700; }
-.plan .rel { height: 26px; border-radius: 13px; background: var(--linea); margin-bottom: 18px; }
-.plan .rel i { display: block; height: 100%; border-radius: 13px; background: var(--tinta3); }
-.plan.mejor .rel i { background: var(--polo); }
-.plan .linea { font-size: 28px; line-height: 1.35; color: var(--tinta2); }
-.plan .linea b { color: var(--tinta); }
-.plan .sin { margin-top: 18px; padding-top: 16px; border-top: 2px solid var(--linea); font-size: 28px; color: var(--tinta2); }
-.plan .sin b { font-family: var(--disp); font-size: 46px; color: var(--tinta); }
-.plan .sin s { color: var(--tension); text-decoration-thickness: 3px; font-weight: 700; }
-.plan .sin .por { display: block; margin-top: 4px; font-size: 26px; }
-.impacto .cond { margin-top: 26px; font-size: 28px; color: var(--tinta2); display: flex; gap: 16px; align-items: center; }
-.impacto .cond i { flex: none; width: 56px; height: 36px; border-radius: 8px; background: repeating-linear-gradient(135deg, rgba(255,255,255,.75) 0 3px, transparent 3px 9px), var(--oportunidad); }
-.impacto .cond b { color: var(--tinta); }
+/* ---------- 7. Demo ---------- */
+.demo .tres { display: flex; gap: 90px; margin-top: 100px; justify-content: center; }
+.demo .acto { width: 470px; padding: 40px 20px; }
+.demo .acto .c { width: 170px; height: 170px; border-radius: 44px; margin: 0 auto 28px; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16); color: var(--trigo); }
+.demo .acto .c .ico { width: 92px; height: 92px; }
+.demo .acto b { display: block; font: 800 120px/1 var(--disp); letter-spacing: -0.03em; }
+.demo .acto span { display: block; font-size: 40px; color: var(--gris-n); margin-top: 14px; }
+.demo .url { margin-top: 72px; font: 600 54px var(--disp); color: #9CC0FF; }
 
-/* ---------- 7. Cierre ---------- */
-.cierre h2 { font-size: 100px; font-weight: 800; line-height: 1.04; max-width: 1600px; }
-.cierre h2 em { font-style: normal; color: var(--cielo); }
-.cierre .cuerpo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 56px; }
-.cierre .tarjeta .g { font-size: 42px; }
-.cierre .ic { width: 70px; height: 70px; border-radius: 18px; background: var(--cielo-claro); color: var(--cielo); display: grid; place-items: center; margin-bottom: 14px; }
-.cierre .ic .ico { width: 42px; height: 42px; }
-.cierre ul { margin: 6px 0 0; padding-left: 30px; font-size: 27px; line-height: 1.4; color: var(--tinta2); }
-.cierre li { margin-bottom: 8px; }
-.cierre .firma { position: absolute; left: 120px; right: 120px; bottom: 64px; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--disp); font-weight: 700; font-size: 34px; }
-.cierre .firma span { color: var(--tinta2); font-weight: 600; font-size: 34px; }
+/* ---------- 8. ¿Acierta? ---------- */
+.acierta .gigante { font-size: 480px; display: flex; align-items: baseline; justify-content: center; gap: 36px; }
+.acierta .gigante span { font-size: 170px; letter-spacing: -0.02em; }
+.acierta .sub { max-width: 1700px; font-size: 50px; }
 
-/* ---------- 8. Anexo ---------- */
-.anexo h2 { font-size: 78px; font-weight: 800; }
-.anexo .etq { font-size: 28px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teja); margin-bottom: 14px; }
-.anexo .rejilla { margin-top: 44px; gap: 22px; }
-.anexo .tarjeta .g { font-size: 38px; }
-.anexo .tarjeta .d { font-size: 26px; }
+/* ---------- 9. Impacto ---------- */
+.impacto { align-items: stretch; padding: 0 190px; }
+.fila { display: grid; grid-template-columns: 420px 1fr 470px; align-items: center; padding: 26px 52px; border-radius: 34px; text-align: left; margin-bottom: 24px; }
+.fila .quien { font: 600 42px/1.15 var(--disp); }
+.fila .quien small { display: block; font: 400 30px var(--texto); margin-top: 6px; color: var(--gris-n); }
+.fila .coste { font: 800 124px/1 var(--disp); letter-spacing: -0.02em; text-align: center; white-space: nowrap; }
+.fila .coste small { font-size: 50px; margin-left: 10px; letter-spacing: 0; }
+.fila .sin { font: 800 84px/1 var(--disp); letter-spacing: -0.02em; text-align: right; }
+.fila .sin small { display: block; font: 400 32px var(--texto); letter-spacing: 0; margin-top: 8px; color: var(--gris-n); }
+.fila.a { color: #6F8099; background: rgba(255,255,255,.04); }
+.fila.a .quien small { color: #55657B; }
+.fila.b { background: rgba(27,153,139,.16); border: 3px solid var(--polo); color: #fff; }
+.impacto .remate { margin-top: 30px; text-align: center; }
+.impacto .nota { position: absolute; left: 0; right: 0; bottom: 46px; font-size: 28px; color: #55657B; }
+
+/* ---------- 10. Abierto ---------- */
+.abierto .tres { display: flex; gap: 60px; margin-top: 90px; justify-content: center; }
+.abierto .it { width: 460px; }
+.abierto .it .c { width: 150px; height: 150px; border-radius: 40px; margin: 0 auto 24px; display: grid; place-items: center; background: #fff; border: 2px solid var(--linea); color: var(--cielo); box-shadow: 0 16px 40px rgba(21,35,59,.08); }
+.abierto .it .c .ico { width: 80px; height: 80px; }
+.abierto .it b { display: block; font: 700 54px/1.1 var(--disp); }
+.abierto .it span { display: block; font-size: 34px; color: var(--gris); margin-top: 10px; }
+
+/* ---------- 11. Cierre ---------- */
+.cierre .titulo { font-size: 330px; letter-spacing: -0.02em; }
+.cierre .lema { font: 500 68px/1.15 var(--disp); margin-top: 26px; color: #E8EEF7; max-width: 1400px; }
+.cierre .cta { display: inline-block; margin-top: 78px; padding: 26px 64px; border-radius: 999px; background: #fff; color: var(--noche); font: 700 54px var(--disp); text-decoration: none; }
+.cierre .equipo { position: absolute; left: 0; right: 0; bottom: 64px; font-size: 32px; color: var(--gris-n); }
+
+/* ---------- 12. Anexo ---------- */
+.anexo { padding: 0 150px; align-items: stretch; text-align: left; }
+.anexo .titulo { font-size: 96px; margin-bottom: 52px; }
+.anexo .rej { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.anexo .t { background: #fff; border: 2px solid var(--linea); border-radius: 26px; padding: 30px 38px; }
+.anexo .t b { display: block; font: 700 40px/1.1 var(--disp); }
+.anexo .t span { display: block; font-size: 29px; line-height: 1.3; color: var(--gris); margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -216,244 +176,224 @@ a.caja:hover { outline: 4px solid var(--cielo); outline-offset: 3px; }
   <symbol id="i-colegios" viewBox="0 0 24 24"><path d="m3 9 9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/><path d="M21 9v5"/></symbol>
   <symbol id="i-sanidad" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><path d="M12 8.5v7"/><path d="M8.5 12h7"/></symbol>
   <symbol id="i-ritmo" viewBox="0 0 24 24"><path d="M4 17 9.5 11.5l3.5 3.5L20 8"/><path d="M15 8h5v5"/></symbol>
-  <symbol id="i-personas" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.6 14.3c2.4-.3 4.3 1.2 4.9 4.2"/></symbol>
+  <symbol id="i-mapa" viewBox="0 0 24 24"><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z"/><path d="M9 4.5v13"/><path d="M15 6.5v13"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9.5 4.5V3.5h5v1"/><path d="m8.8 11.5 1.8 1.8 3.6-3.8"/><path d="M9 16.5h6"/></symbol>
+  <symbol id="i-vivir" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M5 12.5h14"/></symbol>
   <symbol id="i-descarga" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10.5 5 5 5-5"/><path d="M5 19.5h14"/></symbol>
   <symbol id="i-metodo" viewBox="0 0 24 24"><path d="M5 5.5h5.5a2 2 0 0 1 2 2V19a1.6 1.6 0 0 0-1.6-1.6H5z"/><path d="M19 5.5h-5.5a2 2 0 0 0-2 2V19a1.6 1.6 0 0 1 1.6-1.6H19z"/></symbol>
-  <symbol id="i-plan" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9.5 4.5V3.5h5v1"/><path d="m8.8 11.5 1.8 1.8 3.6-3.8"/><path d="M9 16.5h6"/></symbol>
   <symbol id="i-fiable" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.3 12.2 2.6 2.6 5-5.3"/></symbol>
-  <symbol id="i-repartir" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="2"/><path d="M7.5 12h4"/><path d="M11.5 12 18 6"/><path d="M11.5 12H18"/><path d="M11.5 12 18 18"/><circle cx="19" cy="6" r="1.2"/><circle cx="19" cy="12" r="1.2"/><circle cx="19" cy="18" r="1.2"/></symbol>
 </svg>
 
 <!-- 1. PORTADA -->
-<section class="slide portada">
-  <div class="izq">
-    <div class="evento">II Datathon LoDCOREMadrid 2026</div>
-    <h1>CABIDA</h1>
-    <p class="pregunta">¿Dónde cabe la gente que llega a los pueblos de Madrid?</p>
-    <div class="cifras">
-      <div class="cifra"><b>155</b><span>municipios de menos de 50.000 habitantes</span></div>
-      <div class="cifra"><b>997.059</b><span>vecinos hoy</span></div>
-      <div class="cifra"><b>+15,6 %</b><span>crecieron en 2015-2025 (la Comunidad, +10,9 %)</span></div>
-    </div>
-    <div class="equipo">
-      <b>Equipo CABIDA</b>
-      Víctor García · Rodrigo Manchado<br>Mario Velandia · Mario Martínez
-    </div>
+<section class="slide oscuro portada">
+  <img class="fondo" src="mapa-oscuro.svg" alt="" />
+  <div class="centro">
+    <h1 class="titulo marca">CABIDA</h1>
+    <p class="lema">Saber dónde cabe la gente,<br>antes de que llegue.</p>
   </div>
-  <a class="mapa" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener" title="Abrir el mapa en la web"><img src="mapa.svg" alt="Mapa de los 155 municipios coloreados por tipo" /></a>
-  <div class="pie"><a class="web" href="https://cabida.vercel.app" target="_blank" rel="noopener">cabida.vercel.app</a></div>
-  <div class="franja"></div>
+  <div class="equipo"><b>II Datathon LoDCOREMadrid 2026</b><br>Víctor García · Rodrigo Manchado · Mario Velandia · Mario Martínez</div>
 </section>
 
-<!-- 2. EL PROBLEMA -->
-<section class="slide problema">
-  <h2>Llegarán <em>134.426</em> personas hasta 2035. Sin ampliar nada, <strong>77.630 no tienen sitio</strong>.</h2>
-  <div class="cuerpo">
-    <a class="vaso caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener" title="Verlo en el mapa">
-      <!-- El vaso de la web (web/src/componentes/Vaso.tsx), a escala: llegan 134.426, caben 56.796 -->
-      <svg viewBox="0 0 620 570" role="img" aria-label="Llegan 134.426 personas: caben 56.796 sin ampliar servicios y 77.630 se quedan sin sitio.">
-        <rect x="20" y="30" width="230" height="283" rx="12" fill="#D7263D"/>
-        <text x="135" y="182" text-anchor="middle" fill="#fff" font-size="34" font-weight="700">no caben</text>
-        <rect x="20" y="311" width="230" height="205" fill="#2F6FEB"/>
-        <path d="M20 311 V516 H250 V311" fill="none" stroke="#15233B" stroke-width="7" stroke-linejoin="round"/>
-        <line x1="4" y1="516" x2="266" y2="516" stroke="#15233B" stroke-width="7" stroke-linecap="round"/>
-        <line x1="262" y1="30" x2="296" y2="30" stroke="#15233B" stroke-width="3"/>
-        <text x="306" y="22" font-size="30" font-weight="600" fill="#4E5D70">Llegan</text>
-        <text x="306" y="62" font-size="46" font-weight="800" fill="#15233B">134.426</text>
-        <text x="306" y="160" font-size="30" font-weight="600" fill="#D7263D">No caben</text>
-        <text x="306" y="200" font-size="46" font-weight="800" fill="#D7263D">77.630</text>
-        <text x="306" y="385" font-size="30" font-weight="600" fill="#2F6FEB">Caben sin ampliar</text>
-        <text x="306" y="425" font-size="46" font-weight="800" fill="#2F6FEB">56.796</text>
-      </svg>
-    </a>
-
-    <div class="limites">
-      <p>En cada pueblo manda <a class="web" href="https://cabida.vercel.app/#como" target="_blank" rel="noopener"><b>el límite más bajo de cuatro</b></a>. Estos son los que frenan a los 155:</p>
-      <div class="rejilla">
-        <div class="limite primero"><svg class="ico"><use href="#i-vivienda"/></svg><div class="n">77<small>pueblos</small></div><div class="t">Vivienda y suelo</div><div class="d">Sin casas libres ni suelo previsto</div></div>
-        <div class="limite"><svg class="ico"><use href="#i-colegios"/></svg><div class="n">38<small>pueblos</small></div><div class="t">Colegios</div><div class="d">Sin plazas para los niños que vienen</div></div>
-        <div class="limite"><svg class="ico"><use href="#i-sanidad"/></svg><div class="n">21<small>pueblos</small></div><div class="t">Centros de salud</div><div class="d">La zona de salud ya no da más</div></div>
-        <div class="limite"><svg class="ico"><use href="#i-ritmo"/></svg><div class="n">19<small>pueblos</small></div><div class="t">Ritmo de crecimiento</div><div class="d">No pueden crecer más deprisa</div></div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>CABIDA · Escenario 2035, al ritmo de la última década</span><span>2 / 7</span></div>
-  <div class="franja"></div>
+<!-- 2. MADRID CRECE -->
+<section class="slide claro">
+  <h2 class="titulo" style="font-size:250px">Madrid crece.</h2>
+  <p class="sub r" data-p="1">Los pueblos de la Comunidad crecieron un <b>15,6&nbsp;%</b> en diez años.</p>
+  <p class="titulo s marca r" data-p="2" style="margin-top:70px">¿Y dónde cabe la gente?</p>
 </section>
 
-<!-- 3. CÓMO LO CALCULAMOS -->
-<section class="slide calculo">
-  <h2>Cruzamos cuánta gente llega con cuánta cabe</h2>
-  <div class="cuerpo">
-    <div class="pila">
-      <div class="tarjeta"><div class="k">Presión</div><div class="g"><svg class="ico"><use href="#i-personas"/></svg>Cuánta gente llega</div>
-        <div class="d">La tendencia de cada pueblo, escalada a las 134.426 personas de 2035.</div></div>
-      <div class="op">×</div>
-      <div class="tarjeta"><div class="k">Capacidad</div><div class="g"><svg class="ico"><use href="#i-vivienda"/></svg><a class="web" href="https://cabida.vercel.app/#como" target="_blank" rel="noopener">Cuánta cabe</a></div>
-        <div class="d">Manda el límite más bajo de cuatro:</div>
-        <div class="pildoras">
-          <span class="pildora"><svg class="ico"><use href="#i-vivienda"/></svg>Vivienda</span>
-          <span class="pildora"><svg class="ico"><use href="#i-colegios"/></svg>Colegios</span>
-          <span class="pildora"><svg class="ico"><use href="#i-sanidad"/></svg>Sanidad</span>
-          <span class="pildora"><svg class="ico"><use href="#i-ritmo"/></svg>Ritmo</span>
-        </div></div>
-    </div>
-    <div class="flecha">→</div>
-    <div class="mapa-tipos">
-      <a class="caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener" title="Abrir el mapa en la web"><img src="mapa.svg" alt="Mapa de los 155 municipios por tipo" /></a>
-      <div class="leyenda">
-        <a class="leg" style="--c:#D7263D" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><b>78</b><div><strong>En tensión</strong><span>Llega más gente de la que cabe: invertir antes</span></div></a>
-        <a class="leg" style="--c:#1B998B" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><b>37</b><div><strong>Polos de crecimiento</strong><span>Crece y aguanta: acompañarlo</span></div></a>
-        <a class="leg" style="--c:#2F6FEB" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><b>33</b><div><strong>Oportunidades</strong><span>Hay sitio y no llega gente: reequilibrar hacia aquí</span></div></a>
-        <a class="leg" style="--c:#A3B1C2" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><b>7</b><div><strong>En consolidación</strong><span>Crece poco y con poco margen: mantener servicios</span></div></a>
-        <div class="d" style="font-size:22px;color:var(--tinta2);margin-top:4px">Las <b>rayadas</b> son las 18 oportunidades con el hospital a más de 30 min.</div>
-      </div>
-    </div>
-  </div>
-  <div class="pie"><span>CABIDA · 155 municipios · escenario 2035</span><span>3 / 7</span></div>
-  <div class="franja"></div>
+<!-- 3. 134.426 -->
+<section class="slide oscuro llegan">
+  <div class="gigante">134.426</div>
+  <p class="sub">personas llegarán a los pueblos de Madrid de aquí a 2035.</p>
+  <p class="sub r" data-p="1" style="margin-top:22px;font-size:44px">Al ritmo de la última década.</p>
 </section>
 
-<!-- 4. DEMO -->
-<section class="slide demo">
-  <div class="cab">
-    <div><div class="etiqueta">Ahora, con la web</div><h2>Demo en vivo</h2></div>
-    <a class="web url" href="https://cabida.vercel.app" target="_blank" rel="noopener">cabida.vercel.app</a>
+<!-- 4. EL VASO -->
+<section class="slide claro vasoslide">
+  <div class="texto">
+    <p class="kicker">Sin ampliar nada</p>
+    <h2 class="titulo azul r" data-p="1">Caben<br>56.796.</h2>
+    <h2 class="titulo rojo r" data-p="2">Las otras<br>77.630, no.</h2>
   </div>
-  <div class="pasos">
-    <a class="paso caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-mapa.jpg" alt="" style="--z:1.7;--o:52% 62%" /></div>
-      <div class="tx"><div class="num">1</div><div><b>El mapa</b><span>Los 155 pueblos y sus 4 tipos</span></div></div></a>
-    <a class="paso caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-mapa.jpg" alt="" style="--z:2.1;--o:8% 22%" /></div>
-      <div class="tx"><div class="num">2</div><div><b>Mover personas</b><span>Cuánta llega y cuánta cabe</span></div></div></a>
-    <a class="paso caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-ficha.jpg" alt="" style="--z:2.2;--o:96% 30%" /></div>
-      <div class="tx"><div class="num">3</div><div><b>Arroyomolinos</b><span>La ficha: qué le limita</span></div></div></a>
-    <a class="paso caja" href="https://cabida.vercel.app/#plan" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-plan.jpg" alt="" style="--z:1.35;--o:10% 38%" /></div>
-      <div class="tx"><div class="num">4</div><div><b>Plan óptimo</b><span>«Planificar aquí» y qué obras hacer</span></div></div></a>
-    <a class="paso caja" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-plan.jpg" alt="" style="--z:2;--o:94% 62%" /></div>
-      <div class="tx"><div class="num">5</div><div><b>Ver en el mapa</b><span>Cómo cambia con las obras</span></div></div></a>
-    <a class="paso caja" href="https://cabida.vercel.app/#vivir" target="_blank" rel="noopener">
-      <div class="foto"><img src="img/web-vivir.jpg" alt="" style="--z:1.35;--o:50% 10%" /></div>
-      <div class="tx"><div class="num">6</div><div><b>Dónde vivir</b><span>La vista del vecino</span></div></div></a>
+  <div class="vaso">
+    <!-- El vaso de la web (web/src/componentes/Vaso.tsx), a escala: 134.426 llegan, 56.796 caben. Cada figura = 1.000 personas. -->
+    <svg viewBox="0 0 700 890" role="img" aria-label="Llegan 134.426 personas: caben 56.796 sin ampliar y 77.630 se quedan sin sitio.">
+      <defs>
+        <pattern id="gente" x="150" y="768.3" width="30" height="41.659" patternUnits="userSpaceOnUse">
+          <circle cx="15" cy="12.8" r="4.8" fill="#fff" fill-opacity=".42"/>
+          <path d="M7.5 32.8 V25.8 a7.5 7.5 0 0 1 15 0 V32.8 Z" fill="#fff" fill-opacity=".42"/>
+        </pattern>
+        <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F8BF6"/><stop offset=".55" stop-color="#2F6FEB"/><stop offset="1" stop-color="#2459C6"/></linearGradient>
+        <linearGradient id="exceso" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5566A"/><stop offset="1" stop-color="#D7263D"/></linearGradient>
+      </defs>
+
+      <!-- escala: personas -->
+      <g><line x1="118" y1="810.0" x2="138" y2="810.0" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="818.0" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">0</text><line x1="126" y1="757.9" x2="138" y2="757.9" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="705.9" x2="138" y2="705.9" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="713.9" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">20.000</text><line x1="126" y1="653.8" x2="138" y2="653.8" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="601.7" x2="138" y2="601.7" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="609.7" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">40.000</text><line x1="126" y1="549.6" x2="138" y2="549.6" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="497.6" x2="138" y2="497.6" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="505.6" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">60.000</text><line x1="126" y1="445.5" x2="138" y2="445.5" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="393.4" x2="138" y2="393.4" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="401.4" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">80.000</text><line x1="126" y1="341.3" x2="138" y2="341.3" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="289.3" x2="138" y2="289.3" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="297.3" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">100.000</text><line x1="126" y1="237.2" x2="138" y2="237.2" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="185.1" x2="138" y2="185.1" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="193.1" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">120.000</text></g>
+
+      <!-- lo que no cabe: el vaso que no existe (discontinuo) -->
+      <g class="r" data-p="2">
+        <rect x="150" y="110.0" width="240" height="404.2" fill="url(#exceso)"/>
+        <rect x="150" y="110.0" width="240" height="404.2" fill="url(#gente)"/>
+        <path d="M146 514.2 V110.0 H394 V514.2" fill="none" stroke="#D7263D" stroke-width="5" stroke-dasharray="14 11" stroke-linejoin="round"/>
+        <text x="150" y="84.0" font-size="30" font-weight="600" fill="#5B6B80">Llegan <tspan font-size="46" font-weight="800" fill="#15233B">134.426</tspan></text>
+        <path d="M424 110.0 H438 V506.2 H424" fill="none" stroke="#D7263D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="460" y="318.1" font-size="58" font-weight="800" fill="#D7263D">77.630</text>
+        <text x="460" y="356.1" font-size="28" font-weight="600" fill="#D7263D">no caben</text>
+      </g>
+
+      <!-- lo que cabe: el agua llena hasta el borde -->
+      <g class="r" data-p="1">
+        <rect x="150" y="514.2" width="240" height="295.8" fill="url(#agua)"/>
+        <rect x="150" y="514.2" width="240" height="295.8" fill="url(#gente)"/>
+        <rect x="150" y="514.2" width="240" height="6" fill="#fff" fill-opacity=".55"/>
+        <rect x="166" y="548.2" width="10" height="162.7" rx="5" fill="#fff" fill-opacity=".26"/>
+        <path d="M424 522.2 H438 V810.0 H424" fill="none" stroke="#2F6FEB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="460" y="668.1" font-size="58" font-weight="800" fill="#2F6FEB">56.796</text>
+        <text x="460" y="706.1" font-size="28" font-weight="600" fill="#2F6FEB">caben</text>
+      </g>
+
+      <!-- el vaso de cristal -->
+      <path d="M146 514.2 V790.0 Q146 814.0 168 814.0 H372 Q394 814.0 394 790.0 V514.2" fill="none" stroke="#15233B" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M132 514.2 H146 M394 514.2 H408" fill="none" stroke="#15233B" stroke-width="8" stroke-linecap="round"/>
+      <g class="r" data-p="1"><text x="150" y="868" font-size="24" font-weight="500" fill="#8392A5">Cada figura = 1.000 personas</text></g>
+    </svg>
   </div>
-  <div class="pie"><span>CABIDA</span><span>4 / 7</span></div>
-  <div class="franja"></div>
 </section>
 
-<!-- 5. ¿ACIERTA? -->
-<section class="slide acierta">
-  <h2>Probado con el pasado: acierta dónde va <a class="web" href="https://cabida.vercel.app/#fiable" target="_blank" rel="noopener"><em>77 de cada 100</em></a> personas</h2>
-  <div class="cuerpo">
-    <div class="linea-t">
-      <div class="hito dato"><div class="anio">2015</div><b>Solo los datos de entonces</b><span>Como si no supiéramos nada de lo que vino después</span></div>
-      <div class="hito"><div class="anio ico-c"><svg class="ico"><use href="#i-repartir"/></svg></div><b>Calculamos dónde irá la gente</b><span>Con el mismo modelo que usa la web</span></div>
-      <div class="hito fin"><div class="anio">2025</div><b>Lo comparamos con lo que pasó</b><span>Pueblo a pueblo, con los 155</span></div>
-    </div>
-    <div class="barras">
-      <div class="grupo"><h3>Personas que colocamos en su pueblo</h3>
-        <div class="barra nuestra"><div class="nom">CABIDA</div><div class="pista"><div class="valor" style="width:77%">77</div></div></div>
-        <div class="barra"><div class="nom">Seguir la tendencia sin más</div><div class="pista"><div class="valor" style="width:67%">67</div></div></div>
-      </div>
-      <div class="grupo"><h3>Personas que colocamos en su zona</h3>
-        <div class="barra nuestra"><div class="nom">CABIDA</div><div class="pista"><div class="valor" style="width:89%">89</div></div></div>
-        <div class="barra"><div class="nom">Seguir la tendencia sin más</div><div class="pista"><div class="valor" style="width:80%">80</div></div></div>
-      </div>
-      <p class="nota">De cada 100 personas. El error ponderado (44,4 % frente a 64,1 %) cuenta dos veces a cada persona mal colocada: una donde sobra y otra donde falta. <a class="web" href="https://cabida.vercel.app/#fiable" target="_blank" rel="noopener">Verlo en la web</a>.</p>
-    </div>
+<!-- 5. EL PRODUCTO -->
+<section class="slide oscuro producto">
+  <div class="triada">
+    <p class="trigo" style="font-size:60px;font-weight:600;font-family:var(--texto);letter-spacing:.01em;margin-bottom:34px">Esto es CABIDA.</p>
+    <p class="r" data-p="1">155<small>pueblos</small></p>
+    <p class="r" data-p="2">4<small>tipos</small></p>
+    <p class="r marca" data-p="3">1<small style="-webkit-text-fill-color:#E8EEF7">respuesta</small></p>
   </div>
-  <div class="pie"><span>Validación 2015 → 2025 · 155 municipios</span><span>5 / 7</span></div>
-  <div class="franja"></div>
+  <div class="mapa"><img src="mapa-oscuro.svg" alt="Mapa de los 155 municipios por tipo" /></div>
 </section>
 
-<!-- 6. IMPACTO -->
-<section class="slide impacto">
-  <h2>Repartir con los pueblos de al lado cuesta un <em>63&nbsp;% menos</em></h2>
-  <div class="cuerpo">
-    <div class="plan">
-      <div class="k">Cada pueblo con lo suyo<small>26 ampliaciones de colegio, 13 institutos y 8 centros de salud en 42 pueblos</small></div>
-      <div class="coste"><a class="web" href="https://cabida.vercel.app/#plan" target="_blank" rel="noopener">281,8</a><small>M€</small></div>
-      <div class="rel"><i style="width:100%"></i></div>
-      <div class="linea">Pasan a caber <b>53.755</b> personas, a <b>5.242 €</b> por persona.</div>
-      <div class="sin">Sin sitio: <s>77.630</s> → <b>23.874</b></div>
-    </div>
-    <div class="plan mejor">
-      <div class="k">Reubicando en pueblos a 30 min<small>7 ampliaciones de colegio, 3 institutos y 7 centros de salud en 17 pueblos</small></div>
-      <div class="coste"><a class="web" href="https://cabida.vercel.app/#plan" target="_blank" rel="noopener">103,0</a><small>M€</small></div>
-      <div class="rel"><i style="width:36.5%"></i></div>
-      <div class="linea">Pasan a caber <b>42.663</b> personas, a <b>2.414 €</b> por persona.</div>
-      <div class="sin">Sin sitio: <s>77.630</s> → <b>8.621</b><span class="por">26.346 se reubican en 30 pueblos, de media a 15 min en coche</span></div>
-    </div>
+<!-- 6. LA REGLA -->
+<section class="slide claro regla">
+  <p class="kicker">La regla</p>
+  <h2 class="titulo m">Manda el límite más bajo.</h2>
+  <div class="cuatro r" data-p="1">
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-vivienda"/></svg></div><b>Vivienda</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-colegios"/></svg></div><b>Colegios</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-sanidad"/></svg></div><b>Sanidad</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-ritmo"/></svg></div><b>Ritmo</b></div>
   </div>
-  <div class="cond"><i></i><span><a class="web" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><b>18 de las 33 oportunidades están «condicionadas»</b></a>: tienen el hospital a más de 30 min en coche. Antes de atraer gente, hay que asegurar el acceso.</span></div>
-  <div class="pie"><span>Plan óptimo: obras desde 2027, la última abre en 2030 · costes y plazos por defecto, con fuente en la web</span><span>6 / 7</span></div>
-  <div class="franja"></div>
 </section>
 
-<!-- 7. CIERRE -->
-<section class="slide cierre">
-  <h2>Saber <em>dónde cabe</em> la gente antes de que llegue</h2>
-  <div class="cuerpo">
-    <div class="tarjeta"><div class="ic"><svg class="ico"><use href="#i-descarga"/></svg></div><div class="k">Abierto</div><div class="g"><a class="web" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener">Datos para reutilizar</a></div>
-      <ul><li>Tabla maestra y validación en CSV, con diccionario</li><li>Licencia CC BY 4.0 (los minutos en coche, ODbL, de OpenStreetMap)</li><li>Cada escenario se descarga desde la web</li></ul></div>
-    <div class="tarjeta"><div class="ic"><svg class="ico"><use href="#i-metodo"/></svg></div><div class="k">Fuentes</div><div class="g"><a class="web" href="https://cabida.vercel.app/#como" target="_blank" rel="noopener">Datos oficiales</a></div>
-      <ul><li>Padrón y Censo 2021 (INE)</li><li>Portal de Datos Abiertos e Instituto de Estadística de la Comunidad de Madrid</li><li>IDEM (límites y planeamiento) y OpenStreetMap</li></ul></div>
-    <div class="tarjeta"><div class="ic"><svg class="ico"><use href="#i-ritmo"/></svg></div><div class="k">Siguientes pasos</div><div class="g">Lo que viene</div>
-      <ul><li>Tiempos en transporte público a sanidad y educación</li><li>Plazas escolares reales en vez de un límite por colegio</li></ul></div>
+<!-- 7. DEMO -->
+<section class="slide oscuro demo">
+  <h2 class="titulo">Veámoslo.</h2>
+  <div class="tres">
+    <a class="acto caja r" data-p="1" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-mapa"/></svg></div><b>Ver.</b><span>El mapa del gestor</span></a>
+    <a class="acto caja r" data-p="2" href="https://cabida.vercel.app/#plan" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-plan"/></svg></div><b>Decidir.</b><span>El plan de obras</span></a>
+    <a class="acto caja r" data-p="3" href="https://cabida.vercel.app/#vivir" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-vivir"/></svg></div><b>Elegir.</b><span>Dónde vivir</span></a>
   </div>
-  <div class="firma"><div>Víctor García · Rodrigo Manchado · Mario Velandia · Mario Martínez</div><a class="web" href="https://cabida.vercel.app" target="_blank" rel="noopener"><span>cabida.vercel.app</span></a></div>
-  <div class="franja"></div>
+  <a class="web url" href="https://cabida.vercel.app" target="_blank" rel="noopener">cabida.vercel.app</a>
 </section>
 
-<!-- 8. ANEXO: respaldo para preguntas (fuera de los 10 minutos) -->
-<section class="slide anexo">
-  <div class="etq">Anexo · solo para preguntas</div>
-  <h2><a class="web" href="https://cabida.vercel.app/#como" target="_blank" rel="noopener">Qué no hace CABIDA todavía</a></h2>
-  <div class="rejilla">
-    <div class="tarjeta"><div class="g">El planeamiento no es licencia</div><div class="d">El suelo previsto cuenta como sitio posible, pero no significa que se vaya a construir.</div></div>
-    <div class="tarjeta"><div class="g">Vivienda vacía que se ocupa: 15 %</div><div class="d">Es un supuesto sin dato oficial. Al 30 % caben 60.286 y 71 pueblos quedan en tensión; al 50 %, 63.277 y 66.</div></div>
-    <div class="tarjeta"><div class="g">Hospitales de fuera de la Comunidad</div><div class="d">No se cuentan. A 6 pueblos les queda antes uno de fuera; solo Ribatejada cambiaría de lado.</div></div>
-    <div class="tarjeta"><div class="g">Costes, plazos y minutos</div><div class="d">Los costes y plazos de las obras son estimaciones con fuente. Los minutos en coche son sin tráfico.</div></div>
-  </div>
-  <div class="pie"><span>CABIDA · Anexo</span><span></span></div>
-  <div class="franja"></div>
+<!-- 8. ¿ACIERTA? -->
+<section class="slide claro acierta">
+  <p class="kicker">¿Y si se equivoca? Lo probamos con el pasado.</p>
+  <div class="gigante verde-g r" data-p="1">77<span>de cada 100</span></div>
+  <p class="sub r" data-p="1">personas, colocadas en su pueblo con solo los datos de 2015.</p>
+  <p class="sub r" data-p="2" style="margin-top:20px;font-size:44px">Seguir la tendencia sin más: 67.</p>
 </section>
 
-<div class="nav"><button id="ant" aria-label="Anterior">‹</button><span id="cont">1 / 8</span><button id="sig" aria-label="Siguiente">›</button></div>
+<!-- 9. IMPACTO -->
+<section class="slide oscuro impacto">
+  <div class="fila a r" data-p="1">
+    <div class="quien">Cada pueblo<br>con lo suyo</div>
+    <div class="coste">281,8<small>M€</small></div>
+    <div class="sin">23.874<small>personas sin sitio</small></div>
+  </div>
+  <div class="fila b r" data-p="2">
+    <div class="quien">Repartiendo entre<br>pueblos a 30 min<small style="color:#9FD9D2">Plan óptimo</small></div>
+    <div class="coste"><span class="verde-g">103,0</span><small class="trigo" style="color:#9FD9D2">M€</small></div>
+    <div class="sin verde-g">8.621<small style="-webkit-text-fill-color:#9FD9D2">personas sin sitio</small></div>
+  </div>
+  <h2 class="titulo s remate r" data-p="3" style="font-size:112px">Menos dinero.<br><span class="marca">Menos gente sin sitio.</span></h2>
+  <p class="nota">Sin hacer nada, 77.630 personas se quedan sin sitio. Obras desde 2027; la última abre en 2030.</p>
+</section>
+
+<!-- 10. ABIERTO -->
+<section class="slide claro abierto">
+  <h2 class="titulo">Todo abierto.</h2>
+  <div class="tres">
+    <div class="it r" data-p="1"><div class="c"><svg class="ico"><use href="#i-descarga"/></svg></div><b>Datos en CSV</b><span>Con su diccionario</span></div>
+    <div class="it r" data-p="2"><div class="c"><svg class="ico"><use href="#i-metodo"/></svg></div><b>Fuentes oficiales</b><span>INE, Comunidad de Madrid, IDEM, OpenStreetMap</span></div>
+    <div class="it r" data-p="3"><div class="c"><svg class="ico"><use href="#i-fiable"/></svg></div><b>Licencia CC BY 4.0</b><span>Para usarlos y mejorarlos</span></div>
+  </div>
+</section>
+
+<!-- 11. CIERRE -->
+<section class="slide oscuro cierre">
+  <h2 class="titulo marca">CABIDA</h2>
+  <p class="lema">Saber dónde cabe la gente,<br>antes de que llegue.</p>
+  <p class="cta r" data-p="1">cabida.vercel.app</p>
+  <p class="equipo">Víctor García · Rodrigo Manchado · Mario Velandia · Mario Martínez</p>
+</section>
+
+<!-- 12. ANEXO: respaldo para preguntas (fuera de los 10 minutos) -->
+<section class="slide claro anexo">
+  <p class="kicker">Anexo · solo para preguntas</p>
+  <h2 class="titulo">Lo que CABIDA no hace todavía</h2>
+  <div class="rej">
+    <div class="t"><b>El planeamiento no es licencia</b><span>El suelo previsto cuenta como sitio posible; no significa que se vaya a construir.</span></div>
+    <div class="t"><b>Vivienda vacía que se ocupa: 15 %</b><span>Es un supuesto sin dato oficial. Al 30 % caben 60.286 y 71 pueblos quedan en tensión; al 50 %, 63.277 y 66.</span></div>
+    <div class="t"><b>Hospitales de fuera de la Comunidad</b><span>No se cuentan. A 6 pueblos les queda antes uno de fuera; solo Ribatejada cambiaría de lado.</span></div>
+    <div class="t"><b>Costes, plazos y minutos</b><span>Los costes y plazos de las obras son estimaciones con fuente. Los minutos en coche son sin tráfico.</span></div>
+    <div class="t"><b>Lo que viene</b><span>Tiempos en transporte público a sanidad y educación.</span></div>
+    <div class="t"><b>Lo que viene</b><span>Plazas escolares reales en vez de un límite por colegio.</span></div>
+  </div>
+</section>
+
+<div class="nav"><button id="ant" aria-label="Anterior">‹</button><span id="cont">1 / 12</span><button id="sig" aria-label="Siguiente">›</button></div>
 
 <script>
-/* Pase de diapositivas. Flechas, espacio, Re Pág/Av Pág, Inicio/Fin; F = pantalla completa.
-   Con ?todas se ven todas seguidas (para revisarlas). El enlace #3 abre la diapositiva 3. */
+/* Pase de diapositivas. Cada diapositiva suelta sus ideas (.r, por data-p) de una en una; cuando no quedan, pasa a la siguiente.
+   Derecha / espacio / Av Pág = adelante; izquierda / Re Pág = atrás; Inicio / Fin; F = pantalla completa.
+   Con ?todas se ven todas seguidas y con todo visible. El enlace #3 abre la diapositiva 3. */
 const diapos = [...document.querySelectorAll('.slide')];
 const todas = location.search.includes('todas');
 document.body.classList.toggle('todas', todas);
+document.body.classList.toggle('pase', !todas);
 let i = 0;
+const pasos = (d) => [...new Set([...d.querySelectorAll('.r')].map((e) => +e.dataset.p))].sort((a, b) => a - b);
+function mostrar(d, n) {       // deja visibles las ideas de los n primeros pasos
+  const ps = pasos(d);
+  d.querySelectorAll('.r').forEach((e) => e.classList.toggle('on', ps.indexOf(+e.dataset.p) < n));
+  d._n = n;
+}
 function ajustar() {
   const s = todas ? Math.min(1, innerWidth / 1920) : Math.min(innerWidth / 1920, innerHeight / 1080);
   document.documentElement.style.setProperty('--s', s);
 }
-function ir(n) {
+function ir(n, alFinal) {
   i = Math.max(0, Math.min(diapos.length - 1, n));
   diapos.forEach((d, k) => d.classList.toggle('activa', k === i));
+  mostrar(diapos[i], alFinal ? pasos(diapos[i]).length : 0);
   document.getElementById('cont').textContent = (i + 1) + ' / ' + diapos.length;
   if (!todas) try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
 }
+function adelante() { const d = diapos[i]; pasos(d).length > d._n ? mostrar(d, d._n + 1) : ir(i + 1); }
+function atras() { const d = diapos[i]; d._n > 0 ? mostrar(d, d._n - 1) : ir(i - 1, true); }
 addEventListener('resize', ajustar);
 addEventListener('keydown', (e) => {
   if (todas) return;
-  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); ir(i + 1); }
-  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); ir(i - 1); }
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); adelante(); }
+  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); atras(); }
   else if (e.key === 'Home') ir(0);
   else if (e.key === 'End') ir(diapos.length - 1);
   else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
 });
-document.getElementById('ant').onclick = () => ir(i - 1);
-document.getElementById('sig').onclick = () => ir(i + 1);
+document.getElementById('ant').onclick = atras;
+document.getElementById('sig').onclick = adelante;
 let reloj;
 addEventListener('mousemove', () => { document.body.classList.add('mueve'); clearTimeout(reloj); reloj = setTimeout(() => document.body.classList.remove('mueve'), 2200); });
+diapos.forEach((d) => (d._n = 0));
 ajustar();
 ir((parseInt(location.hash.slice(1)) || 1) - 1);
 </script>
