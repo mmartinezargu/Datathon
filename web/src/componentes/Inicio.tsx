@@ -17,12 +17,18 @@ export interface Totales {
   reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
 }
 
-export type Destino = 'mapa' | 'mudanza' | 'acierta' | 'metodologia'
+export type Destino = 'mapa' | 'plan' | 'atraer' | 'mudanza' | 'acierta' | 'metodologia'
 
 const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: string; boton: string }[] = [
-  { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan, por qué, y qué pasa si se construye un colegio o un centro de salud.', boton: 'Abrir el mapa' },
+  { destino: 'mapa', icono: 'mapa', quien: 'Soy gestor público', que: 'Qué municipios se desbordan y por qué, qué hay que construir y a dónde conviene atraer a la gente.', boton: 'Abrir el mapa' },
   { destino: 'mudanza', icono: 'vivir', quien: 'Busco dónde vivir', que: 'Dinos quién eres y qué necesitas, y te enseñamos dónde habrá sitio para ti.', boton: 'Buscar municipio' },
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
+]
+
+/** Las otras dos herramientas del gestor, además del mapa. */
+const ATAJOS: { destino: Destino; icono: NombreIcono; nombre: string; que: string }[] = [
+  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir y cuánto cuesta' },
+  { destino: 'atraer', icono: 'repartir', nombre: 'Atraer', que: 'A dónde atraer a cada tipo de vecino' },
 ]
 
 export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino) => void }) {
@@ -58,6 +64,19 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
             <span className="puerta-boton">{p.boton}</span>
           </button>
         ))}
+      </section>
+
+      <section className="atajos" aria-label="También para el gestor">
+        <p className="atajos-titulo">También para el gestor</p>
+        <div className="atajos-fila">
+          {ATAJOS.map((a) => (
+            <button key={a.destino} className="atajo" onClick={() => onIr(a.destino)}>
+              <span className="atajo-icono"><Icono nombre={a.icono} tamano={22} /></span>
+              <span className="atajo-texto"><b>{a.nombre}</b><span>{a.que}</span></span>
+              <span className="atajo-flecha" aria-hidden="true">→</span>
+            </button>
+          ))}
+        </div>
       </section>
 
       <p className="inicio-pie">
