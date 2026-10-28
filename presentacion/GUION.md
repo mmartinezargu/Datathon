@@ -161,6 +161,9 @@ Recortar, por este orden: el paso 4 (Reubicar), el paso 3 (2039) y, si hace falt
 | **¿Qué hace la IA?** | Solo lee la frase del vecino y elige los filtros. Las cifras y las explicaciones las pone la web. Si no hay red, usa palabras clave |
 | **¿Y alquileres y tiempos de viaje al trabajo?** | No los sabemos: la propia web lo avisa. Son un siguiente paso, igual que los tiempos en transporte público |
 | **¿SPARQL de la Cátedra?** | No lo hemos usado. Es un siguiente paso, no una fuente |
+| **¿Qué licencia tienen vuestros datos?** | CC BY 4.0, salvo tres columnas: los minutos en coche, que son de OpenStreetMap y llevan su licencia, ODbL, con la cita «© colaboradores de OpenStreetMap». Quien no la quiera, las quita y se queda con datos solo CC BY 4.0, o usa los km en línea recta, que no dependen de OpenStreetMap |
+| **¿Podíais usar el servidor de OSRM?** | Sí: es un servidor público para uso razonable y no comercial, con un máximo de una petición por segundo. Lo usamos una sola vez, con pausa entre peticiones y guardando cada respuesta. La web no llama a OSRM: funciona sin internet |
+| **¿Y si las bases piden una sola licencia?** | Quitamos las tres columnas de minutos del CSV público y la web sigue usando los km. Los minutos se pueden calcular con un OSRM propio sobre OpenStreetMap, pero la licencia seguiría siendo la ODbL: viene del mapa, no del servidor |
 
 ---
 
