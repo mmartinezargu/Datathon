@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>CABIDA: presentación final</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Public+Sans:wght@400..700&display=swap" rel="stylesheet" />
+<style>
+/* Versión «una idea por diapositiva». Mismos colores y tipografías que la web.
+   En pantalla: flecha derecha / espacio = siguiente idea (cada diapositiva va soltando sus ideas de una en una);
+   flecha izquierda = atrás; F = pantalla completa; con ?todas se ven todas seguidas, con todo visible.
+   Al exportar a PDF sale cada diapositiva entera, 1920×1080. */
+:root {
+  --noche: #0B1424; --tinta: #15233B; --gris: #5B6B80; --gris-n: #92A3BA;
+  --papel: #F5F7FA; --linea: #D8E1EA;
+  --cielo: #2F6FEB; --tension: #D7263D; --polo: #1B998B; --consol: #A3B1C2;
+  --trigo: #FBD050; --naranja: #F6A229; --teja: #C9305E; --morado: #6E2A8C;
+  --marca: linear-gradient(90deg, #FBD050 0%, #F6A229 33%, #C9305E 66%, #6E2A8C 100%);
+  --disp: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  --texto: "Public Sans", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+@page { size: 1920px 1080px; margin: 0; }
+html, body { margin: 0; background: #000; }
+body { font-family: var(--texto); -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+h1, h2, p { margin: 0; }
+a { color: inherit; }
+
+.slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; page-break-after: always; break-after: page;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 140px; }
+.slide:last-of-type { page-break-after: auto; break-after: auto; }
+.oscuro { background: var(--noche); color: #fff; }
+.claro { background: var(--papel); color: var(--tinta); }
+.oscuro .sub { color: var(--gris-n); }
+.claro .sub { color: var(--gris); }
+
+/* ---------- Tipografía ---------- */
+.kicker { font: 600 42px var(--texto); letter-spacing: .01em; margin-bottom: 30px; }
+.oscuro .kicker { color: var(--trigo); }
+.claro .kicker { color: var(--teja); }
+.titulo { font-family: var(--disp); font-weight: 800; font-size: 190px; line-height: .98; letter-spacing: -0.02em; }
+.titulo.m { font-size: 150px; }
+.titulo.s { font-size: 120px; line-height: 1.02; }
+.gigante { font-family: var(--disp); font-weight: 800; font-size: 420px; line-height: .86; letter-spacing: -0.015em; }
+.sub { font: 400 54px/1.25 var(--texto); max-width: 1400px; margin-top: 38px; }
+.sub b { font-weight: 600; }
+.marca { background: var(--marca); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.rojo { color: var(--tension); } .azul { color: var(--cielo); } .verde { color: var(--polo); } .trigo { color: var(--trigo); }
+.verde-g { background: linear-gradient(90deg, #35D0BD, #1B998B); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+.tenue { opacity: .55; }
+
+/* ---------- Enlaces a la web: el propio texto ---------- */
+a.web { text-decoration: underline dotted; text-decoration-thickness: 4px; text-underline-offset: 14px; text-decoration-color: rgba(120,160,255,.9); }
+a.web:hover { background: rgba(120,160,255,.18); }
+a.caja { color: inherit; text-decoration: none; display: block; position: relative; border-radius: 28px; }
+a.caja:hover { outline: 5px solid var(--cielo); outline-offset: 10px; }
+
+/* ---------- Ideas que aparecen de una en una (solo en el pase) ---------- */
+.r { transition: opacity .7s ease, transform .7s ease; }
+@media screen {
+  body.pase .r:not(.on) { opacity: 0; transform: translateY(46px); pointer-events: none; }
+  body.pase svg .r:not(.on) { transform: none; }
+}
+
+/* ---------- Pase (solo en pantalla) ---------- */
+@media screen {
+  body { overflow: hidden; }
+  .slide { position: absolute; left: 50%; top: 50%; display: none; transform: translate(-50%, -50%) scale(var(--s, 1)); }
+  .slide.activa { display: flex; }
+  body.todas { overflow: auto; }
+  body.todas .slide { position: relative; left: auto; top: auto; display: flex; transform: none; zoom: var(--s, 1); }
+}
+.nav { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+  background: rgba(40,40,40,.85); color: #fff; border-radius: 999px; font: 600 14px var(--texto); opacity: 0; transition: opacity .25s; z-index: 10; }
+body.mueve .nav, .nav:hover { opacity: 1; }
+body.todas .nav { display: none; }
+.nav button { all: unset; cursor: pointer; padding: 4px 12px; border-radius: 999px; font-size: 20px; line-height: 1; }
+.nav button:hover { background: rgba(255,255,255,.18); }
+.nav span { min-width: 64px; text-align: center; }
+@media print { .nav { display: none; } }
+
+.ico { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 1. Portada ---------- */
+.portada .fondo { position: absolute; right: -90px; top: 40px; height: 1000px; opacity: .9; }
+.portada .centro { position: relative; z-index: 1; text-align: left; align-self: flex-start; margin-left: 40px; }
+.portada .centro .titulo { font-size: 300px; letter-spacing: -0.02em; }
+.portada .lema { font: 500 64px/1.15 var(--disp); max-width: 1000px; margin-top: 36px; color: #E8EEF7; }
+.portada .equipo { position: absolute; left: 180px; bottom: 70px; font-size: 30px; color: var(--gris-n); letter-spacing: .01em; text-align: left; }
+.portada .equipo b { color: #fff; font-weight: 600; }
+
+/* ---------- 3. 134.426 ---------- */
+.llegan .sub { max-width: 1700px; }
+
+/* ---------- 4. El vaso ---------- */
+.vasoslide { flex-direction: row; justify-content: center; gap: 120px; text-align: left; }
+.vasoslide .texto .titulo { font-size: 150px; }
+.vasoslide .texto .titulo + .titulo { margin-top: 26px; }
+.vasoslide svg { width: 700px; height: 890px; flex: none; display: block; }
+.vasoslide svg text { font-family: var(--disp); }
+
+/* ---------- 5. Producto ---------- */
+.producto { flex-direction: row; justify-content: flex-start; gap: 0; text-align: left; padding-left: 170px; }
+.producto .triada { position: relative; z-index: 1; }
+.producto .triada p { font: 800 220px/1 var(--disp); letter-spacing: -0.02em; margin-bottom: 8px; white-space: nowrap; }
+.producto .triada p small { font: 600 96px var(--disp); letter-spacing: -0.02em; color: #E8EEF7; margin-left: 26px; }
+.producto .mapa { position: absolute; right: 20px; top: 40px; height: 1000px; }
+.producto .mapa img { height: 100%; display: block; }
+
+/* ---------- 6. La regla ---------- */
+.regla .cuatro { display: flex; gap: 56px; margin-top: 90px; justify-content: center; }
+.regla .l { width: 330px; }
+.regla .l .c { width: 190px; height: 190px; border-radius: 50%; margin: 0 auto 22px; background: #fff; border: 2px solid var(--linea); display: grid; place-items: center; color: var(--cielo); box-shadow: 0 16px 40px rgba(21,35,59,.08); }
+.regla .l .c .ico { width: 100px; height: 100px; }
+.regla .l b { display: block; font: 700 54px var(--disp); }
+
+/* ---------- 7. Demo ---------- */
+.demo .tres { display: flex; gap: 90px; margin-top: 100px; justify-content: center; }
+.demo .acto { width: 470px; padding: 40px 20px; }
+.demo .acto .c { width: 170px; height: 170px; border-radius: 44px; margin: 0 auto 28px; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.16); color: var(--trigo); }
+.demo .acto .c .ico { width: 92px; height: 92px; }
+.demo .acto b { display: block; font: 800 120px/1 var(--disp); letter-spacing: -0.03em; }
+.demo .acto span { display: block; font-size: 40px; color: var(--gris-n); margin-top: 14px; }
+.demo .url { margin-top: 72px; font: 600 54px var(--disp); color: #9CC0FF; }
+
+/* ---------- 8. ¿Acierta? ---------- */
+.acierta .gigante { font-size: 480px; display: flex; align-items: baseline; justify-content: center; gap: 36px; }
+.acierta .gigante span { font-size: 170px; letter-spacing: -0.02em; }
+.acierta .sub { max-width: 1700px; font-size: 50px; }
+
+/* ---------- 9. Impacto ---------- */
+.impacto { align-items: stretch; padding: 0 190px; }
+.fila { display: grid; grid-template-columns: 420px 1fr 470px; align-items: center; padding: 26px 52px; border-radius: 34px; text-align: left; margin-bottom: 24px; }
+.fila .quien { font: 600 42px/1.15 var(--disp); }
+.fila .quien small { display: block; font: 400 30px var(--texto); margin-top: 6px; color: var(--gris-n); }
+.fila .coste { font: 800 124px/1 var(--disp); letter-spacing: -0.02em; text-align: center; white-space: nowrap; }
+.fila .coste small { font-size: 50px; margin-left: 10px; letter-spacing: 0; }
+.fila .sin { font: 800 84px/1 var(--disp); letter-spacing: -0.02em; text-align: right; }
+.fila .sin small { display: block; font: 400 32px var(--texto); letter-spacing: 0; margin-top: 8px; color: var(--gris-n); }
+.fila.a { color: #6F8099; background: rgba(255,255,255,.04); }
+.fila.a .quien small { color: #55657B; }
+.fila.b { background: rgba(27,153,139,.16); border: 3px solid var(--polo); color: #fff; }
+.impacto .remate { margin-top: 30px; text-align: center; }
+.impacto .nota { position: absolute; left: 0; right: 0; bottom: 46px; font-size: 28px; color: #55657B; }
+
+/* ---------- 10. Abierto ---------- */
+.abierto .tres { display: flex; gap: 60px; margin-top: 90px; justify-content: center; }
+.abierto .it { width: 460px; }
+.abierto .it .c { width: 150px; height: 150px; border-radius: 40px; margin: 0 auto 24px; display: grid; place-items: center; background: #fff; border: 2px solid var(--linea); color: var(--cielo); box-shadow: 0 16px 40px rgba(21,35,59,.08); }
+.abierto .it .c .ico { width: 80px; height: 80px; }
+.abierto .it b { display: block; font: 700 54px/1.1 var(--disp); }
+.abierto .it span { display: block; font-size: 34px; color: var(--gris); margin-top: 10px; }
+
+/* ---------- 11. Cierre ---------- */
+.cierre .titulo { font-size: 330px; letter-spacing: -0.02em; }
+.cierre .lema { font: 500 68px/1.15 var(--disp); margin-top: 26px; color: #E8EEF7; max-width: 1400px; }
+.cierre .cta { display: inline-block; margin-top: 78px; padding: 26px 64px; border-radius: 999px; background: #fff; color: var(--noche); font: 700 54px var(--disp); text-decoration: none; }
+.cierre .equipo { position: absolute; left: 0; right: 0; bottom: 64px; font-size: 32px; color: var(--gris-n); }
+</style>
+</head>
+<body>
+
+<!-- Iconos (los mismos de la web, web/src/componentes/Iconos.tsx) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-vivienda" viewBox="0 0 24 24"><path d="M4 11 12 4.5 20 11"/><path d="M6.5 9.5V19h11V9.5"/><rect x="10" y="13" width="4" height="6"/></symbol>
+  <symbol id="i-colegios" viewBox="0 0 24 24"><path d="m3 9 9-4.5L21 9l-9 4.5z"/><path d="M7 11v4.5c1.4 1.3 3 2 5 2s3.6-.7 5-2V11"/><path d="M21 9v5"/></symbol>
+  <symbol id="i-sanidad" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><path d="M12 8.5v7"/><path d="M8.5 12h7"/></symbol>
+  <symbol id="i-ritmo" viewBox="0 0 24 24"><path d="M4 17 9.5 11.5l3.5 3.5L20 8"/><path d="M15 8h5v5"/></symbol>
+  <symbol id="i-mapa" viewBox="0 0 24 24"><path d="M3.5 6.5 9 4.5l6 2 5.5-2v13l-5.5 2-6-2-5.5 2z"/><path d="M9 4.5v13"/><path d="M15 6.5v13"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="16" rx="2"/><path d="M9.5 4.5V3.5h5v1"/><path d="m8.8 11.5 1.8 1.8 3.6-3.8"/><path d="M9 16.5h6"/></symbol>
+  <symbol id="i-vivir" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M5 12.5h14"/></symbol>
+  <symbol id="i-descarga" viewBox="0 0 24 24"><path d="M12 4v11"/><path d="m7 10.5 5 5 5-5"/><path d="M5 19.5h14"/></symbol>
+  <symbol id="i-metodo" viewBox="0 0 24 24"><path d="M5 5.5h5.5a2 2 0 0 1 2 2V19a1.6 1.6 0 0 0-1.6-1.6H5z"/><path d="M19 5.5h-5.5a2 2 0 0 0-2 2V19a1.6 1.6 0 0 1 1.6-1.6H19z"/></symbol>
+  <symbol id="i-fiable" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.3 12.2 2.6 2.6 5-5.3"/></symbol>
+</svg>
+
+<!-- 1. PORTADA -->
+<section class="slide oscuro portada">
+  <img class="fondo" src="mapa-oscuro.svg" alt="" />
+  <div class="centro">
+    <h1 class="titulo marca">CABIDA</h1>
+    <p class="lema">Saber dónde cabe la gente,<br>antes de que llegue.</p>
+  </div>
+  <div class="equipo"><b>II Datathon LoDCOREMadrid 2026</b><br>Víctor García · Rodrigo Manchado · Mario Velandia · Mario Martínez</div>
+</section>
+
+<!-- 2. MADRID CRECE -->
+<section class="slide claro">
+  <h2 class="titulo" style="font-size:250px">Madrid crece.</h2>
+  <p class="sub r" data-p="1">Los pueblos de la Comunidad crecieron un <b>15,6&nbsp;%</b> en diez años.</p>
+  <p class="titulo s marca r" data-p="2" style="margin-top:70px">¿Y dónde cabe la gente?</p>
+</section>
+
+<!-- 3. 134.426 -->
+<section class="slide oscuro llegan">
+  <div class="gigante">134.426</div>
+  <p class="sub">personas llegarán a los pueblos de Madrid de aquí a 2035.</p>
+  <p class="sub r" data-p="1" style="margin-top:22px;font-size:44px">Al ritmo de la última década.</p>
+</section>
+
+<!-- 4. EL VASO -->
+<section class="slide claro vasoslide">
+  <div class="texto">
+    <p class="kicker">Sin ampliar nada</p>
+    <h2 class="titulo azul r" data-p="1">Caben<br>56.796.</h2>
+    <h2 class="titulo rojo r" data-p="2">Las otras<br>77.630, no.</h2>
+  </div>
+  <div class="vaso">
+    <!-- El vaso de la web (web/src/componentes/Vaso.tsx), a escala: 134.426 llegan, 56.796 caben. Cada figura = 1.000 personas. -->
+    <svg viewBox="0 0 700 890" role="img" aria-label="Llegan 134.426 personas: caben 56.796 sin ampliar y 77.630 se quedan sin sitio.">
+      <defs>
+        <pattern id="gente" x="150" y="768.3" width="30" height="41.659" patternUnits="userSpaceOnUse">
+          <circle cx="15" cy="12.8" r="4.8" fill="#fff" fill-opacity=".42"/>
+          <path d="M7.5 32.8 V25.8 a7.5 7.5 0 0 1 15 0 V32.8 Z" fill="#fff" fill-opacity=".42"/>
+        </pattern>
+        <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F8BF6"/><stop offset=".55" stop-color="#2F6FEB"/><stop offset="1" stop-color="#2459C6"/></linearGradient>
+        <linearGradient id="exceso" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5566A"/><stop offset="1" stop-color="#D7263D"/></linearGradient>
+      </defs>
+
+      <!-- escala: personas -->
+      <g><line x1="118" y1="810.0" x2="138" y2="810.0" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="818.0" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">0</text><line x1="126" y1="757.9" x2="138" y2="757.9" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="705.9" x2="138" y2="705.9" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="713.9" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">20.000</text><line x1="126" y1="653.8" x2="138" y2="653.8" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="601.7" x2="138" y2="601.7" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="609.7" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">40.000</text><line x1="126" y1="549.6" x2="138" y2="549.6" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="497.6" x2="138" y2="497.6" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="505.6" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">60.000</text><line x1="126" y1="445.5" x2="138" y2="445.5" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="393.4" x2="138" y2="393.4" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="401.4" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">80.000</text><line x1="126" y1="341.3" x2="138" y2="341.3" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="289.3" x2="138" y2="289.3" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="297.3" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">100.000</text><line x1="126" y1="237.2" x2="138" y2="237.2" stroke="#B7C3D3" stroke-width="3" stroke-linecap="round"/><line x1="118" y1="185.1" x2="138" y2="185.1" stroke="#8392A5" stroke-width="3" stroke-linecap="round"/><text x="104" y="193.1" text-anchor="end" font-size="23" font-weight="500" fill="#8392A5">120.000</text></g>
+
+      <!-- lo que no cabe: el vaso que no existe (discontinuo) -->
+      <g class="r" data-p="2">
+        <rect x="150" y="110.0" width="240" height="404.2" fill="url(#exceso)"/>
+        <rect x="150" y="110.0" width="240" height="404.2" fill="url(#gente)"/>
+        <path d="M146 514.2 V110.0 H394 V514.2" fill="none" stroke="#D7263D" stroke-width="5" stroke-dasharray="14 11" stroke-linejoin="round"/>
+        <text x="150" y="84.0" font-size="30" font-weight="600" fill="#5B6B80">Llegan <tspan font-size="46" font-weight="800" fill="#15233B">134.426</tspan></text>
+        <path d="M424 110.0 H438 V506.2 H424" fill="none" stroke="#D7263D" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="460" y="318.1" font-size="58" font-weight="800" fill="#D7263D">77.630</text>
+        <text x="460" y="356.1" font-size="28" font-weight="600" fill="#D7263D">no caben</text>
+      </g>
+
+      <!-- lo que cabe: el agua llena hasta el borde -->
+      <g class="r" data-p="1">
+        <rect x="150" y="514.2" width="240" height="295.8" fill="url(#agua)"/>
+        <rect x="150" y="514.2" width="240" height="295.8" fill="url(#gente)"/>
+        <rect x="150" y="514.2" width="240" height="6" fill="#fff" fill-opacity=".55"/>
+        <rect x="166" y="548.2" width="10" height="162.7" rx="5" fill="#fff" fill-opacity=".26"/>
+        <path d="M424 522.2 H438 V810.0 H424" fill="none" stroke="#2F6FEB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="460" y="668.1" font-size="58" font-weight="800" fill="#2F6FEB">56.796</text>
+        <text x="460" y="706.1" font-size="28" font-weight="600" fill="#2F6FEB">caben</text>
+      </g>
+
+      <!-- el vaso de cristal -->
+      <path d="M146 514.2 V790.0 Q146 814.0 168 814.0 H372 Q394 814.0 394 790.0 V514.2" fill="none" stroke="#15233B" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M132 514.2 H146 M394 514.2 H408" fill="none" stroke="#15233B" stroke-width="8" stroke-linecap="round"/>
+      <g class="r" data-p="1"><text x="150" y="868" font-size="24" font-weight="500" fill="#8392A5">Cada figura = 1.000 personas</text></g>
+    </svg>
+  </div>
+</section>
+
+<!-- 5. EL PRODUCTO -->
+<section class="slide oscuro producto">
+  <div class="triada">
+    <p class="trigo" style="font-size:60px;font-weight:600;font-family:var(--texto);letter-spacing:.01em;margin-bottom:34px">Esto es CABIDA.</p>
+    <p class="r" data-p="1">155<small>pueblos</small></p>
+    <p class="r" data-p="2">4<small>tipos</small></p>
+    <p class="r marca" data-p="3">1<small style="-webkit-text-fill-color:#E8EEF7">respuesta</small></p>
+  </div>
+  <div class="mapa"><img src="mapa-oscuro.svg" alt="Mapa de los 155 municipios por tipo" /></div>
+</section>
+
+<!-- 6. LA REGLA -->
+<section class="slide claro regla">
+  <p class="kicker">La regla</p>
+  <h2 class="titulo m">Manda el límite más bajo.</h2>
+  <div class="cuatro r" data-p="1">
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-vivienda"/></svg></div><b>Vivienda</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-colegios"/></svg></div><b>Colegios</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-sanidad"/></svg></div><b>Sanidad</b></div>
+    <div class="l"><div class="c"><svg class="ico"><use href="#i-ritmo"/></svg></div><b>Ritmo</b></div>
+  </div>
+</section>
+
+<!-- 7. DEMO -->
+<section class="slide oscuro demo">
+  <h2 class="titulo">Veámoslo.</h2>
+  <div class="tres">
+    <a class="acto caja r" data-p="1" href="https://cabida.vercel.app/#mapa" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-mapa"/></svg></div><b>Ver.</b><span>El mapa del gestor</span></a>
+    <a class="acto caja r" data-p="2" href="https://cabida.vercel.app/#plan" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-plan"/></svg></div><b>Decidir.</b><span>El plan de obras</span></a>
+    <a class="acto caja r" data-p="3" href="https://cabida.vercel.app/#vivir" target="_blank" rel="noopener"><div class="c"><svg class="ico"><use href="#i-vivir"/></svg></div><b>Elegir.</b><span>Dónde vivir</span></a>
+  </div>
+  <a class="web url" href="https://cabida.vercel.app" target="_blank" rel="noopener">cabida.vercel.app</a>
+</section>
+
+<!-- 8. ¿ACIERTA? -->
+<section class="slide claro acierta">
+  <p class="kicker">¿Y si se equivoca? Lo probamos con el pasado.</p>
+  <div class="gigante verde-g r" data-p="1">77<span>de cada 100</span></div>
+  <p class="sub r" data-p="1">personas, colocadas en su pueblo con solo los datos de 2015.</p>
+  <p class="sub r" data-p="2" style="margin-top:20px;font-size:44px">Seguir la tendencia sin más: 67.</p>
+</section>
+
+<!-- 9. IMPACTO -->
+<section class="slide oscuro impacto">
+  <div class="fila a r" data-p="1">
+    <div class="quien">Cada pueblo<br>con lo suyo</div>
+    <div class="coste">47<small>obras</small></div>
+    <div class="sin">23.874<small>personas sin sitio</small></div>
+  </div>
+  <div class="fila b r" data-p="2">
+    <div class="quien">Repartiendo entre<br>pueblos a 30 min<small style="color:#9FD9D2">Plan óptimo</small></div>
+    <div class="coste"><span class="verde-g">17</span><small class="trigo" style="color:#9FD9D2">obras</small></div>
+    <div class="sin verde-g">8.621<small style="-webkit-text-fill-color:#9FD9D2">personas sin sitio</small></div>
+  </div>
+  <h2 class="titulo s remate r" data-p="3" style="font-size:112px">Menos obras.<br><span class="marca">Menos gente sin sitio.</span></h2>
+  <p class="nota">Sin hacer nada, 77.630 personas se quedan sin sitio. Obras desde 2027; la última abre en 2030.<br>Coste estimado: unos 261 millones de euros frente a unos 97, según la mediana de obras reales de la Comunidad.</p>
+</section>
+
+<!-- 10. ABIERTO -->
+<section class="slide claro abierto">
+  <h2 class="titulo">Todo abierto.</h2>
+  <div class="tres">
+    <div class="it r" data-p="1"><div class="c"><svg class="ico"><use href="#i-descarga"/></svg></div><b>Datos en CSV</b><span>Con su diccionario</span></div>
+    <div class="it r" data-p="2"><div class="c"><svg class="ico"><use href="#i-metodo"/></svg></div><b>Fuentes oficiales</b><span>INE, Comunidad de Madrid, IDEM</span></div>
+    <div class="it r" data-p="3"><div class="c"><svg class="ico"><use href="#i-fiable"/></svg></div><b>Con su licencia</b><span>CC BY 4.0. Los minutos en coche son de OpenStreetMap (ODbL)</span></div>
+  </div>
+</section>
+
+<!-- 11. CIERRE -->
+<section class="slide oscuro cierre">
+  <h2 class="titulo marca">CABIDA</h2>
+  <p class="lema">Saber dónde cabe la gente,<br>antes de que llegue.</p>
+  <p class="cta r" data-p="1">cabida.vercel.app</p>
+  <p class="equipo">Víctor García · Rodrigo Manchado · Mario Velandia · Mario Martínez</p>
+</section>
+
+<div class="nav"><button id="ant" aria-label="Anterior">‹</button><span id="cont">1 / 11</span><button id="sig" aria-label="Siguiente">›</button></div>
+
+<script>
+/* Pase de diapositivas. Cada diapositiva suelta sus ideas (.r, por data-p) de una en una; cuando no quedan, pasa a la siguiente.
+   Derecha / espacio / Av Pág = adelante; izquierda / Re Pág = atrás; Inicio / Fin; F = pantalla completa.
+   Con ?todas se ven todas seguidas y con todo visible. El enlace #3 abre la diapositiva 3. */
+const diapos = [...document.querySelectorAll('.slide')];
+const todas = location.search.includes('todas');
+document.body.classList.toggle('todas', todas);
+document.body.classList.toggle('pase', !todas);
+let i = 0;
+const pasos = (d) => [...new Set([...d.querySelectorAll('.r')].map((e) => +e.dataset.p))].sort((a, b) => a - b);
+function mostrar(d, n) {       // deja visibles las ideas de los n primeros pasos
+  const ps = pasos(d);
+  d.querySelectorAll('.r').forEach((e) => e.classList.toggle('on', ps.indexOf(+e.dataset.p) < n));
+  d._n = n;
+}
+function ajustar() {
+  const s = todas ? Math.min(1, innerWidth / 1920) : Math.min(innerWidth / 1920, innerHeight / 1080);
+  document.documentElement.style.setProperty('--s', s);
+}
+function ir(n, alFinal) {
+  i = Math.max(0, Math.min(diapos.length - 1, n));
+  diapos.forEach((d, k) => d.classList.toggle('activa', k === i));
+  mostrar(diapos[i], alFinal ? pasos(diapos[i]).length : 0);
+  document.getElementById('cont').textContent = (i + 1) + ' / ' + diapos.length;
+  if (!todas) try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+}
+function adelante() { const d = diapos[i]; pasos(d).length > d._n ? mostrar(d, d._n + 1) : ir(i + 1); }
+function atras() { const d = diapos[i]; d._n > 0 ? mostrar(d, d._n - 1) : ir(i - 1, true); }
+addEventListener('resize', ajustar);
+addEventListener('keydown', (e) => {
+  if (todas) return;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); adelante(); }
+  else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); atras(); }
+  else if (e.key === 'Home') ir(0);
+  else if (e.key === 'End') ir(diapos.length - 1);
+  else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+document.getElementById('ant').onclick = atras;
+document.getElementById('sig').onclick = adelante;
+let reloj;
+addEventListener('mousemove', () => { document.body.classList.add('mueve'); clearTimeout(reloj); reloj = setTimeout(() => document.body.classList.remove('mueve'), 2200); });
+diapos.forEach((d) => (d._n = 0));
+ajustar();
+ir((parseInt(location.hash.slice(1)) || 1) - 1);
+</script>
+</body>
+</html>

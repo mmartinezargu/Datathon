@@ -16,7 +16,7 @@ Regla: el **miércoles 28 no se programa**. Ese día solo se ensaya. Todo lo de 
 
 1. **Valor por defecto de «vivienda vacía que se ocupa»** (hoy 15 %). Sigue sin decidir (ver «Cifras para las diapositivas»).
 2. **Probarla entera** en portátil y móvil (tarea 6): interruptor «Medir en» y deslizadores en «Plan», «Atraer» y «Dónde vivir».
-3. **Diapositivas** (tarea 7) y **guion de la demo** (tarea 8), con las cifras de abajo. Siguen sin responsable. Las diapositivas tienen que acabar en `entrega/CABIDA_presentacion_final.pdf`: el README («Entrega para el jurado») ya lo enlaza y **hoy el archivo no existe**.
+3. ✅ **Diapositivas** (tarea 7): hechas, 11 con una idea por diapositiva (`presentacion/diapositivas.html`, con animaciones) y en `entrega/CABIDA_presentacion_final.pdf`, que el README («Entrega para el jurado») ya enlaza. Tras la revisión de Víctor: el dinero ya no es la cifra principal (la diapositiva de impacto compara obras y personas sin sitio, y los millones solo salen como «coste estimado» en una nota), la licencia se dice con su excepción (CC BY 4.0; los minutos en coche, ODbL de OpenStreetMap) y se quitó el anexo de limitaciones (siguen en «Cómo funciona» de la web). Pendiente del visto bueno del equipo antes de fusionar en `main`. El **guion** (tarea 8) está en `presentacion/GUION.md`; falta cerrar el reparto de voces y ensayarlo.
 4. El miércoles 28 no se programa: solo ensayo.
 
 ## Ya hecho
@@ -46,8 +46,8 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 | 4 | ✅ **Descarga de datos** | Botón «Descargar CSV» con el escenario actual (155 filas) y enlace a `data/out/tabla_maestra.csv`. Licencia CC BY 4.0. | | lun 26 |
 | 5 | ✅ **Publicarla en internet** | Subir `web/` a Vercel o Netlify para tener un enlace que el jurado abra sin instalar nada. Hacer también una copia que funcione sin internet por si falla la wifi. | | mar 27 |
 | 6 | **Probarla entera** | Abrirla en portátil y móvil, mover todas las palancas y buscar errores: municipios con cifras raras, textos cortados, botones que no van. Apuntar todo en la PR. | todos | mar 27 |
-| 7 | **Diapositivas (10 min)** | Problema -> demo en vivo -> validación -> impacto. Con las cifras nuevas (ver abajo). | | mar 27 |
-| 8 | **Guion de la demo** | Qué se pulsa y en qué orden: mapa -> mover personas -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> vista ciudadana -> validación. Quién habla en cada parte. | | mar 27 |
+| 7 | ✅ **Diapositivas (10 min)** | Problema -> demo en vivo -> validación -> impacto. 11 diapositivas en `presentacion/` y `entrega/CABIDA_presentacion_final.pdf`, con las cifras de abajo. | | mar 27 |
+| 8 | ✅ **Guion de la demo** | Borrador en `presentacion/GUION.md`: qué se pulsa y en qué orden (mapa -> año/reubicar -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> «Dónde vivir» -> validación), con frases, tiempos y plan B. Falta cerrar quién habla en cada parte y ensayarlo con cronómetro. | | mar 27 |
 
 ## Extras: solo si todo lo anterior está terminado
 - ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
@@ -76,6 +76,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
   - Cada municipio con lo suyo (sin reubicar; igual en minutos y en km): **26 ampliaciones, 13 institutos y 8 centros** en 41 municipios, **261,0 M€**; lo último abre en 2030. Pasan a caber 53.755 (4.856 € por persona); siguen sin sitio **23.874** (de 77.630), casi todos por vivienda.
   - Con el plan cargado, el mapa colorea por lo que falta después de reubicar y con las obras. En minutos: 16 en tensión, 71 polos, 40 oportunidades y 28 en consolidación; en km: 15 / 71 / 41 / 28 (sin plan ni reubicar, 78 / 37 / 33 / 7).
   - Nota bajo el vaso (en minutos): «Otros municipios tienen sitio para **29.731** personas más. Reubicando a menos de 30 min en coche se aprovechan **26.346**; el resto está lejos o sin hospital cerca».
+  - **Para las diapositivas (en minutos, lo que abre la web):** la de impacto compara 17 obras frente a 47 y 8.621 frente a 23.874 personas sin sitio; los 97,1 M€ frente a 261,0 M€ salen solo como «coste estimado» en una nota. Desde el 28/10 los costes son la mediana de obras reales de la Comunidad (`data/out/obras_referencia.csv`), pero siguen saliendo de pocas obras (2 colegios nuevos, 5 institutos, 7 centros de salud), así que son estimaciones.
 - Antes de la pestaña «Plan» (colegio a 9,5 M€ y centro a 8 M€; ya no se pueden recalcular):
   - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
   - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
