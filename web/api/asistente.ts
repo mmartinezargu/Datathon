@@ -13,7 +13,7 @@ const MAX_ZONAS = 20
 const INSTRUCCIONES = `Ayudas a decidir dónde vivir, o dónde llevar a la gente que llega, en los pueblos de la Comunidad de Madrid.
 La frase puede ser de un vecino que busca casa o de un gestor público que reparte a quienes llegan ("llevadlos a…", "repartid en…").
 Lee la frase y responde SOLO con un objeto JSON, sin texto alrededor, con estos campos:
-- "perfil": "familia" (hay hijos, un bebé en camino o son 3 o más), "mayor" (jubilado o persona mayor), "teletrabajo" (trabaja desde casa) o null si no se sabe.
+- "perfil": "familia" (hay hijos, un bebé en camino o son 3 o más), "mayor" (jubilado o persona mayor), "teletrabajo" (trabaja desde casa) o null si no se sabe. Si es un gestor que nombra a un solo grupo ("atraed a las familias…", "¿dónde llevamos a los jubilados?"), ese grupo es el perfil.
 - "instituto": true si tiene hijos en edad de instituto (12 a 18 años, ESO, bachillerato); si no, false.
 - "hospital": true si pide tener un hospital, médico o urgencias cerca, o lo necesita por salud; si no, false.
 - "tamano": "pueblo" (quiere algo pequeño, tranquilo, con campo o naturaleza), "mediano", "grande" (quiere ciudad o muchos servicios) o null. Solo si dice cómo quiere que sea el sitio donde va a vivir: trabajar en una ciudad grande no cuenta.

@@ -246,7 +246,7 @@ export default function App() {
       </header>
 
       {pestana === 'inicio' ? (
-        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario, { capacidad, dentro, fuera: sinSitio, reequilibrio, nota: notaVaso })}
+        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario, { capacidad, dentro, fuera: sinSitio, reequilibrio, nota: notaVaso, ampliado: invertido > 0 })}
           onIr={(d: Destino) => (d === 'acierta' ? irAAcierta() : setPestana(d))} /></main>
       ) : pestana === 'metodologia' ? (
         <main className="pagina"><Metodologia escenario={escenario} validacion={validacion}
@@ -415,7 +415,7 @@ export default function App() {
 
 /** Cifras de la portada. Son sumas de lo que ya han calculado Python y el motor. */
 function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], esc: Escenario,
-  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean; nota: string }): Totales {
+  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean; nota: string; ampliado: boolean }): Totales {
   const suma = (lista: Municipio[], anioPob: number) => lista.reduce((s, m) => s + (m.poblacion[String(anioPob)] ?? 0), 0)
   const universo = municipios.filter((m) => m.universo)
   return {

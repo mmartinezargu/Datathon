@@ -46,7 +46,7 @@ export function Palancas({ escenario, onCambiar }: Props) {
       </div>
       <Deslizador etiqueta="Personas que absorben los 155 municipios" valor={escenario.personas}
         texto={miles(escenario.personas)} min={0} max={maximo} paso={1000}
-        pista={`Por defecto, ${miles(redondeo(RITMO_ANUAL * anios))} personas hasta ${escenario.anio}: lo que ganaron estos 155 municipios ` +
+        pista={`Por defecto, ${miles(Math.round(RITMO_ANUAL * anios))} personas hasta ${escenario.anio}: lo que ganaron estos 155 municipios ` +
           `entre 2015 y 2025, el ${pct(prevision.parte, 0)} de lo que creció la Comunidad. La Comunidad prevé llegar a 8 millones en ${PREVISION_CM.anio}; ` +
           `con esa previsión les tocarían algo menos, entre ${miles(redondeo(prevision.minimo))} y ${miles(redondeo(prevision.maximo))}.`}
         onCambiar={(v) => cambiar({ personas: v })} />
