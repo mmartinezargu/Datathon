@@ -18,6 +18,9 @@ const VUELTA = 300
 /** Qué parte de los que llegan es de cada perfil, en %. Supuesto: no hay un dato público de quién llega. */
 export const MEZCLA_SUPUESTA: Record<Perfil, number> = { familia: 50, mayor: 20, teletrabajo: 30 }
 
+/** Nombre corto de cada grupo, para los textos («50 % familias, 20 % mayores…»). */
+export const CORTO: Record<Perfil, string> = { familia: 'familias', mayor: 'mayores', teletrabajo: 'teletrabajo' }
+
 export const FILTROS_REPARTO: FiltrosReparto = { zona: null, tamano: 'todos', hospitalCerca: false, instituto: false }
 
 /** Cuántas personas de cada perfil, repartiendo `total` según la mezcla (en %, se normaliza si no suma 100). */

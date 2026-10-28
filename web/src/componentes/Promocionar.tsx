@@ -2,7 +2,7 @@
 // Lo usan «Atraer» y el final de «Plan» (para que el gestor vea, junto a qué construir, a dónde atraer a cada uno).
 
 import { useMemo } from 'react'
-import { ORDEN_REPARTO, llegadasPorPerfil, repartir } from '../reparto'
+import { CORTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, llegadasPorPerfil, repartir } from '../reparto'
 import { hospitalCercano } from '../medida'
 import { miles } from '../formato'
 import type { Escenario, FiltrosReparto, Medida, Municipio, Perfil, Reparto, ResultadoMunicipio } from '../tipos'
@@ -55,6 +55,18 @@ export function GruposPromocion({ reparto, llegan, resultados, porIne, medida, o
   )
 }
 
+/** Con todos los grupos a 0 % no hay a quién atraer: en vez de ceros, un aviso y la vuelta al supuesto. */
+export function SinNadie({ onVolver }: { onVolver: () => void }) {
+  return (
+    <p className="vacio">
+      Sin nadie a quien atraer: todos los grupos están a 0 %.{' '}
+      <button className="enlace" onClick={onVolver}>
+        Volver al supuesto ({ORDEN_REPARTO.map((p) => `${miles(MEZCLA_SUPUESTA[p])} % ${CORTO[p]}`).join(', ')})
+      </button>
+    </p>
+  )
+}
+
 interface PropsPlan {
   resultados: ResultadoMunicipio[] // con las obras del plan
   porIne: Map<string, Municipio>
@@ -78,8 +90,10 @@ export function PromocionarEnPlan({ resultados, porIne, escenario, mezcla, filtr
         teletrabajo rural). Contando las obras del plan, estos son los municipios donde más conviene promocionar a cada grupo.{' '}
         <button className="enlace" onClick={onAjustar}>Cambiar quiénes llegan y a dónde</button>
       </p>
-      <GruposPromocion reparto={reparto} llegan={llegan} resultados={resultados} porIne={porIne} medida={escenario.medida}
-        onVerEnMapa={onVerEnMapa} />
+      {ORDEN_REPARTO.every((p) => llegan[p] === 0) ? <p className="vacio">Sin nadie a quien atraer: todos los grupos están a 0 %.</p> : (
+        <GruposPromocion reparto={reparto} llegan={llegan} resultados={resultados} porIne={porIne} medida={escenario.medida}
+          onVerEnMapa={onVerEnMapa} />
+      )}
     </section>
   )
 }
