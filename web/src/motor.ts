@@ -503,7 +503,8 @@ function prepararPlan(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenari
 }
 
 /**
- * Plan óptimo, voraz: en cada paso añade la obra (o el paquete de obras) que más personas hace caber por cada euro.
+ * Plan recomendado: primero, voraz, en cada paso añade la obra (o el paquete de obras) que más personas hace caber por cada euro;
+ * después, poda (podarPlan) las que ya no hacen falta. «Recomendado» y no «óptimo»: no se prueban todas las combinaciones.
  * - Candidatas: en cada municipio donde faltan MARGEN_MINIMO personas o más y limitan los colegios o la sanidad, la obra más
  *   barata que suelta su límite (obraQueDesbloquea). Si con ella no cabe nadie más porque otro servicio también está lleno
  *   (colegio y centro de salud, o primaria e instituto), el paquete: esa obra y las siguientes (paqueteQueDesbloquea).
@@ -552,11 +553,34 @@ export function planOptimo(municipios: Municipio[], zonas: ZonaSalud[], esc: Esc
     obras.push(...mejor.obras.map((o) => colocarObra(o, plan.universo)))
     gastado += mejor.obras.reduce((s, o) => s + costeObra(o), 0)
   }
+  podarPlan(obras, plan.sinSitio)
   // Las obras de un mismo municipio, juntas (donde salió la primera): se leen mejor y se escalonan igual.
   // Y primero los colegios e institutos, luego los centros de salud (las dos tablas de la pestaña).
   const orden = [...new Set(obras.map((o) => o.ine))]
   const programadas = programarObras(obras, params.anioInicio, opciones.presupuestoAnual)
   return ordenarObras(orden.flatMap((ine) => programadas.filter((o) => o.ine === ine)))
+}
+
+/**
+ * Poda del plan (cambia la lista): el voraz puede dejar obras que, con las que vinieron después, ya no hacen falta.
+ * Prueba a quitar cada obra, de la más cara a la más barata; si sin ella la gente sin sitio no sube (ni una persona),
+ * se quita. Repite hasta que no sale ninguna. Así ninguna obra que queda tiene «pasan a caber» 0 (ganaPorObra).
+ */
+export function podarPlan(obras: Obra[], sinSitio: (obras: Obra[]) => number): void {
+  let actual = sinSitio(obras)
+  let quitada = true
+  while (quitada) {
+    quitada = false
+    for (const o of [...obras].sort((a, b) => costeObra(b) - costeObra(a))) {
+      const sin = obras.filter((x) => x !== o)
+      const s = sinSitio(sin)
+      if (s - actual < 1) {
+        obras.splice(obras.indexOf(o), 1)
+        actual = s
+        quitada = true
+      }
+    }
+  }
 }
 
 /**
@@ -621,14 +645,10 @@ export function evaluarPlan(municipios: Municipio[], zonas: ZonaSalud[], esc: Es
     return { anio, personas }
   })
 
-  // Lo que gana cada obra: lo que baja la gente sin sitio en los 155 al sumarla a las de antes en la lista
-  let antes = sinSitioAntes
-  const ganaPorObra = obras.map((_, i) => {
-    const despues = plan.sinSitio(obras.slice(0, i + 1))
-    const gana = antes - despues
-    antes = despues
-    return gana
-  })
+  // Lo que gana cada obra: cuánta gente se quedaría sin sitio de más si se quita solo esa obra, con las demás puestas.
+  // No depende del orden de la lista; la suma de las filas no tiene por qué dar el total (unas obras se apoyan en otras).
+  const conTodas = plan.sinSitio(obras)
+  const ganaPorObra = obras.map((_, i) => plan.sinSitio(obras.filter((_, j) => j !== i)) - conTodas)
 
   const porTipo: Record<TipoObra, number> = { ampliar_primaria: 0, colegio_primaria: 0, instituto: 0, centro_salud: 0 }
   obras.forEach((o) => porTipo[o.tipo]++)

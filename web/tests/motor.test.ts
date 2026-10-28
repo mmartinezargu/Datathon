@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, colocarObra, ordenarObras, RADIO_REUBICACION_MIN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, quedanSinSitio, resumenReubicacion,
+  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, podarPlan, quedanSinSitio, resumenReubicacion,
 } from '../src/motor'
 import type { Municipio, Obra, ResultadoMunicipio, TipoObra, ZonaSalud } from '../src/tipos'
 
@@ -231,7 +231,7 @@ describe('plan', () => {
     expect(conCentro.length).toBe(plan.length + 1)
   })
 
-  it('plan óptimo por defecto, reubicando en pueblos cercanos', () => {
+  it('plan recomendado por defecto, reubicando en pueblos cercanos', () => {
     const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
     const r = evaluarPlan(municipios, zonas, conReubicar, plan)
     expect(cuantas(plan)).toEqual({ ampliar_primaria: 7, colegio_primaria: 0, instituto: 2, centro_salud: 6 })
@@ -243,9 +243,33 @@ describe('plan', () => {
     expect(r.sinSitioPor.ritmo).toBe(0)
     expect(r.ultimaApertura).toBe(2030)
     expect(plan.every((o) => o.inicio === 2027)).toBe(true)
-    // El calendario y lo que gana cada obra suman lo que pasa a caber
+    // El calendario suma lo que pasa a caber; cada obra, quitada sola, deja al menos a una persona sin sitio
     expect(r.calendario.reduce((s, c) => s + c.personas, 0)).toBeCloseTo(r.pasanACaber, 6)
-    expect(r.ganaPorObra.reduce((s, g) => s + g, 0)).toBeCloseTo(r.pasanACaber, 6)
+    expect(Math.min(...r.ganaPorObra)).toBeGreaterThanOrEqual(1)
+  })
+
+  it.each(['min', 'km'] as const)('plan recomendado (%s): ninguna obra con «pasan a caber» 0', (medida) => {
+    const e = escenarioDelPlan(escenarioPorDefecto(2035, medida))
+    for (const opciones of [{}, { presupuestoTotal: 30e6 }]) {
+      const plan = planOptimo(municipios, zonas, e, PARAMETROS_PLAN, opciones)
+      const r = evaluarPlan(municipios, zonas, e, plan)
+      expect(plan.length).toBeGreaterThan(0)
+      expect(Math.min(...r.ganaPorObra)).toBeGreaterThanOrEqual(1)
+      // «Pasan a caber» de una obra: lo que sube la gente sin sitio al quitarla, sin depender del orden de la lista
+      const al = evaluarPlan(municipios, zonas, e, [...plan].reverse())
+      expect([...al.ganaPorObra].reverse().map(Math.round)).toEqual(r.ganaPorObra.map(Math.round))
+    }
+  })
+
+  it('la poda quita lo que sobra, de la más cara a la más barata, y nunca sube la gente sin sitio', () => {
+    const ine = municipios.find((m) => m.universo)!.ine
+    const [centro, instituto, ampliar] = (['centro_salud', 'instituto', 'ampliar_primaria'] as TipoObra[]).map((t) => nuevaObra(ine, t, PARAMETROS_PLAN))
+    // De mentira: el centro hace caber a 1.000, el instituto a 500 solo si no está el centro; la ampliación, a nadie
+    const sinSitio = (o: Obra[]) => 2_000 - (o.includes(centro) ? 1_000 : o.includes(instituto) ? 500 : 0)
+    const plan = [ampliar, instituto, centro]
+    podarPlan(plan, sinSitio)
+    expect(plan).toEqual([centro])
+    expect(sinSitio(plan)).toBe(1_000)
   })
 
   it('cada pueblo con lo suyo (sin reubicar) necesita mucho más', () => {

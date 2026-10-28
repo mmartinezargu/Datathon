@@ -1,5 +1,5 @@
 // Pestaña «Plan» (#plan): qué hace falta construir para que quepa la gente.
-// Para profesionales: una sola lista de obras que se rellena de dos maneras (plan óptimo, o a tu medida: con un presupuesto o a mano),
+// Para profesionales: una sola lista de obras que se rellena de dos maneras (plan recomendado, o a tu medida: con un presupuesto o a mano),
 // todo editable, con los valores por defecto de CABIDA y su fuente. Se ve en dos tablas (colegios e institutos; centros de salud):
 // en la lista van siempre en ese orden (ordenarObras) y las obras nuevas entran arriba de su tabla (anadirObra).
 // Las cuentas las hace motor.ts.
@@ -44,7 +44,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
   const umbrales = useMemo(() => calcularUmbrales(delReto, zonas, esc.exigencia), [delReto, zonas, esc.exigencia])
 
   const resultado = useMemo(() => evaluarPlan(municipios, zonas, esc, obras), [municipios, zonas, esc, obras])
-  // «Cada municipio con lo suyo»: el mismo plan óptimo, con las mismas opciones, sin reubicar
+  // «Cada municipio con lo suyo»: el mismo plan recomendado, con las mismas opciones, sin reubicar
   const comparacion = useMemo(() => {
     const sinReubicar = { ...escenario, reequilibrio: false }
     return evaluarPlan(municipios, zonas, sinReubicar, planOptimo(municipios, zonas, sinReubicar, parametros, opciones))
@@ -76,7 +76,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
       <div className="plan-botones" role="group" aria-label="Rellenar la lista">
         <button className={`plan-boton${modo === 'optimo' ? ' principal' : ''}`} aria-pressed={modo === 'optimo'}
           onClick={() => { setModo('optimo'); rellenar({}) }}>
-          <b>Plan óptimo</b><span>Lo que haga falta, donde más gente cabe por cada euro</span>
+          <b>Plan recomendado</b><span>Lo que haga falta, donde más gente cabe por cada euro</span>
         </button>
         <button className={`plan-boton${modo === 'medida' ? ' principal' : ''}`} aria-pressed={modo === 'medida'}
           onClick={() => setModo('medida')}>
@@ -187,7 +187,7 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
         <td className={`num${aperturaObra(o) > horizonte ? ' plan-tarde' : ''}`}
           title={aperturaObra(o) > horizonte ? `Abre después de ${horizonte}` : undefined}>{aperturaObra(o)}</td>
         <td className="num">
-          {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Sola no suelta el límite: manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()}, o va junto a la obra de debajo`}>0</span>}
+          {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Con las demás obras puestas, quitar esta no deja a nadie sin sitio: manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()} o ya la cubren otras obras`}>0</span>}
         </td>
         <td className="num">{gana >= 1 ? miles(costeObra(o) / gana) : '—'}</td>
         <td><button className="plan-borrar" onClick={() => onBorrar(i)} aria-label={`Borrar la obra de ${nombre(o)}`} title="Borrar">×</button></td>
@@ -206,7 +206,7 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
         {obras.length > 0 && <button className="desplegar" onClick={onVaciar}>Vaciar lista<span className="flecha" aria-hidden="true">×</span></button>}
       </div>
       {obras.length === 0 && (
-        <p className="vacio">La lista está vacía. Pulsa «Plan óptimo» para rellenarla, o usa «A tu medida» para repartir un presupuesto o añadir obras a mano.</p>
+        <p className="vacio">La lista está vacía. Pulsa «Plan recomendado» para rellenarla, o usa «A tu medida» para repartir un presupuesto o añadir obras a mano.</p>
       )}
       {colegios.length > 0 && (
         <>
@@ -267,8 +267,8 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
       )}
       {obras.length > 0 && (
         <p className="ayuda plan-pie">
-          «Pasan a caber»: lo que baja la gente sin sitio en los 155 al sumar esa obra a las que tiene encima (los centros de salud,
-          después de todos los colegios e institutos). Pulsa un municipio para ver su ficha.
+          «Pasan a caber»: cuánta gente se quedaría sin sitio en los 155 si se quitara solo esa obra, con las demás puestas. Unas obras
+          se apoyan en otras, así que las filas no tienen por qué sumar el total de arriba. Pulsa un municipio para ver su ficha.
         </p>
       )}
     </section>
