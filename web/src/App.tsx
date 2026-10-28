@@ -221,6 +221,8 @@ export default function App() {
     }
     setPestana('plan')
   }
+  // «Atraer» no está en el menú: se llega desde «Plan», así que el menú marca «Plan»
+  const activa = (id: Pestana) => pestana === id || (id === 'plan' && pestana === 'atraer')
   const elegir = (ine: string | null) => {
     setSeleccionado(ine)
     if (ine) {
@@ -235,7 +237,7 @@ export default function App() {
         <button className="marca" onClick={() => setPestana('inicio')} aria-label="CABIDA: volver al inicio"><Logo /><span>CABIDA</span></button>
         <nav className="pestanas" aria-label="Secciones">
           {PESTANAS.map((p) => (
-            <button key={p.id} className={pestana === p.id ? 'activa' : ''} aria-current={pestana === p.id ? 'page' : undefined}
+            <button key={p.id} className={activa(p.id) ? 'activa' : ''} aria-current={activa(p.id) ? 'page' : undefined}
               onClick={() => setPestana(p.id)}>
               <Icono nombre={p.icono} tamano={18} /><span>{p.texto}</span>
             </button>

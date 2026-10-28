@@ -434,3 +434,4 @@ td { padding: 7px 8px; border-bottom: 1px solid var(--linea); }
 /* Final de «Plan»: dónde promocionar a cada grupo (el resumen de «Atraer») */
 .plan + .promocionar-plan { max-width: 1240px; margin: 16px auto 0; }
 .promocionar-plan h2 { margin-top: 0; }
+.atraer-volver { margin-bottom: 12px; }
