@@ -29,18 +29,28 @@ export function cambiarPerfil(f: FiltrosMudanza, perfil: Perfil): FiltrosMudanza
 
 const RECURSOS: Recurso[] = ['colegios', 'sanidad', 'vivienda']
 
-/** Personas que aún caben en cada recurso cuando ya ha llegado la gente prevista. */
-export function sitioQueda(r: ResultadoMunicipio): Record<Recurso, number | null> {
-  return Object.fromEntries(RECURSOS.map((k) => [k, r.limites[k] === null ? null : r.limites[k]! - r.llegan])) as Record<Recurso, number | null>
+/**
+ * Personas que aún caben en cada recurso cuando ya ha llegado la gente prevista.
+ * Con «Reubicar», también ocupa sitio la gente que recibe de municipios cercanos (`recibidos`).
+ * «Atraer» pasa `recibidos = false`: allí se reparte a todos desde cero y nadie llega reubicado.
+ */
+export function sitioQueda(r: ResultadoMunicipio, recibidos = true): Record<Recurso, number | null> {
+  const ocupan = r.llegan + (recibidos ? r.recibe : 0)
+  return Object.fromEntries(RECURSOS.map((k) => [k, r.limites[k] === null ? null : r.limites[k]! - ocupan])) as Record<Recurso, number | null>
 }
 
 /** «Hospital cerca» usa la medida del escenario (minutos en coche o km en línea recta). */
-export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMudanza, medida: Medida): boolean {
+export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMudanza, medida: Medida, recibidos = true): boolean {
   const c = m.capacidad!
   const t = TAMANOS[f.tamano]
+  // Sitio que le queda después de lo que llega (y de lo que recibe al reubicar). Si recibe gente,
+  // la reubicación lo llena hasta el borde: con menos de 1 persona de sitio ya cuenta como lleno.
+  const recibe = recibidos ? r.recibe : 0
+  const libre = r.margen - recibe
+  const noSeLlena = recibe > 0 ? libre >= 1 : libre >= 0
   return (!f.colegio || c.colegios_primaria > 0)
     && (!f.instituto || c.colegios_secundaria > 0)
-    && (!f.sitioLibre || r.margen >= 0)
+    && (!f.sitioLibre || noSeLlena)
     && (!f.hospitalCerca || !hospitalLejos(m, medida))
     && (!f.zona || m.zona === f.zona)
     && r.poblacion >= t.desde && r.poblacion < t.hasta
@@ -51,10 +61,11 @@ export function cumpleFiltros(r: ResultadoMunicipio, m: Municipio, f: FiltrosMud
  * a sus vecinos (así un pueblo y una ciudad se comparan igual) y se suman las posiciones con los
  * pesos del perfil. 100 = el mejor de los que pasan los filtros en todo lo que le importa al perfil.
  */
-export function rankingMudanza(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, f: FiltrosMudanza, medida: Medida): Candidato[] {
-  const filas = resultados.filter((r) => cumpleFiltros(r, porIne.get(r.ine)!, f, medida))
+export function rankingMudanza(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, f: FiltrosMudanza, medida: Medida,
+  recibidos = true): Candidato[] {
+  const filas = resultados.filter((r) => cumpleFiltros(r, porIne.get(r.ine)!, f, medida, recibidos))
   const pesos = PERFILES[f.perfil].pesos
-  const sitios = filas.map(sitioQueda)
+  const sitios = filas.map((r) => sitioQueda(r, recibidos))
   const posicion = Object.fromEntries(RECURSOS.map((k) =>
     [k, posiciones(filas.map((r, i) => (sitios[i][k] === null ? -Infinity : sitios[i][k]! / r.poblacion)))],
   )) as Record<Recurso, number[]>

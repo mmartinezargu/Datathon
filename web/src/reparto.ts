@@ -92,7 +92,8 @@ export function repartir(resultados: ResultadoMunicipio[], porIne: Map<string, M
   const todos = cuantos.reduce((s, n) => s + n, 0)
   const turnos = ORDEN_REPARTO.map((perfil, k) => ({
     perfil,
-    lista: rankingMudanza(resultados, porIne, filtrosDePerfil(perfil, filtros), medida).map((c) => c.ine),
+    // Sin contar la reubicación: aquí todos se reparten desde cero (si no, se contarían dos veces)
+    lista: rankingMudanza(resultados, porIne, filtrosDePerfil(perfil, filtros), medida, false).map((c) => c.ine),
     i: 0, // el pueblo de su lista por el que va
     quedan: cuantos[k],
     tanda: todos ? Math.max(1, Math.round(VUELTA * cuantos[k] / todos)) : 0, // su parte de cada vuelta
