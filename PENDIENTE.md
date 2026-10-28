@@ -1,6 +1,6 @@
 # Lo que falta para la final (jueves 29/10)
 
-Regla: el **miércoles 28 no se programa**. Ese día solo se ensaya. Todo lo de abajo tiene que estar el **martes 27 por la noche**.
+Regla: **congelación hoy, miércoles 28, a las 18:00**. Lo que no esté fusionado en `main` a esa hora no entra. Después, solo ensayos y textos de diapositivas. La final es el jueves 29 a las 10:00 (llegada 9:15).
 
 ## Decisiones del martes 27 (tomadas)
 
@@ -12,12 +12,88 @@ Regla: el **miércoles 28 no se programa**. Ese día solo se ensaya. Todo lo de 
 | 4 | Licencia de las columnas de minutos (OpenStreetMap, ODbL) frente a CC BY 4.0 | `data/out` sigue en CC BY 4.0, salvo `hospital_min`, `hospital_min_municipio` y `vecinos_min`, que son ODbL 1.0 y piden citar a OpenStreetMap. Escrito en `data/out/README.md`, `THIRD_PARTY.md`, el diccionario y junto a la descarga de la web | ✅ Hecho |
 | 5 | Revisión de la PR #12 y prueba en móvil | PR #12 revisada y fusionada. La prueba en móvil entra en la tarea 6 | ✅ Revisada |
 
-## Lo que queda (todo cerrado el martes 27 por la noche)
+## Decisiones del miércoles 28 (tomadas)
 
-1. **Valor por defecto de «vivienda vacía que se ocupa»** (hoy 15 %). Sigue sin decidir (ver «Cifras para las diapositivas»).
-2. **Probarla entera** en portátil y móvil (tarea 6): interruptor «Medir en» y deslizadores en «Plan», «Atraer» y «Dónde vivir».
-3. **Diapositivas** (tarea 7) y **guion de la demo** (tarea 8), con las cifras de abajo. Siguen sin responsable. Las diapositivas tienen que acabar en `entrega/CABIDA_presentacion_final.pdf`: el README («Entrega para el jurado») ya lo enlaza y **hoy el archivo no existe**.
-4. El miércoles 28 no se programa: solo ensayo.
+| # | Decisión | Qué se decidió |
+|---|---|---|
+| 6 | Licencia de los minutos | Se quedan los de OSRM sobre OpenStreetMap, con la excepción ODbL ya escrita. No se rehacen con otra fuente: las bases solo limitan lo que digan las licencias de los datasets usados, y cambiarlos hoy movería las cifras del plan, la reubicación y las condicionadas |
+| 7 | Transporte público (GTFS del CRTM) | Fuera hasta después de la final. Si sale en preguntas: «siguiente paso» |
+| 8 | Oracle | No se usa. Respuesta preparada en R8 |
+| 9 | «Vivienda vacía que se ocupa» | Se queda en **15 %** |
+| 10 | «Plan óptimo» | Pasa a **«Plan recomendado»** (R1) |
+| 11 | «Atraer» | Se queda al final de «Plan» (#24). Se arregla lo de mayores y colegios (R3) |
+
+## Remates del 28/10 (antes de las 18:00)
+
+Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por tarea; que otra persona la mire antes de fusionar. Por orden de prioridad: si algo no da tiempo, se queda fuera.
+
+**Cifras de control.** Con el escenario por defecto (2035, minutos, exigencia media) NO deben cambiar: caben **56.796**, sin sitio **77.630**; reubicando a 30 min, **26.346** reubicadas y **51.284** sin sitio. Si alguna cambia, parar y avisar.
+
+| # | Tarea | Quién | Hecho |
+|---|---|---|---|
+| R1 | Plan: «Plan recomendado», poda y «pasan a caber» sin ceros | | |
+| R2 | Textos de «Supuestos del cálculo», de la ficha y del deslizador de personas | | |
+| R3 | «Atraer»: mayores y teletrabajo no ocupan plazas de colegio | | |
+| R4 | «Dónde vivir»: hospital cerca por defecto para familias y frase con lo más justo | | |
+| R5 | Datasets nuevos en `data/out` | | |
+| R6 | Diapositivas y guion con las cifras finales (después de R1) | | |
+| R7 | Prueba completa en portátil y móvil, y copia offline en 2 portátiles y un USB, probada sin red | | |
+| R8 | Guion: respuesta sobre Oracle y reparto de voces | | |
+
+### R1. Plan: de «Plan óptimo» a «Plan recomendado»
+- Hoy el plan incluye el **instituto de Colmenarejo: 11,1 M€ y «pasan a caber» 0**. También el centro de salud de Torrelodones (6,7 M€ para 183 personas, 36.538 € por persona). Es lo primero que vería el jurado.
+- Causa: «pasan a caber» se calcula en el orden de la tabla (colegios antes que centros), no en el orden en que se eligieron. O la obra sobra, o solo rinde junto a otra que se cuenta después.
+- Renombrar «Plan óptimo» a «Plan recomendado» en la web, `Metodologia.tsx`, este archivo, `README.md` y el diccionario. La función interna puede seguir llamándose `planOptimo`.
+- **Poda** después del voraz: probar a quitar cada obra, de la más cara a la más barata; si la gente sin sitio no sube, se quita. Repetir hasta que no salga ninguna. Tiene que tardar menos de 1 s en el navegador.
+- «Pasan a caber» de cada fila = cuánta gente se queda sin sitio de más **si se quita solo esa obra**, con las demás puestas. Cambiar la nota bajo la tabla y avisar de que la suma de las filas no tiene por qué dar el total.
+- Comprobación fuera de la web (test o script): en el escenario por defecto, en minutos y en km, cambiar cada obra por cualquier otra posible (otro tipo u otro municipio). Quedarse con los cambios que bajan el coste sin subir la gente sin sitio, hasta que no quede ninguno. Si encuentra mejoras y tarda menos de 1 s, meterlo en la web; si no, solo apuntar aquí lo que encuentra.
+- «Cómo funciona», en 2 frases: añade la obra con más personas por euro y luego quita las que sobran; se llama «recomendado» porque no se prueban todas las combinaciones. Si la comprobación no encuentra nada: «Comprobado en el escenario por defecto: quitar o cambiar una obra no lo abarata».
+- Tests: ninguna obra del plan con «pasan a caber» 0; la poda nunca sube la gente sin sitio.
+- Al acabar, apuntar aquí las cifras nuevas del plan (coste, obras, pasan a caber, sin sitio), en minutos y en km. Hoy: 97,1 M€ y 17 obras en minutos; 79,4 M€ en km.
+
+### R2. Textos
+- «Hasta dónde se cargan colegios y centros de salud» → título **«¿Cuándo damos por lleno un colegio o un centro de salud?»**. Ayuda, con los números que da el motor para la opción elegida:
+  > Un colegio está lleno cuando tiene más alumnos que {9 de cada 10} municipios de tamaño parecido: en uno de 5.000 vecinos, unos {X} alumnos por colegio de primaria. Un centro de salud, cuando su zona pasa de {Y} vecinos, más que {9 de cada 10} zonas de la Comunidad. No hay datos abiertos de plazas por colegio; por eso comparamos.
+
+  Estricta = «3 de cada 4»; Media = «9 de cada 10»; Flexible = «97 de cada 100».
+- «Crecimiento máximo al año» → título **«Lo máximo que crece un municipio al año»**. Ayuda dinámica (con el valor y el año elegidos):
+  > Ningún municipio gana más de un {3,0 %} de vecinos al año, aunque tenga casas y servicios. Hasta {2035}, como mucho un {34 %} más: uno de 10.000 vecinos, hasta {3.439} personas. Con este techo, el modelo acierta 77 de cada 100 personas en 2015-2025. Si lo subes, mandan las casas, los colegios o la sanidad.
+- «de su tamaño» → «de municipios de tamaño parecido» en todos los textos: `Palancas.tsx`, `Metodologia.tsx` (también la limitación «"Lleno" es una comparación») y `OrigenVaso.tsx`. Hoy se lee como si fuera el tamaño del colegio.
+- Ficha, «Al límite hoy» (`textoAlLimite` en `Ficha.tsx`): quitar «(un X % por encima)», que exagera porque el límite no es una capacidad. Colegios:
+  > Al límite hoy: su colegio de primaria ya tiene unos 356 alumnos; 9 de cada 10 municipios de tamaño parecido tienen menos de 271 por colegio. Cualquier llegada necesita ampliar.
+
+  Sanidad, igual: «9 de cada 10 zonas de la Comunidad atienden a menos de …». El «9 de cada 10» sale de la exigencia elegida.
+- «Ver la cuenta» de sanidad: «Quedan 816 plazas en la zona» → «La zona tiene sitio para 816 personas más».
+- Deslizador de personas: la pista dice «Por defecto, 134.000»; tiene que decir la cifra exacta (134.426). Además, que encaje en el valor por defecto al pasar cerca (±500) y que salga un enlace «Volver a 134.426» cuando el valor sea otro. Así desaparece la trampa del guion.
+
+### R3. «Atraer»: mayores y colegios
+- En `web/src/reparto.ts`, `hueco()` usa `caben`, que incluye el límite de colegios, para todos los grupos. Un municipio lleno de colegios no recibe jubilados aunque tenga casas y centro de salud.
+- Llevar por municipio lo que queda de cada límite (vivienda, colegios, sanidad y ritmo). Las familias gastan los cuatro; mayores y teletrabajo, todos menos colegios.
+- Test: un municipio con colegios a 0 y sitio en casas y sanidad recibe mayores y no familias.
+
+### R4. «Dónde vivir»
+- Marcar por defecto «Con hospital a menos de 30 min» también para «Familia con hijos». Hoy los primeros son Rascafría (hospital a 49 min) y Cenicientos (a 65). Teletrabajo sigue sin marcar, para que funcione el ejemplo de la Sierra Norte. Comprobar que los 3 ejemplos siguen dando resultados y que el de Getafe sigue sacando Humanes de Madrid, como en el guion.
+- En la frase de cada municipio, nombrar también lo que va más justo. Rascafría: casa solo para unas 254 personas.
+
+### R5. Datasets nuevos en `data/out`
+Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo las columnas de minutos (ODbL, como las demás).
+- `resultados_2035.csv`: escenario por defecto, una fila por municipio (llegan, caben, sin sitio, tipo, qué limita, reubicación).
+- `plan_recomendado.csv`: las obras del plan por defecto (municipio, tipo, plazas o personas que atiende, coste, año, pasan a caber).
+- `zonas_salud.csv`: las 286 zonas (población, límite, municipios).
+- Añadirlos a `data/out/README.md`, al diccionario y a «Llévate los datos».
+
+### R6. Diapositivas y guion (cuando R1 dé las cifras)
+- Diapositiva 9: «unos 282 millones frente a unos 103» → **261** frente a **97,1** (o lo que dé R1); «Plan óptimo» → «Plan recomendado»; «pueblos» → «municipios» en todas las diapositivas. Regenerar `entrega/CABIDA_presentacion_final.pdf`.
+- `presentacion/GUION.md`: lo mismo. Además, el paso 8 («el plan óptimo elige, una a una…») y la nota de 103 M€; la respuesta sobre costes (ahora son 28 obras reales y la mediana de cada tipo, en la tabla «Lo que vale cada obra del plan»); quitar la trampa del deslizador cuando esté R2.
+
+### R7. Prueba completa y copia offline
+- Portátil y móvil, todas las palancas, «Plan», «Atraer» y «Dónde vivir». Los fallos, en la PR correspondiente.
+- `npm run offline` en `web/`; abrir `web/offline/CABIDA.html` con el wifi apagado en 2 portátiles y desde un USB, y hacer la demo entera.
+
+### R8. Guion: Oracle y voces
+- Añadir a «Preguntas que pueden hacernos»: **¿Por qué no Oracle?** → «Lo probamos para el asistente, pero en la región de Madrid de la cuenta no había modelos disponibles; por eso Groq, que es gratis. Los datos están listos para servirse desde Oracle como siguiente paso.»
+- Cerrar quién es cada voz y quién es el piloto.
+- Duración: las bases dicen 15 min + preguntas; el guion es de 10. Se queda en 10, con margen.
 
 ## Ya hecho
 Revisión del 28/10 (rama `mejora/revision-28`): texto de entrada con la previsión de la Comunidad, vaso sin textos dentro y con nota del sitio libre, mapa coloreado después de reubicar, «Ver todos» en las listas, «sin colegio» / «sin instituto» en la ficha, costes del plan con la mediana de obras reales (`data/out/obras_referencia.csv`), plan en dos tablas, «Vaciar lista», centros de salud en el municipio más poblado de su zona, columnas `plan_obras` y `plan_apertura` en el CSV del escenario (ya no hay CSV del plan aparte), «Dónde vivir» siempre sin el plan, validación «por comarcas», fuera «Dónde más se equivoca» y «municipio(s)» en vez de «pueblo(s)».
@@ -46,8 +122,8 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 | 4 | ✅ **Descarga de datos** | Botón «Descargar CSV» con el escenario actual (155 filas) y enlace a `data/out/tabla_maestra.csv`. Licencia CC BY 4.0. | | lun 26 |
 | 5 | ✅ **Publicarla en internet** | Subir `web/` a Vercel o Netlify para tener un enlace que el jurado abra sin instalar nada. Hacer también una copia que funcione sin internet por si falla la wifi. | | mar 27 |
 | 6 | **Probarla entera** | Abrirla en portátil y móvil, mover todas las palancas y buscar errores: municipios con cifras raras, textos cortados, botones que no van. Apuntar todo en la PR. | todos | mar 27 |
-| 7 | **Diapositivas (10 min)** | Problema -> demo en vivo -> validación -> impacto. Con las cifras nuevas (ver abajo). | | mar 27 |
-| 8 | **Guion de la demo** | Qué se pulsa y en qué orden: mapa -> mover personas -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> vista ciudadana -> validación. Quién habla en cada parte. | | mar 27 |
+| 7 | ✅ **Diapositivas (10 min)** | Problema -> demo en vivo -> validación -> impacto. 11 diapositivas en `presentacion/` y `entrega/CABIDA_presentacion_final.pdf`, con las cifras de abajo. | | mar 27 |
+| 8 | ✅ **Guion de la demo** | Borrador en `presentacion/GUION.md`: qué se pulsa y en qué orden (mapa -> año/reubicar -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> «Dónde vivir» -> validación), con frases, tiempos y plan B. Falta cerrar quién habla en cada parte y ensayarlo con cronómetro. | | mar 27 |
 
 ## Extras: solo si todo lo anterior está terminado
 - ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
@@ -76,6 +152,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
   - Cada municipio con lo suyo (sin reubicar; igual en minutos y en km): **26 ampliaciones, 13 institutos y 8 centros** en 41 municipios, **261,0 M€**; lo último abre en 2030. Pasan a caber 53.755 (4.856 € por persona); siguen sin sitio **23.874** (de 77.630), casi todos por vivienda.
   - Con el plan cargado, el mapa colorea por lo que falta después de reubicar y con las obras. En minutos: 16 en tensión, 71 polos, 40 oportunidades y 28 en consolidación; en km: 15 / 71 / 41 / 28 (sin plan ni reubicar, 78 / 37 / 33 / 7).
   - Nota bajo el vaso (en minutos): «Otros municipios tienen sitio para **29.731** personas más. Reubicando a menos de 30 min en coche se aprovechan **26.346**; el resto está lejos o sin hospital cerca».
+  - **Para las diapositivas (en minutos, lo que abre la web):** la de impacto compara 17 obras frente a 47 y 8.621 frente a 23.874 personas sin sitio; los 97,1 M€ frente a 261,0 M€ salen solo como «coste estimado» en una nota. Desde el 28/10 los costes son la mediana de obras reales de la Comunidad (`data/out/obras_referencia.csv`), pero siguen saliendo de pocas obras (2 colegios nuevos, 5 institutos, 7 centros de salud), así que son estimaciones.
 - Antes de la pestaña «Plan» (colegio a 9,5 M€ y centro a 8 M€; ya no se pueden recalcular):
   - Sin reubicar: **39 colegios y 22 centros de salud** en 49 municipios, **546 M€**; lo último abre en 2030. Siguen sin sitio **23.897** (de 77.630), casi todos por vivienda.
   - Reubicando a 25 km: **14 colegios y 10 centros** en 20 municipios, **213 M€**; lo último abre en 2030. Siguen sin sitio **11.709** (de 50.774), casi todos por vivienda.
