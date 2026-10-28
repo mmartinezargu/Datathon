@@ -38,7 +38,7 @@ Las frases están pensadas para decirlas casi tal cual, pero con vuestras palabr
 
 Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 · Rodrigo, 1:30.
 
-**Pulsaciones.** En cada diapositiva, flecha derecha o espacio suelta la siguiente idea; cuando no quedan, pasa a la siguiente diapositiva. Ideas por diapositiva (sin contar la primera vista): 2 → 2, 3 → 1, 4 → 2, 5 → 3, 6 → 1, 7 → 3, 8 → 2, 9 → 3, 10 → 3, 11 → 1. La diapositiva 1 no tiene ideas sueltas.
+**Pulsaciones.** En cada diapositiva, flecha derecha o espacio suelta la siguiente idea; cuando no quedan, pasa a la siguiente diapositiva. Ideas por diapositiva (sin contar la primera vista): 2 → 2, 3 → 1, 4 → 2, 5 → 3, 6 → 2, 7 → 3, 8 → 2, 9 → 3, 10 → 3, 11 → 1. La diapositiva 1 no tiene ideas sueltas.
 
 ---
 
@@ -71,6 +71,7 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 **Diapositiva 6: la regla.**
 - *(se ve)* «¿Cómo lo calculamos? Con una regla muy simple: manda el límite más bajo.»
 - *(pulsar)* «Vivienda, colegios, sanidad y ritmo de crecimiento. Si hay casas pero no hay colegio, el municipio no aguanta: decide el eslabón más débil.»
+- *(pulsar: salen las fuentes bajo cada icono)* «Y cada límite sale de datos abiertos: del INE, de la Comunidad de Madrid y del IDEM.»
 
 **Diapositiva 7: «Veámoslo.»**
 - *(pulsar tres veces)* «Os lo enseñamos con la web en tres pasos: ver, decidir y elegir.»
@@ -91,7 +92,7 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 | 3 | En «Año horizonte», pulsar **2039** y luego volver a **2035** | Con 2039: llegan 188.196 y se quedan sin sitio 118.840 | «Todo esto se mueve. Si miramos a 2039, llegan 188.196 y se quedan sin sitio 118.840.» (volver a 2035) |
 | 4 | *(opcional)* Activar **Reubicar en municipios cercanos con sitio** y **quitarlo** (si se queda activo, «Dónde vivir» cambia: ver paso 11) | Se reubican 26.346 personas y siguen sin sitio 51.284 | «Quien no cabe va al municipio con sitio más cercano: a menos de 30 minutos en coche y con hospital cerca.» |
 | 5 | Pulsar **Arroyomolinos** (el primero de la lista de la derecha) | Ficha: llegan 12.305, no caben 11.489, caben 816. Hospital más cercano: Móstoles, a 12 min | «Arroyomolinos: llegarían unas 12.300 personas y caben 816.» |
-| 6 | Nada. Señalar las cuatro barras de la ficha | Vivienda 17.531 · Colegios 12.441 · **Sanidad 816** · Ritmo 13.095 | «¿Por qué? Tiene casas y colegios, pero el centro de salud no da más: ese es su límite.» |
+| 6 | Señalar las cuatro barras de la ficha y abrir **Ver la cuenta** | Vivienda 17.531 · Colegios 12.441 · **Sanidad 816** · Ritmo 13.095 | «¿Por qué? Tiene casas y colegios, pero el centro de salud no da más: ese es su límite.» Al abrir «Ver la cuenta»: «Cada número de aquí sale de esos datos públicos.» |
 
 ### Decidir: el plan (Mario M., 1:30)
 
