@@ -9,7 +9,7 @@ Para cada uno de los 155 municipios de la Comunidad de Madrid con menos de 50.00
 | `etl/` | Python (uv): descarga datos abiertos, los prepara y valida el modelo 2015→2025 |
 | `web/` | React 19 + TypeScript + Vite + MapLibre. Web estática, sin servidor. El cálculo de palancas va en el navegador (`web/src/motor.ts`) |
 | `data/raw/` | Datos originales. Los pesados NO se suben (se bajan con `descargar.py`) |
-| `data/out/` | CSV generados (CC BY 4.0; `hospital_min`, `hospital_min_municipio` y `vecinos_min` son ODbL, de OpenStreetMap): `tabla_maestra.csv`, `validacion_municipios.csv` |
+| `data/out/` | CSV generados (CC BY 4.0; `hospital_min`, `hospital_min_municipio` y `vecinos_min` son ODbL, de OpenStreetMap): `tabla_maestra.csv`, `validacion_municipios.csv`, `obras_referencia.csv` (obras reales que dan los costes del plan) |
 | `web/public/datos/` | JSON/GeoJSON generados por `preparar.py` que consume la web |
 | `entrega/` | Los 3 PDF de la propuesta (aproximación técnica, fuentes, interfaz) y la presentación final (`CABIDA_presentacion_final.pdf`) |
 | `presentacion/` | Código fuente de las diapositivas (HTML suelto, sin dependencias): `diapositivas.html` es la de la final (con animaciones, 11 diapositivas) y `diapositivas_detalladas.html` la versión informativa de apoyo. Las cifras salen de la web: si cambian, se cambian aquí y en `PENDIENTE.md` |

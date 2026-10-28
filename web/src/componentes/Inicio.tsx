@@ -3,6 +3,7 @@
 import { Icono, type NombreIcono } from './Iconos'
 import { Vaso } from './Vaso'
 import { OrigenTodos } from './OrigenVaso'
+import { PREVISION_CM } from '../motor'
 import { miles, pct } from '../formato'
 
 export interface Totales {
@@ -11,10 +12,13 @@ export interface Totales {
   crecimientoPequenos: number // crecimiento 2015-2025 de los municipios del reto
   crecimientoComunidad: number // crecimiento 2015-2025 de toda la Comunidad
   anio: number
+  personas: number // personas que llegan a los 155 hasta anio (escenario.personas)
+  ritmoDecada: boolean // personas es el escenario por defecto: el ritmo de la última década
   capacidad: number // suma de lo que cabe en los 155
   dentro: number // de lo que llega, lo que cabe
   fuera: number // de lo que llega, lo que no cabe
-  reequilibrio: boolean // si se reubica lo que no cabe en pueblos cercanos con sitio
+  reequilibrio: boolean // si se reubica lo que no cabe en municipios cercanos con sitio
+  nota: string // bajo el vaso: el sitio que queda en otros municipios y cuánto se aprovecha reubicando
 }
 
 export type Destino = 'mapa' | 'plan' | 'atraer' | 'mudanza' | 'acierta' | 'metodologia'
@@ -25,10 +29,9 @@ const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: strin
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
 
-/** Las otras dos herramientas del gestor, además del mapa. */
+/** La otra herramienta del gestor, además del mapa: el plan (qué construir y, al final, dónde promocionar). */
 const ATAJOS: { destino: Destino; icono: NombreIcono; nombre: string; que: string }[] = [
-  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir y cuánto cuesta' },
-  { destino: 'atraer', icono: 'repartir', nombre: 'Atraer', que: 'A dónde atraer a cada tipo de vecino' },
+  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir, cuánto cuesta y a dónde atraer a cada tipo de vecino' },
 ]
 
 export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino) => void }) {
@@ -39,8 +42,10 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
         <div className="inicio-texto">
           <h1>¿Dónde cabe la nueva población de Madrid?</h1>
           <p className="inicio-lead">
-            La Comunidad de Madrid ganará más de un millón de habitantes hasta 2039. CABIDA calcula, pueblo a pueblo,
-            cuánta gente llegará y cuánta cabe sin desbordar casas, colegios ni centros de salud.
+            La Comunidad de Madrid prevé llegar a {miles(PREVISION_CM.poblacion / 1e6)} millones de habitantes en {PREVISION_CM.anio}.
+            CABIDA mira los {t.municipios} municipios de menos de 50.000:{' '}
+            {t.ritmoDecada ? 'si siguen creciendo como en la última década, les llegarán' : 'con el escenario elegido, les llegarán'}{' '}
+            {miles(t.personas)} personas hasta {t.anio}. ¿Cuántas caben sin desbordar casas, colegios ni centros de salud?
           </p>
           <div className="inicio-datos">
             <div><b>{t.municipios}</b><span>municipios de menos de 50.000 habitantes</span></div>
@@ -50,7 +55,7 @@ export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino)
         </div>
         <div className="inicio-vaso">
           <p className="inicio-vaso-titulo">Si sigue el ritmo actual, hasta {t.anio}, con los colegios y centros de salud de hoy:</p>
-          <Vaso capacidad={t.capacidad} dentro={t.dentro} fuera={t.fuera} notaLibre="pero en municipios a los que no va la gente."
+          <Vaso capacidad={t.capacidad} dentro={t.dentro} fuera={t.fuera} nota={t.nota}
             origen={<OrigenTodos llegan={t.dentro + t.fuera} anio={t.anio} reequilibrio={t.reequilibrio} />} />
         </div>
       </section>

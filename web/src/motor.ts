@@ -5,7 +5,8 @@
 //   capacidad = cuánta gente cabe = el menor de 4 límites (ley del mínimo)
 //   tipo      = el cruce de las dos: tensión, polo, oportunidad o consolidación
 
-import type { CurvaColegio, Escenario, Inversion, Inversiones, Limite, Medida, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoMunicipio, ResultadoPlan, Tipo, TipoObra, Traslado, Umbrales, ZonaSalud } from './tipos'
+import obrasReferencia from '../public/datos/obras_referencia.json'
+import type { CurvaColegio, DatosObrasReferencia, Escenario, Inversion, Inversiones, Limite, Medida, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoMunicipio, ResultadoPlan, Tipo, TipoObra, Traslado, Umbrales, ZonaSalud } from './tipos'
 
 export const ANIO_BASE = 2025
 /** Personas que ganaron los 155 municipios en 2015-2025 (Padrón, INE). */
@@ -42,19 +43,23 @@ export const RADIO_REUBICACION_KM = 25
 export const RADIO_REUBICACION_MIN = 30
 export const SIN_INVERSION: Inversion = { plazasPrimaria: 0, plazasSecundaria: 0, centros: 0, personasSanidad: 0 }
 
+/** Obras reales de la Comunidad (2023–2026) de las que salen los costes por defecto del plan (etl/obras_referencia.py). */
+export const OBRAS_REFERENCIA = obrasReferencia as DatosObrasReferencia
+
 /**
- * Valores por defecto del plan, sacados de obras reales de la Comunidad (fuentes en fuentesPlan.ts).
- * - Ampliar un colegio: una línea (9 aulas de 25), a 6.000 €/plaza (CEIP María Blanchard: 2,8 M€ por 475 plazas).
- * - Colegio nuevo: 450 plazas a 12.900 €/plaza (CEIP Isabel la Católica: 5,8 M€ por 450 plazas).
- * - Instituto: 880 plazas a 16.600 €/plaza (IES Los Molinos: 14,6 M€ por 880 plazas).
- * - Centro de salud: 7,1 M€ (16 centros por 113,8 M€) y atiende a 23.078 personas, la mediana de las 286 zonas.
+ * Valores por defecto del plan. El coste es la mediana de las obras de referencia de cada tipo (OBRAS_REFERENCIA):
+ * € por plaza en colegios e institutos y lo que cuesta el centro en un centro de salud.
+ * - Ampliar un colegio: una línea (9 aulas de 25 plazas).
+ * - Colegio nuevo: 450 plazas. Instituto: 880 plazas (20 aulas de ESO y 8 de Bachillerato, como el IES Los Molinos).
+ * - Centro de salud: atiende a 23.078 personas, la mediana de las 286 zonas básicas de salud.
  */
+const deReferencia = (t: TipoObra) => OBRAS_REFERENCIA.medianas[t].mediana
 export const PARAMETROS_PLAN: ParametrosPlan = {
   obras: {
-    ampliar_primaria: { plazas: 225, eurosPorPlaza: 6_000, anios: 2 },
-    colegio_primaria: { plazas: 450, eurosPorPlaza: 12_900, anios: 3 },
-    instituto: { plazas: 880, eurosPorPlaza: 16_600, anios: 3 },
-    centro_salud: { plazas: 23_078, eurosPorPlaza: 7_100_000, anios: 3 },
+    ampliar_primaria: { plazas: 225, eurosPorPlaza: deReferencia('ampliar_primaria'), anios: 2 },
+    colegio_primaria: { plazas: 450, eurosPorPlaza: deReferencia('colegio_primaria'), anios: 3 },
+    instituto: { plazas: 880, eurosPorPlaza: deReferencia('instituto'), anios: 3 },
+    centro_salud: { plazas: 23_078, eurosPorPlaza: deReferencia('centro_salud'), anios: 3 },
   },
   anioInicio: 2027,
 }
@@ -84,11 +89,11 @@ export function hospitalLejos(m: Municipio, medida: Medida): boolean {
 }
 
 /**
- * Con tiposConPlan (un plan cargado en el mapa), el tipo se calcula con lo que falta DESPUÉS de reubicar y con las obras
- * (tiposDespues). Sin plan, con lo que llega por tendencia, como siempre.
+ * Con tiposDespues (en el mapa: con «Reubicar» activo o con un plan cargado), el tipo se calcula con lo que falta DESPUÉS
+ * de reubicar y con las obras (función tiposDespues). Si no, con lo que llega por tendencia.
  */
 export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario, inversiones: Inversiones = {},
-  opciones: { tiposConPlan?: boolean } = {}): ResultadoMunicipio[] {
+  opciones: { tiposDespues?: boolean } = {}): ResultadoMunicipio[] {
   const anios = esc.anio - ANIO_BASE
   const universo = municipios.filter((m) => m.universo && m.capacidad)
   const hoy = (m: Municipio) => m.poblacion[String(ANIO_BASE)]
@@ -112,8 +117,7 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
     deZona[m.ine] ? minimo(calcularLimites(m, esc, anios, umbrales, SIN_INVERSION))[1] : parciales[i].caben)
 
   // 3. Tipo: las fronteras son las medianas de los 155 (presión y capacidad relativas a su tamaño).
-  // Se calcula siempre con lo que llega por tendencia, también con la reubicación activa:
-  // si no, los municipios llenos quedarían con margen 0 y el mapa escondería dónde falta sitio.
+  // Aquí, con lo que llega por tendencia; con tiposDespues, al final, con lo que falta después de reubicar.
   const medPresion = mediana(parciales.map((r) => r.crecimiento))
   // Con el escenario sin inversiones: así, invertir en un municipio no cambia el tipo de otro
   const medCapacidad = mediana(parciales.map((r, i) => cabenSinInvertir[i] / r.poblacion))
@@ -125,11 +129,11 @@ export function calcular(municipios: Municipio[], zonas: ZonaSalud[], esc: Escen
 
   // 4. Reubicación (si se activa): lo que no cabe va a los pueblos cercanos con sitio
   const resultados = esc.reequilibrio ? reubicar(conTipo, universo, esc) : conTipo
-  return opciones.tiposConPlan ? tiposDespues(resultados, universo, medPresion, medCapacidad, esc.medida) : resultados
+  return opciones.tiposDespues ? tiposDespues(resultados, universo, medPresion, medCapacidad, esc.medida) : resultados
 }
 
 /**
- * Tipos con un plan cargado: con lo que falta después de reubicar y con las obras.
+ * Tipos con «Reubicar» o con un plan cargado: con lo que falta después de reubicar y con las obras.
  * En tensión, si siguen sin sitio MARGEN_MINIMO personas o más; si no, polo si crece mucho, y oportunidad si le queda
  * mucho sitio después de recibir a la gente reubicada. Las fronteras son las mismas medianas que sin plan.
  */
@@ -152,7 +156,7 @@ function tiposDespues(resultados: ResultadoMunicipio[], universo: Municipio[], m
  *      mín(exceso que le queda al origen, sitio que le queda al destino).
  * Ningún pueblo con el hospital lejos (hospitalLejos, con la misma medida) recibe a nadie, sea del tipo que sea
  * (no solo las oportunidades condicionadas). Lo que no encuentra sitio cerca se queda sin sitio.
- * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade los traslados.
+ * No cambia ni lo que llega por tendencia, ni el margen, ni el tipo: solo añade los traslados (el tipo, con tiposDespues).
  */
 export function reubicar(resultados: ResultadoMunicipio[], municipios: Municipio[],
   esc: Pick<Escenario, 'medida' | 'radioKm' | 'radioMin'>): ResultadoMunicipio[] {
@@ -215,6 +219,16 @@ export function cifrasCabecera(resultados: ResultadoMunicipio[]) {
     sinSitio: resultados.reduce((s, r) => s + Math.max(0, -r.margen), 0) - reubicadas,
     reubicadas,
   }
+}
+
+/** Sitio libre en los municipios que tienen de sobra: la suma de max(0, caben − llegan). */
+export function sitioLibre(resultados: ResultadoMunicipio[]): number {
+  return resultados.reduce((s, r) => s + Math.max(0, r.margen), 0)
+}
+
+/** Para «Dónde vivir»: siempre sin el plan, con los colegios y centros de salud que hay hoy (los tipos, como en el mapa). */
+export function resultadosSinPlan(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario): ResultadoMunicipio[] {
+  return calcular(municipios, zonas, esc, {}, { tiposDespues: esc.reequilibrio })
 }
 
 /** El plan se calcula reubicando en pueblos cercanos: «Ver en el mapa» pone el simulador así. */
@@ -357,6 +371,32 @@ export function nuevaObra(ine: string, tipo: TipoObra, params: ParametrosPlan, i
   return { ine, tipo, ...params.obras[tipo], inicio }
 }
 
+/**
+ * Un centro de salud sirve a toda su zona básica: va al municipio más poblado de su zona de los 155.
+ * El resto de obras se quedan donde están. No cambia ni el coste ni lo que atiende (inversionesPorZona lo reparte igual).
+ */
+export function colocarObra(o: Obra, municipios: Municipio[]): Obra {
+  if (o.tipo !== 'centro_salud') return o
+  const zona = municipios.find((m) => m.ine === o.ine)?.capacidad?.zbs_codigo
+  const mayor = municipios
+    .filter((m) => m.universo && m.capacidad?.zbs_codigo === zona)
+    .reduce<Municipio | null>((a, m) => (!a || m.poblacion[String(ANIO_BASE)] > a.poblacion[String(ANIO_BASE)] ? m : a), null)
+  return mayor ? { ...o, ine: mayor.ine } : o
+}
+
+/** Orden de la lista del plan: primero los colegios e institutos y después los centros de salud (cada grupo, en su orden). */
+export function ordenarObras(obras: Obra[]): Obra[] {
+  return [...obras.filter((o) => o.tipo !== 'centro_salud'), ...obras.filter((o) => o.tipo === 'centro_salud')]
+}
+
+/** Añade una obra arriba de su grupo (colegios e institutos, o centros de salud), en el municipio que le toca (colocarObra). */
+export function anadirObra(obras: Obra[], nueva: Obra, municipios: Municipio[]): Obra[] {
+  const o = colocarObra(nueva, municipios)
+  const ordenadas = ordenarObras(obras)
+  const colegios = ordenadas.filter((x) => x.tipo !== 'centro_salud')
+  return o.tipo === 'centro_salud' ? [...colegios, o, ...ordenadas.slice(colegios.length)] : [o, ...ordenadas]
+}
+
 /** Suma las obras de cada municipio donde se ponen: plazas de primaria, de ESO, y centros de salud con las personas que atienden. */
 export function inversionesDe(obras: Obra[]): Inversiones {
   const inv: Inversiones = {}
@@ -467,7 +507,8 @@ function prepararPlan(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenari
  * - Candidatas: en cada municipio donde faltan MARGEN_MINIMO personas o más y limitan los colegios o la sanidad, la obra más
  *   barata que suelta su límite (obraQueDesbloquea). Si con ella no cabe nadie más porque otro servicio también está lleno
  *   (colegio y centro de salud, o primaria e instituto), el paquete: esa obra y las siguientes (paqueteQueDesbloquea).
- * - Un centro de salud sirve a toda su zona: se propone uno por zona, en el municipio más poblado de los que tienen falta.
+ * - Un centro de salud sirve a toda su zona: se propone uno por zona (desde el municipio más poblado de los que tienen falta)
+ *   y se pone en el municipio más poblado de la zona (colocarObra).
  * - Lo que gana cada candidata es lo que baja la gente sin sitio en los 155 (con la reubicación, si toca), no solo en el suyo:
  *   así un centro cuenta lo que da a toda la zona y, reubicando, lo que libera a los pueblos vecinos.
  * Para cuando ninguna candidata hace caber a MARGEN_MINIMO personas más o no queda presupuesto.
@@ -508,13 +549,14 @@ export function planOptimo(municipios: Municipio[], zonas: ZonaSalud[], esc: Esc
       if (!mejor || gana / coste > mejor.porEuro) mejor = { obras: paquete, porEuro: gana / coste }
     }
     if (!mejor) break
-    obras.push(...mejor.obras)
+    obras.push(...mejor.obras.map((o) => colocarObra(o, plan.universo)))
     gastado += mejor.obras.reduce((s, o) => s + costeObra(o), 0)
   }
-  // Las obras de un mismo municipio, juntas (donde salió la primera): se leen mejor y se escalonan igual
+  // Las obras de un mismo municipio, juntas (donde salió la primera): se leen mejor y se escalonan igual.
+  // Y primero los colegios e institutos, luego los centros de salud (las dos tablas de la pestaña).
   const orden = [...new Set(obras.map((o) => o.ine))]
   const programadas = programarObras(obras, params.anioInicio, opciones.presupuestoAnual)
-  return orden.flatMap((ine) => programadas.filter((o) => o.ine === ine))
+  return ordenarObras(orden.flatMap((ine) => programadas.filter((o) => o.ine === ine)))
 }
 
 /**

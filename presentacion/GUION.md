@@ -90,7 +90,7 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 | 9 | Nada. Señalar «Siguen sin sitio 8.621» | Texto: «La vivienda y el ritmo no se arreglan con colegios ni centros de salud» | «Lo que queda ya no se arregla con colegios ni con centros de salud: es vivienda. Aquí CABIDA le dice a la Administración dónde construir, y dónde no basta con construir.» |
 | 10 | Pulsar **Ver en el mapa** | Mapa con el plan: «Con el plan: 17 obras». **125.805 de las 134.426 personas caben**. 8.621 no encuentran sitio | «Con el plan, caben 125.805 de las 134.426. Los rojos se enfrían.» |
 
-> **Sobre el dinero.** En pantalla se ven los millones (103 M€). No los comentéis como dato firme: son estimaciones a partir de pocas obras recientes de la Comunidad. Si preguntan: «Son estimaciones; las fuentes de cada coste están en la pestaña Plan». En las diapositivas hablamos de obras y de personas.
+> **Sobre el dinero.** En pantalla se ven los millones (97 M€). No los comentéis como dato firme: son estimaciones (la mediana de obras reales de la Comunidad, que son pocas). Si preguntan: «Son estimaciones; las fuentes de cada coste están en la pestaña Plan». En las diapositivas hablamos de obras y de personas.
 
 ### Elegir: dónde vivir (Voz 3, 1:00)
 
@@ -111,7 +111,7 @@ Desde la diapositiva 7, pulsar para pasar a la 8.
 **Diapositiva 8: ¿acierta?**
 - *(se ve)* «¿Y si se equivoca? Lo probamos con el pasado.»
 - *(pulsar)* «Con los datos de 2015 predijimos dónde iría la gente hasta 2025 y lo comparamos con lo que pasó de verdad. Acertamos el pueblo de 77 de cada 100 personas.»
-- *(pulsar)* «Seguir la tendencia sin más acierta 67. Y mirando por zonas, 89.» *(el 89 no está en la diapositiva; está en la web, en «Cómo funciona», sección «¿Acierta?»)*
+- *(pulsar)* «Seguir la tendencia sin más acierta 67. Y mirando por comarcas, 89.» *(el 89 no está en la diapositiva; está en la web, en «Cómo funciona», sección «¿Acierta?»)*
 
 **Diapositiva 9: impacto.**
 - *(pulsar)* «Si cada pueblo se arregla solo: 47 obras y aun así 23.874 personas sin sitio.»
@@ -152,7 +152,7 @@ Recortar, por este orden: el paso 4 (Reubicar), el paso 3 (2039) y, si hace falt
 
 | Pregunta | Respuesta corta |
 |---|---|
-| **¿De dónde salen los costes?** | De pocas obras recientes de la Comunidad (un colegio de Getafe y otro de Alcorcón, un instituto y 16 centros de salud). Son estimaciones. Las fuentes están en la pestaña Plan. Por eso en las diapositivas comparamos obras y personas, no euros |
+| **¿De dónde salen los costes?** | De la mediana de obras reales de la Comunidad entre 2023 y 2026 (10 ampliaciones de colegio, 2 colegios nuevos, 5 institutos y 7 centros de salud), una noticia oficial por obra. Son estimaciones. Las fuentes están en la pestaña Plan y en `data/out/obras_referencia.csv`. Por eso en las diapositivas comparamos obras y personas, no euros |
 | **¿Por qué 134.426?** | Es lo que ganaron estos 155 pueblos entre 2015 y 2025, el 19 % de lo que creció la Comunidad. Si se mira la previsión de 8 millones a 2039, les tocarían entre 118.000 y 128.000 |
 | **¿El suelo previsto es suelo construido?** | No. El planeamiento no es licencia: cuenta como sitio posible, no como vivienda hecha |
 | **¿Y la vivienda vacía?** | Suponemos que se ocupa un 15 %. Es un supuesto sin dato oficial: al 30 % caben 60.286 y 71 pueblos quedan en tensión; al 50 %, 63.277 y 66 |

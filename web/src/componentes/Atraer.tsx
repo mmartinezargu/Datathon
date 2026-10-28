@@ -6,33 +6,23 @@
 import { useMemo, useState } from 'react'
 import { LIMITES } from '../colores'
 import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
-import { FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
-import type { Escenario, FiltrosReparto, LecturaFrase, Medida, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
+import { CORTO, FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
+import type { Escenario, FiltrosReparto, LecturaFrase, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, millones } from '../formato'
 import { csvAtraer, descargar } from '../descarga'
 import { costeObra } from '../motor'
-import { MEDIDAS, hospitalCercano, umbralHospital } from '../medida'
+import { MEDIDAS, umbralHospital } from '../medida'
 import { Asistente } from './Asistente'
 import { Icono } from './Iconos'
+import { GruposPromocion, SinNadie } from './Promocionar'
 
 const MAX_FILAS = 10
-const MAX_PROMOCIONAR = 5
 
 const EJEMPLOS = [
   'Llegan un 30 % de familias y un 50 % de jubilados',
   '¿Dónde atraemos a los jubilados en el sur?',
-  'Atraed a las familias a pueblos pequeños',
+  'Atraed a las familias a municipios pequeños',
 ]
-
-/** Nombre corto de cada grupo para el resumen de los ajustes. */
-const CORTO: Record<Perfil, string> = { familia: 'familias', mayor: 'mayores', teletrabajo: 'teletrabajo' }
-
-/** A quién se dirige la promoción de cada grupo, para el bloque «Dónde promocionar». */
-const PARA_QUIEN: Record<Perfil, string> = {
-  familia: 'familias con hijos',
-  mayor: 'personas mayores',
-  teletrabajo: 'quien teletrabaja',
-}
 
 interface Props {
   resultados: ResultadoMunicipio[] // con las obras del plan
@@ -70,11 +60,6 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
   const filas = todos ? reparto.pueblos : reparto.pueblos.slice(0, MAX_FILAS)
   const cambiar = (cambio: Partial<FiltrosReparto>) => onFiltros({ ...filtros, ...cambio })
   const hayCambios = filtros !== FILTROS_REPARTO || mezcla !== MEZCLA_SUPUESTA
-  // Para cada grupo, los pueblos que más reciben de él: ahí es donde conviene promocionar
-  const promocionar = ORDEN_REPARTO.filter((p) => llegan[p] > 0).map((p) => ({
-    perfil: p,
-    pueblos: reparto.pueblos.filter((f) => f.porPerfil[p] > 0).sort((a, b) => b.porPerfil[p] - a.porPerfil[p]).slice(0, MAX_PROMOCIONAR),
-  }))
 
   // Una frase: dónde (zona, tamaño, hospital, instituto) y, si dice a quién atraer, solo a ese grupo
   // Si da porcentajes («30 % familias»), se ponen y el resto se reparte entre los demás como estaba
@@ -95,10 +80,11 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
   return (
     <div className="mudanza">
       <section className="val-cabeza">
+        <button className="volver atraer-volver" onClick={onIrAlPlan}><Icono nombre="volver" tamano={18} /> Volver al Plan</button>
         <h1>¿Dónde conviene atraer a cada uno?</h1>
         <p>
-          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas a los 155 pueblos, y muchas irán donde ya no caben.
-          Si se pudiera orientar a dónde va cada uno (con campañas, ayudas al alquiler o teletrabajo rural), ¿a qué pueblos
+          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas a los 155 municipios, y muchas irán donde ya no caben.
+          Si se pudiera orientar a dónde va cada uno (con campañas, ayudas al alquiler o teletrabajo rural), ¿a qué municipios
           convendría atraer a las familias, a las personas mayores y a quien teletrabaja? Construir es la otra palanca: está
           en <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
         </p>
@@ -106,7 +92,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
 
       <section className="val-tarjeta filtros simulador">
         <Asistente porIne={porIne} actual={FILTROS_INICIALES} medida={medida} ejemplos={EJEMPLOS} boton="Calcular"
-          noEntendido="Prueba a decir a quién queréis atraer (familias, jubilados, teletrabajo), una zona o un municipio, o si debe ser a pueblos pequeños o con hospital cerca."
+          noEntendido="Prueba a decir a quién queréis atraer (familias, jubilados, teletrabajo), una zona o un municipio, o si debe ser a municipios pequeños o con hospital cerca."
           onLectura={alLeer} />
 
         <details className="atraer-ajustes">
@@ -125,8 +111,8 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
           ))}
         </div>
         <p className="ayuda">
-          {sumaMezcla === 100
-            ? 'Es un supuesto: no hay un dato público de quién llega. Cámbialo para ver otros repartos.'
+          {sumaMezcla === 0 ? 'Todos los grupos están a 0 %: pon el porcentaje de alguno para repartir.'
+            : sumaMezcla === 100 ? 'Es un supuesto: no hay un dato público de quién llega. Cámbialo para ver otros repartos.'
             : `Suman ${miles(sumaMezcla)} %: repartimos en esa proporción, como si sumaran 100 %.`}
         </p>
 
@@ -134,7 +120,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
         <div className="casillas">
           <Casilla texto={`Todos con hospital a menos de ${umbralHospital(medida)}${medida === 'min' ? ' en coche' : ''}`} valor={filtros.hospitalCerca}
             onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
-          <Casilla texto="Familias: solo pueblos con instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
+          <Casilla texto="Familias: solo municipios con instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
         </div>
         <div className="filtros-fila">
           <label className="control">
@@ -163,98 +149,86 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
       </section>
 
       <section className="val-tarjeta simulador">
-        <div className="sim-resumen">
-          <div><b>{miles(reparto.colocados)}</b><span>caben si se atrae a cada uno a su sitio, en {miles(reparto.pueblos.length)} pueblos</span></div>
-          <div className={sinSitio > 0 ? 'sim-falta' : ''}><b>{miles(sinSitio)}</b><span>se quedan sin sitio aun así</span></div>
-          <div><b>{miles(sinDirigir)}</b><span>caben si cada uno va donde le lleva la tendencia (el mapa)</span></div>
-        </div>
-        {sinSitio > 0 && (
-          <p className="ayuda">
-            Sin sitio: {ORDEN_REPARTO.filter((p) => reparto.sinSitio[p] > 0)
-              .map((p) => `${miles(reparto.sinSitio[p])} de «${PERFILES[p].nombre}»`).join(', ')}.
-            {' '}Para ellos hace falta construir: <button className="enlace" onClick={onIrAlPlan}>ver el Plan</button>.
-          </p>
-        )}
-        {hayPlan && (
-          <p className="sim-inversion">
-            <b>Con el plan</b> ({cuantos(obras.length, 'obra', 'obras')}, unos {millones(coste)}) caben{' '}
-            <b>{miles(reparto.colocados - repartoSinPlan.colocados)} personas más</b> que sin él
-            ({miles(repartoSinPlan.colocados)} → {miles(reparto.colocados)}). Las obras se cambian en{' '}
-            <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
-          </p>
-        )}
-
-        <h2>Dónde promocionar a cada grupo</h2>
-        <div className="atraer-grupos">
-          {promocionar.map(({ perfil, pueblos }) => (
-            <div key={perfil} className="atraer-grupo">
-              <h3>A {PARA_QUIEN[perfil]}</h3>
-              {pueblos.length === 0 ? <p className="ayuda">Ningún pueblo con sitio cumple lo que pides.</p> : (
-                <ol>
-                  {pueblos.map((f) => (
-                    <li key={f.ine}>
-                      <button className="enlace" onClick={() => onVerEnMapa(f.ine)}>{porIne.get(f.ine)!.nombre}</button>
-                      <span>atraer a unas {miles(f.porPerfil[perfil])}</span>
-                      <small>{porQue(perfil, porIneRes.get(f.ine)!, porIne.get(f.ine)!, medida)}</small>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <button className="desplegar atraer-descarga" disabled={!reparto.pueblos.length}
-          onClick={() => descargar(`cabida_atraer_${escenario.anio}.csv`, csvAtraer(reparto, resultados, porIne, mezcla, filtros))}>
-          Descargar CSV de los pueblos a promocionar<span className="flecha" aria-hidden="true">↓</span>
-        </button>
-
-        <details className="atraer-detalle">
-        <summary><b>Ver pueblo a pueblo</b> <span className="ayuda">({miles(reparto.pueblos.length)} pueblos)</span></summary>
-        <p className="ayuda">
-          Cuántos de cada grupo convendría atraer a cada pueblo, de lo que le cabe. «Lo llena» es lo primero que se le acaba:
-          si son los colegios o el centro de salud, se puede ampliar en <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
-        </p>
-        {reparto.pueblos.length === 0 ? (
-          <p className="vacio">No hay ningún pueblo con sitio que cumpla lo que pides. Prueba a quitar algún filtro.</p>
-        ) : (
-          <div className="tabla-scroll">
-            <table className="sim-tabla">
-              <thead>
-                <tr>
-                  <th>Pueblo</th>
-                  {ORDEN_REPARTO.map((p) => <th key={p} className="num">{PERFILES[p].nombre}</th>)}
-                  <th className="num">Recibe</th>
-                  <th>Lo llena</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filas.map((f) => (
-                  <tr key={f.ine}>
-                    <td><button className="enlace" onClick={() => onVerEnMapa(f.ine)}>{porIne.get(f.ine)!.nombre}</button></td>
-                    {ORDEN_REPARTO.map((p) => <td key={p} className="num">{f.porPerfil[p] ? miles(f.porPerfil[p]) : '—'}</td>)}
-                    <td className="num"><b>{miles(f.total)}</b><span className="sim-de"> de {miles(hueco(porIneRes.get(f.ine)!))}</span></td>
-                    <td>{f.lleno ? <LoLlena r={porIneRes.get(f.ine)!} /> : <span className="sim-de">queda sitio</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {sumaMezcla === 0 ? (
+          <SinNadie onVolver={() => onMezcla(MEZCLA_SUPUESTA)} />
+        ) : (<>
+          <div className="sim-resumen">
+            <div><b>{miles(reparto.colocados)}</b><span>caben si se atrae a cada uno a su sitio, en {miles(reparto.pueblos.length)} municipios</span></div>
+            <div className={sinSitio > 0 ? 'sim-falta' : ''}><b>{miles(sinSitio)}</b><span>se quedan sin sitio aun así</span></div>
+            <div><b>{miles(sinDirigir)}</b><span>caben si cada uno va donde le lleva la tendencia (el mapa)</span></div>
           </div>
-        )}
-        {reparto.pueblos.length > MAX_FILAS && (
-          <button className="enlace" onClick={() => setTodos(!todos)}>
-            {todos ? `Ver solo los ${MAX_FILAS} primeros` : `Ver los ${miles(reparto.pueblos.length)} pueblos`}
-          </button>
-        )}
-        </details>
+          {sinSitio > 0 && (
+            <p className="ayuda">
+              Sin sitio: {ORDEN_REPARTO.filter((p) => reparto.sinSitio[p] > 0)
+                .map((p) => `${miles(reparto.sinSitio[p])} de «${PERFILES[p].nombre}»`).join(', ')}.
+              {' '}Para ellos hace falta construir: <button className="enlace" onClick={onIrAlPlan}>ver el Plan</button>.
+            </p>
+          )}
+          {hayPlan && (
+            <p className="sim-inversion">
+              <b>Con el plan</b> ({cuantos(obras.length, 'obra', 'obras')}, unos {millones(coste)}) caben{' '}
+              <b>{miles(reparto.colocados - repartoSinPlan.colocados)} personas más</b> que sin él
+              ({miles(repartoSinPlan.colocados)} → {miles(reparto.colocados)}). Las obras se cambian en{' '}
+              <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
+            </p>
+          )}
 
-        <p className="nota">
-          Cada grupo va primero a los pueblos que mejor le encajan (colegios con sitio para las familias, centro de salud para las
-          personas mayores, casas para quien teletrabaja); las familias solo a pueblos con colegio y las personas mayores, con el
-          hospital a menos de {umbralHospital(medida)} {MEDIDAS[medida].como}. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
-          son, y cada pueblo recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
-          salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
-        </p>
+          <h2>Dónde promocionar a cada grupo</h2>
+          <GruposPromocion reparto={reparto} llegan={llegan} resultados={resultados} porIne={porIne} medida={medida}
+            onVerEnMapa={onVerEnMapa} />
+
+          <button className="desplegar atraer-descarga" disabled={!reparto.pueblos.length}
+            onClick={() => descargar(`cabida_atraer_${escenario.anio}.csv`, csvAtraer(reparto, resultados, porIne, mezcla, filtros))}>
+            Descargar CSV de los municipios a promocionar<span className="flecha" aria-hidden="true">↓</span>
+          </button>
+
+          <details className="atraer-detalle">
+          <summary><b>Ver municipio a municipio</b> <span className="ayuda">({miles(reparto.pueblos.length)} municipios)</span></summary>
+          <p className="ayuda">
+            Cuántos de cada grupo convendría atraer a cada municipio, de lo que le cabe. «Lo llena» es lo primero que se le acaba:
+            si son los colegios o el centro de salud, se puede ampliar en <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
+          </p>
+          {reparto.pueblos.length === 0 ? (
+            <p className="vacio">No hay ningún municipio con sitio que cumpla lo que pides. Prueba a quitar algún filtro.</p>
+          ) : (
+            <div className="tabla-scroll">
+              <table className="sim-tabla">
+                <thead>
+                  <tr>
+                    <th>Municipio</th>
+                    {ORDEN_REPARTO.map((p) => <th key={p} className="num">{PERFILES[p].nombre}</th>)}
+                    <th className="num">Recibe</th>
+                    <th>Lo llena</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filas.map((f) => (
+                    <tr key={f.ine}>
+                      <td><button className="enlace" onClick={() => onVerEnMapa(f.ine)}>{porIne.get(f.ine)!.nombre}</button></td>
+                      {ORDEN_REPARTO.map((p) => <td key={p} className="num">{f.porPerfil[p] ? miles(f.porPerfil[p]) : '—'}</td>)}
+                      <td className="num"><b>{miles(f.total)}</b><span className="sim-de"> de {miles(hueco(porIneRes.get(f.ine)!))}</span></td>
+                      <td>{f.lleno ? <LoLlena r={porIneRes.get(f.ine)!} /> : <span className="sim-de">queda sitio</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {reparto.pueblos.length > MAX_FILAS && (
+            <button className="enlace" onClick={() => setTodos(!todos)}>
+              {todos ? `Ver solo los ${MAX_FILAS} primeros` : `Ver los ${miles(reparto.pueblos.length)} municipios`}
+            </button>
+          )}
+          </details>
+
+          <p className="nota">
+            Cada grupo va primero a los municipios que mejor le encajan (colegios con sitio para las familias, centro de salud para las
+            personas mayores, casas para quien teletrabaja); las familias solo a municipios con colegio y las personas mayores, con el
+            hospital a menos de {umbralHospital(medida)} {MEDIDAS[medida].como}. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
+            son, y cada municipio recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
+            salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
+          </p>
+        </>)}
       </section>
     </div>
   )
@@ -270,15 +244,4 @@ function Casilla({ texto, valor, onCambiar }: { texto: string; valor: boolean; o
 
 function LoLlena({ r }: { r: ResultadoMunicipio }) {
   return <span className="sim-llena"><Icono nombre={r.limitante} tamano={15} />{LIMITES[r.limitante].nombre}</span>
-}
-
-/** Por qué conviene promocionar este pueblo entre ese grupo: el sitio que tiene en lo que más le importa. */
-function porQue(perfil: Perfil, r: ResultadoMunicipio, m: Municipio, medida: Medida): string {
-  const { colegios, sanidad, vivienda } = r.limites
-  const partes = perfil === 'familia'
-    ? [colegios !== null ? `colegios con sitio para ${miles(colegios)}` : '', vivienda !== null ? `casas para ${miles(vivienda)}` : '']
-    : perfil === 'mayor'
-      ? [sanidad !== null ? `centro de salud con sitio para ${miles(sanidad)}` : '', `hospital a ${hospitalCercano(m, medida).distancia}`]
-      : [vivienda !== null ? `casas para ${miles(vivienda)}` : '', sanidad !== null ? `centro de salud para ${miles(sanidad)}` : '']
-  return partes.filter(Boolean).join(' · ')
 }

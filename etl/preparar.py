@@ -6,7 +6,9 @@ Salidas:
   web/public/datos/municipios.json   datos por municipio que lee la web
   web/public/datos/limites.geojson   contornos simplificados para el mapa
   data/out/tabla_maestra.csv         lo mismo en CSV (licencia CC BY 4.0)
-  data/out/diccionario.csv           qué es cada columna de tabla_maestra.csv y validacion_municipios.csv
+  data/out/obras_referencia.csv      obras reales que dan los costes por defecto del plan (obras_referencia.py)
+  web/public/datos/obras_referencia.json  lo mismo, con la mediana de cada tipo de obra, para la web
+  data/out/diccionario.csv           qué es cada columna de los CSV de data/out y del CSV del escenario
   web/public/datos/tabla_maestra.csv copia para descargarla desde la web (también sin internet)
 """
 import json
@@ -19,6 +21,7 @@ from scipy.spatial import cKDTree
 
 import capacidad
 import diccionario
+import obras_referencia
 from comun import ANIO_BASE, LIMITE_HABITANTES, OUT, RAW, WEB_DATOS, leer_poblacion, miles
 
 # Peso del suavizado: un pueblo con K habitantes se fía a medias de su propia tasa
@@ -316,6 +319,7 @@ def main() -> None:
     # En el CSV, los vecinos van como texto JSON ({"28002": 12.3, ...}); vacío si no es del reto
     tabla["vecinos_min"] = tabla["vecinos_min"].map(lambda v: json.dumps(v) if v else "")
     tabla.to_csv(OUT / "tabla_maestra.csv", index=False, encoding="utf-8")
+    obras_referencia.escribir()
     diccionario.escribir()
     shutil.copyfile(OUT / "tabla_maestra.csv", WEB_DATOS / "tabla_maestra.csv")
 

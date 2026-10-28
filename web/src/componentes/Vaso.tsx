@@ -3,6 +3,7 @@
 //   - lo que sobresale por encima del borde (rojo) = la gente que llega y no cabe;
 //   - si sobra sitio, el vaso queda medio vacío y se ve el hueco libre.
 // Las alturas son proporcionales: un vaso pequeño con una torre roja encima = no cabe casi nadie.
+// Los nombres y las cifras van al lado, no dentro de las barras.
 // El componente no hace cuentas del modelo: recibe las cifras ya calculadas por el motor.
 
 import type { ReactNode } from 'react'
@@ -13,8 +14,8 @@ interface Props {
   capacidad: number // personas que caben en total
   dentro: number // personas que llegan y caben
   fuera: number // personas que llegan y no caben
-  /** Texto final de la nota cuando sobra sitio en otros municipios (vista de los 155 juntos). */
-  notaLibre?: string
+  /** Nota bajo el vaso cuando rebosa (vista de los 155 juntos): el sitio que queda en otros municipios. */
+  nota?: string
   compacto?: boolean
   /** Explicación del desplegable «¿De dónde sale esto?». Si no se da, no hay desplegable. */
   origen?: ReactNode
@@ -29,7 +30,7 @@ const SUELO = 214 // línea del fondo del vaso
 const ALTO_TOTAL = 186 // altura de la columna más alta (lo que llega, o el vaso si sobra sitio)
 const MINIMO = 10 // para que un trozo muy pequeño siga viéndose
 
-export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen, ampliado }: Props) {
+export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliado }: Props) {
   const llegan = dentro + fuera
   const rebosa = fuera > 0
   // Si rebosa, el vaso útil es lo que ya está lleno; el sitio libre de otros municipios va en la nota
@@ -63,20 +64,12 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen, am
       <svg viewBox="0 0 300 236" role="img" aria-label={resumen}>
         {/* Lo que no cabe: sobresale por encima del borde del vaso */}
         {rebosa && (
-          <g fill={rojo}>
-            <rect x={X_VASO} y={techo} width={ANCHO_VASO} height={altoRojo + 2} rx="6" />
-            <text x={X_VASO + ANCHO_VASO / 2} y={techo + Math.min(altoRojo / 2 + 5, altoRojo - 6)} className="vaso-dentro-texto"
-              textAnchor="middle" fill="#fff" visibility={altoRojo > 34 ? 'visible' : 'hidden'}>no caben</text>
-          </g>
+          <rect x={X_VASO} y={techo} width={ANCHO_VASO} height={altoRojo + 2} rx="6" fill={rojo} />
         )}
 
         {/* El vaso: fondo claro, agua azul y el contorno */}
         <rect x={X_VASO} y={borde} width={ANCHO_VASO} height={altoVaso} fill="#EEF4FA" />
         <rect className="vaso-agua" x={X_VASO} y={SUELO - altoAgua} width={ANCHO_VASO} height={altoAgua} fill={azul} />
-        {!rebosa && libre > 0 && (
-          <text x={X_VASO + ANCHO_VASO / 2} y={borde + Math.min(22, (altoVaso - altoAgua) / 2 + 5)} className="vaso-dentro-texto"
-            textAnchor="middle" fill={azul} visibility={altoVaso - altoAgua > 30 ? 'visible' : 'hidden'}>sitio libre</text>
-        )}
         <path d={`M${X_VASO} ${borde} V${SUELO} H${X_VASO + ANCHO_VASO} V${borde}`} fill="none" stroke="#15233B"
           strokeWidth="4" strokeLinejoin="round" />
         <line x1={X_VASO - 8} y1={borde} x2={X_VASO + ANCHO_VASO + 8} y2={borde} stroke="#15233B" strokeWidth="4" strokeLinecap="round" />
@@ -88,9 +81,7 @@ export function Vaso({ capacidad, dentro, fuera, notaLibre, compacto, origen, am
 
       <figcaption>
         <p className="vaso-frase">{frase(llegan, dentro, fuera, libre, sinAmpliar)}</p>
-        {rebosa && libre > 0 && notaLibre && (
-          <p className="vaso-nota">Queda sitio para {miles(libre)} personas más, {notaLibre}</p>
-        )}
+        {rebosa && nota && <p className="vaso-nota">{nota}</p>}
         {origen && (
           <details className="vaso-origen">
             <summary><span aria-hidden="true">?</span>¿De dónde sale esto?</summary>

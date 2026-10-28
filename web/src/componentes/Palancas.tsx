@@ -64,20 +64,20 @@ export function Palancas({ escenario, onCambiar }: Props) {
       <label className="control interruptor">
         <input type="checkbox" role="switch" checked={escenario.reequilibrio} onChange={(e) => cambiar({ reequilibrio: e.target.checked })} />
         <span className="interruptor-texto">
-          <b>Reubicar en pueblos cercanos con sitio</b>
+          <b>Reubicar en municipios cercanos con sitio</b>
           <span className="pista">
-            Quien no cabe en su municipio va al pueblo con sitio más cercano, a menos de {radioReubicacion(escenario)} y con hospital cerca.
-            Si no hay ninguno, se queda sin sitio. Los colores del mapa no cambian.
+            Quien no cabe en su municipio va al municipio con sitio más cercano, a menos de {radioReubicacion(escenario)} y con hospital cerca.
+            Si no hay ninguno, se queda sin sitio. El mapa colorea con lo que falta después de reubicar.
           </span>
         </span>
       </label>
       {escenario.reequilibrio && (escenario.medida === 'min' ? (
         <Deslizador etiqueta="Tiempo máximo" valor={escenario.radioMin} texto={`${escenario.radioMin} min`}
-          min={10} max={45} paso={5} pista="En coche, sin tráfico, entre los centros de los pueblos."
+          min={10} max={45} paso={5} pista="En coche, sin tráfico, entre los centros de los municipios."
           onCambiar={(v) => cambiar({ radioMin: v })} />
       ) : (
         <Deslizador etiqueta="Distancia máxima" valor={escenario.radioKm} texto={`${escenario.radioKm} km`}
-          min={10} max={50} paso={5} pista="En línea recta entre los centros de los pueblos."
+          min={10} max={50} paso={5} pista="En línea recta entre los centros de los municipios."
           onCambiar={(v) => cambiar({ radioKm: v })} />
       ))}
 

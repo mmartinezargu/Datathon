@@ -11,6 +11,7 @@ import { Mudanza } from './componentes/Mudanza'
 import { Atraer } from './componentes/Atraer'
 import { Metodologia } from './componentes/Metodologia'
 import { Plan } from './componentes/Plan'
+import { PromocionarEnPlan } from './componentes/Promocionar'
 import { Inicio, type Destino, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
@@ -19,10 +20,11 @@ import { Buscador } from './componentes/Buscador'
 import { Icono, type NombreIcono } from './componentes/Iconos'
 import { FILTROS_INICIALES } from './mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA } from './reparto'
-import { MEDIDAS, umbralHospital } from './medida'
+import { MEDIDAS, radioReubicacion, umbralHospital } from './medida'
 import {
-  ANIO_BASE, PARAMETROS_PLAN, SIN_INVERSION, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  inversionesDe, inversionesPorZona, nuevaObra, obraSugerida, quedanSinSitio, resumenReubicacion,
+  ANIO_BASE, PARAMETROS_PLAN, RITMO_ANUAL, SIN_INVERSION, anadirObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan,
+  escenarioPorDefecto, inversionesDe, inversionesPorZona, nuevaObra, obraSugerida, quedanSinSitio, resultadosSinPlan as sinPlan,
+  resumenReubicacion, sitioLibre,
 } from './motor'
 import { COLOR_APAGADO, CONDICIONADA, ESCALA_CRECIMIENTO, ORDEN_TIPOS, TIPOS, colorCrecimiento, textoSobre } from './colores'
 import type { DatosValidacion, Escenario, FiltrosMudanza, FiltrosReparto, Municipio, Obra, OpcionesPlan, ParametrosPlan, Perfil, ResultadoMunicipio, Tipo, ZonaSalud } from './tipos'
@@ -61,7 +63,6 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'plan', texto: 'Plan', icono: 'plan' },
-  { id: 'atraer', texto: 'Atraer', icono: 'repartir' },
   { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
@@ -136,15 +137,22 @@ export default function App() {
 
   // Recalcular solo cuando cambian los datos, las palancas o el plan
   const inversiones = useMemo(() => inversionesDe(obras), [obras])
+  // Con «Reubicar» o con un plan cargado, los colores salen de lo que falta después de reubicar y con las obras
+  const tiposDespues = obras.length > 0 || escenario.reequilibrio
   const resultados = useMemo(
-    // Con un plan cargado, los colores salen de lo que falta después de reubicar y con las obras
-    () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones, { tiposConPlan: obras.length > 0 }) : []),
-    [municipios, zonas, escenario, inversiones, obras.length],
+    () => (municipios && zonas ? calcular(municipios, zonas, escenario, inversiones, { tiposDespues }) : []),
+    [municipios, zonas, escenario, inversiones, tiposDespues],
   )
-  // Lo mismo sin el plan, para que «Atraer» enseñe cuántos más caben gracias a las obras
+  // Lo mismo sin el plan: «Dónde vivir» cuenta siempre con lo que hay hoy, y «Atraer» enseña cuántos más caben gracias a las obras
   const resultadosSinPlan = useMemo(
-    () => (municipios && zonas && obras.length ? calcular(municipios, zonas, escenario) : resultados),
+    () => (municipios && zonas && obras.length ? sinPlan(municipios, zonas, escenario) : resultados),
     [municipios, zonas, escenario, obras.length, resultados],
+  )
+  // Para la nota del vaso: cuánta gente se reubicaría con el radio elegido, también con el interruptor apagado
+  const reubicables = useMemo(
+    () => (municipios && zonas && !escenario.reequilibrio
+      ? resumenReubicacion(calcular(municipios, zonas, { ...escenario, reequilibrio: true }, inversiones)).personas : null),
+    [municipios, zonas, escenario, inversiones],
   )
   const umbrales = useMemo(
     () => (municipios && zonas ? calcularUmbrales(municipios.filter((m) => m.universo), zonas, escenario.exigencia) : null),
@@ -194,6 +202,10 @@ export default function App() {
   const { dentro, sinSitio, reubicadas: dirigidos } = cifrasCabecera(resultados)
   const reequilibrio = escenario.reequilibrio
   const capacidad = resultados.reduce((s, r) => s + r.caben, 0)
+  // «Otros municipios tienen sitio para X personas más. Reubicando a menos de R se aprovechan Y; …»
+  const notaVaso = `Otros municipios tienen sitio para ${miles(sitioLibre(resultados))} personas más. ` +
+    `Reubicando a menos de ${radioReubicacion(escenario)} se aprovechan ${miles(reubicables ?? dirigidos)}; ` +
+    'el resto está lejos o sin hospital cerca.'
   const cuenta = Object.fromEntries(ORDEN_TIPOS.map((t) => [t, resultados.filter((r) => r.tipo === t).length])) as Record<Tipo, number>
   const condicionadas = resultados.filter((r) => r.condicionada).length
   const delReto = municipios.filter((m) => m.universo).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
@@ -202,13 +214,15 @@ export default function App() {
   const vecinos = sel && reequilibrio ? [...sel.envios.map((t) => t.destino), ...sel.llegadas.map((t) => t.origen)] : []
   const invertido = obras.reduce((s, o) => s + costeObra(o), 0)
   const mismaZona = (a: string, b: string) => porIne.get(a)?.capacidad?.zbs_codigo === porIne.get(b)?.capacidad?.zbs_codigo
-  // «Planificar aquí» en la ficha: si el municipio no está en el plan, se añade la obra que suelta su límite
+  // «Planificar aquí» en la ficha: si el municipio no está en el plan, se añade (arriba de su tabla) la obra que suelta su límite
   const planificar = (r: ResultadoMunicipio) => {
     if (!obras.some((o) => o.ine === r.ine)) {
-      setObras([...obras, nuevaObra(r.ine, obraSugerida(porIne.get(r.ine)!, r, umbrales, obras, parametrosPlan), parametrosPlan)])
+      setObras(anadirObra(obras, nuevaObra(r.ine, obraSugerida(porIne.get(r.ine)!, r, umbrales, obras, parametrosPlan), parametrosPlan), municipios))
     }
     setPestana('plan')
   }
+  // «Atraer» no está en el menú: se llega desde «Plan», así que el menú marca «Plan»
+  const activa = (id: Pestana) => pestana === id || (id === 'plan' && pestana === 'atraer')
   const elegir = (ine: string | null) => {
     setSeleccionado(ine)
     if (ine) {
@@ -223,7 +237,7 @@ export default function App() {
         <button className="marca" onClick={() => setPestana('inicio')} aria-label="CABIDA: volver al inicio"><Logo /><span>CABIDA</span></button>
         <nav className="pestanas" aria-label="Secciones">
           {PESTANAS.map((p) => (
-            <button key={p.id} className={pestana === p.id ? 'activa' : ''} aria-current={pestana === p.id ? 'page' : undefined}
+            <button key={p.id} className={activa(p.id) ? 'activa' : ''} aria-current={activa(p.id) ? 'page' : undefined}
               onClick={() => setPestana(p.id)}>
               <Icono nombre={p.icono} tamano={18} /><span>{p.texto}</span>
             </button>
@@ -232,10 +246,11 @@ export default function App() {
       </header>
 
       {pestana === 'inicio' ? (
-        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario.anio, { capacidad, dentro, fuera: sinSitio, reequilibrio })}
+        <main className="pagina"><Inicio totales={totalesInicio(municipios, resultados, escenario, { capacidad, dentro, fuera: sinSitio, reequilibrio, nota: notaVaso })}
           onIr={(d: Destino) => (d === 'acierta' ? irAAcierta() : setPestana(d))} /></main>
       ) : pestana === 'metodologia' ? (
         <main className="pagina"><Metodologia escenario={escenario} validacion={validacion}
+          comarcas={new Set(municipios.filter((m) => m.universo).map((m) => m.zona)).size}
           sinDatoVacias={municipios.filter((m) => m.universo && m.capacidad?.viv_vacias_sin_dato).length}
           sueloEstimado={sueloEstimado} /></main>
       ) : pestana === 'plan' ? (
@@ -245,10 +260,13 @@ export default function App() {
             opciones={opcionesPlan} onOpciones={setOpcionesPlan}
             onFicha={(ine) => { elegir(ine); setPestana('mapa') }}
             onVerEnMapa={() => { setEscenario(escenarioDelPlan(escenario)); setSeleccionado(null); setPestana('mapa') }} />
+          {/* «Atraer» ya no está en el menú: lo que más importa de ella va aquí, y el enlace lleva a la pestaña completa (#atraer) */}
+          <PromocionarEnPlan resultados={resultados} porIne={porIne} escenario={escenario} mezcla={mezcla} filtros={filtrosReparto}
+            onAjustar={() => setPestana('atraer')} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : pestana === 'mudanza' ? (
         <main className="pagina">
-          <Mudanza resultados={resultados} porIne={porIne} escenario={escenario}
+          <Mudanza resultados={resultadosSinPlan} porIne={porIne} escenario={escenario}
             filtros={filtros} onFiltros={setFiltros} comparados={comparados} onComparados={setComparados}
             onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
@@ -267,7 +285,7 @@ export default function App() {
             <BotonPlegar texto="Escenario" lado="izquierda" onPlegar={() => plegar('escenario', true)} />
             <TituloColumna numero={1} texto="Escenario" ayuda="Mueve las palancas" />
             <section className="escenario">
-              <p className="frase">Hasta <b>{escenario.anio}</b>, los pueblos y ciudades pequeñas de Madrid acogen</p>
+              <p className="frase">Hasta <b>{escenario.anio}</b>, los municipios de menos de 50.000 habitantes acogen</p>
               <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
               <Palancas escenario={escenario} onCambiar={setEscenario} />
             </section>
@@ -301,7 +319,7 @@ export default function App() {
               <Cifra valor={miles(dentro)}
                 texto={`de las ${miles(escenario.personas)} personas caben` +
                   (invertido ? ' con el plan' : ' sin ampliar servicios') +
-                  (reequilibrio ? `, reubicando ${miles(dirigidos)} en pueblos cercanos` : '')} />
+                  (reequilibrio ? `, reubicando ${miles(dirigidos)} en municipios cercanos` : '')} />
               <Cifra valor={miles(sinSitio)} acento={TIPOS.tension.color}
                 texto={reequilibrio
                   ? `no encuentran sitio cerca${invertido ? ', aun con el plan' : ': ahí hay que invertir'}`
@@ -316,11 +334,15 @@ export default function App() {
                 <span className="leyenda-muestras" aria-hidden="true">
                   {ORDEN_TIPOS.map((t) => <i key={t} style={{ background: TIPOS[t].color }} />)}
                 </span>
-                {leyendaAbierta ? 'Ocultar leyenda' : obras.length ? 'Leyenda con el plan' : 'Leyenda'}
+                {leyendaAbierta ? 'Ocultar leyenda' : obras.length ? 'Leyenda con el plan' : reequilibrio ? 'Leyenda reubicando' : 'Leyenda'}
               </button>
               <div className="leyenda-cuerpo">
-                {obras.length > 0 && colorMapa === 'tipo' && (
-                  <p className="leyenda-plan">Con el plan: colores según lo que falta después de reubicar y con las obras.</p>
+                {tiposDespues && colorMapa === 'tipo' && (
+                  <p className="leyenda-plan">
+                    {obras.length > 0
+                      ? `Con el plan: colores según lo que falta ${reequilibrio ? 'después de reubicar y ' : ''}con las obras.`
+                      : 'Reubicando: colores según lo que falta después de reubicar en municipios cercanos.'}
+                  </p>
                 )}
                 <Segmentos valor={colorMapa} onCambiar={(v) => { setColorMapa(v); setResaltado(null) }} />
                 {colorMapa === 'tipo' ? (
@@ -370,10 +392,7 @@ export default function App() {
               <>
                 <TituloColumna numero={3} texto="Resultado" ayuda={`Los 155 municipios hasta ${escenario.anio}`} />
                 <section className="resultado-vaso">
-                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto ampliado={invertido > 0}
-                    notaLibre={reequilibrio
-                      ? 'pero lejos de donde falta o en pueblos con el hospital lejos.'
-                      : 'pero en municipios a los que no va la gente: ahí apunta el reequilibrio.'}
+                  <Vaso capacidad={capacidad} dentro={dentro} fuera={sinSitio} compacto ampliado={invertido > 0} nota={notaVaso}
                     origen={<OrigenTodos llegan={dentro + sinSitio} anio={escenario.anio} reequilibrio={reequilibrio} />} />
                 </section>
                 {reequilibrio && <Reubicacion resumen={reubicacion} medida={escenario.medida} sinSitio={sinSitio} porIne={porIne} onElegir={elegir} />}
@@ -395,8 +414,8 @@ export default function App() {
 }
 
 /** Cifras de la portada. Son sumas de lo que ya han calculado Python y el motor. */
-function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], anio: number,
-  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean }): Totales {
+function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[], esc: Escenario,
+  vaso: { capacidad: number; dentro: number; fuera: number; reequilibrio: boolean; nota: string }): Totales {
   const suma = (lista: Municipio[], anioPob: number) => lista.reduce((s, m) => s + (m.poblacion[String(anioPob)] ?? 0), 0)
   const universo = municipios.filter((m) => m.universo)
   return {
@@ -404,7 +423,9 @@ function totalesInicio(municipios: Municipio[], resultados: ResultadoMunicipio[]
     vecinos: suma(universo, ANIO_BASE),
     crecimientoPequenos: suma(universo, ANIO_BASE) / suma(universo, ANIO_BASE - 10) - 1,
     crecimientoComunidad: suma(municipios, ANIO_BASE) / suma(municipios, ANIO_BASE - 10) - 1,
-    anio,
+    anio: esc.anio,
+    personas: esc.personas,
+    ritmoDecada: esc.personas === Math.round(RITMO_ANUAL * (esc.anio - ANIO_BASE)),
     ...vaso,
   }
 }
@@ -475,12 +496,16 @@ function Segmentos({ valor, onCambiar }: { valor: ColorMapa; onCambiar: (v: Colo
 }
 
 type Lista = 'tension' | 'oportunidad' | 'crecimiento'
+const PRIMEROS = 8 // las listas enseñan 8; el resto, con «Ver todos»
 
 function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   resultados: ResultadoMunicipio[]; porIne: Map<string, Municipio>; resaltado: Tipo | null; reubicar: boolean
   onElegir: (ine: string) => void
 }) {
   const [lista, setLista] = useState<Lista>('tension')
+  // «Ver todos» se recuerda para la lista que se está viendo (al cambiar de lista, otra vez las 8 primeras)
+  const [todosEn, setTodosEn] = useState<string | null>(null)
+  const clave = resaltado ?? lista
   // Con «Reubicar» activo, a los que tienen sitio se les descuenta lo que reciben de pueblos cercanos
   const sitio = (r: ResultadoMunicipio) => (r.margen > 0 ? r.margen - r.recibe : r.margen)
   const margen = {
@@ -504,7 +529,7 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
     color: () => TIPOS[resaltado].color,
   } : {
     tension: reubicar ? {
-      titulo: 'Donde más gente sigue sin sitio', ayuda: 'Personas, después de reubicar en pueblos cercanos.',
+      titulo: 'Donde más gente sigue sin sitio', ayuda: 'Personas, después de reubicar en municipios cercanos.',
       ...sinSitio(resultados.filter((r) => r.tipo === 'tension')), color: () => TIPOS.tension.color,
     } : {
       titulo: 'Donde más gente se queda sin sitio', ayuda: 'Personas, en el escenario elegido.',
@@ -526,8 +551,9 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
   }[lista]
   // Con la reubicación, la cifra lleva «(envía …)» o «(recibe …)»: columna más ancha
   const conEnvio = reubicar && (resaltado ? true : lista !== 'crecimiento')
-  const top = config.filas.slice(0, 8)
-  const max = top.length ? config.valor(top[0]) || 1 : 1
+  const todos = todosEn === clave
+  const top = todos ? config.filas : config.filas.slice(0, PRIMEROS)
+  const max = top.length ? Math.max(...top.map(config.valor)) || 1 : 1
 
   return (
     <section className="ranking">
@@ -555,6 +581,12 @@ function Listas({ resultados, porIne, resaltado, reubicar, onElegir }: {
           </li>
         ))}
       </ol>
+      {config.filas.length > PRIMEROS && (
+        <button className="desplegar ver-todos" aria-expanded={todos} onClick={() => setTodosEn(todos ? null : clave)}>
+          {todos ? `Ver solo los ${PRIMEROS} primeros` : `Ver todos (${config.filas.length})`}
+          <span className="flecha" aria-hidden="true">{todos ? '−' : '+'}</span>
+        </button>
+      )}
     </section>
   )
 }

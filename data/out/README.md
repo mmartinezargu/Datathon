@@ -8,7 +8,8 @@ Datos generados por CABIDA para los 179 municipios de la Comunidad de Madrid, co
 |---|---|---|---|
 | `tabla_maestra.csv` | Los datos de partida de cada municipio: población 2005–2025, tendencia, vivienda, planeamiento, colegios, zona básica de salud y hospital más cercano | 179 (una por municipio; `universo = True` en los 155 del reto) | `etl/preparar.py` |
 | `validacion_municipios.csv` | Prueba contra el pasado: lo que el modelo, con datos hasta 2015, preveía que crecería cada municipio en 2015–2025, frente a lo que creció de verdad | 155 | `etl/validacion.py` |
-| `diccionario.csv` | Qué significa cada columna de los dos archivos anteriores y del CSV del escenario que se descarga desde la web, en qué unidad va y de qué fuente sale | una por columna | `etl/preparar.py` (las descripciones están en `etl/diccionario.py`) |
+| `obras_referencia.csv` | Obras reales de la Comunidad de Madrid (2023–2026) con plazas (o vecinos que atiende), coste y € por plaza, y el enlace a su noticia en comunidad.madrid. La mediana de cada tipo es el coste por defecto del plan de la web | una por obra | `etl/obras_referencia.py` (desde `preparar.py`) |
+| `diccionario.csv` | Qué significa cada columna de los archivos anteriores y del CSV del escenario que se descarga desde la web, en qué unidad va y de qué fuente sale | una por columna | `etl/preparar.py` (las descripciones están en `etl/diccionario.py`) |
 
 Formato: CSV en UTF-8, separador `,` y punto decimal. La clave para cruzar los archivos es `ine`, el código INE de 5 cifras del municipio (`28001` = La Acebeda).
 
