@@ -16,8 +16,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/App.tsx` | Estado global y composición de la app |
 | `src/componentes/Mapa.tsx` | Mapa MapLibre de los 155 municipios coloreados por tipo (con «Reubicar» o con un plan, el tipo es el de después de reubicar y con las obras: `tiposDespues` en `calcular`) |
 | `src/componentes/Palancas.tsx` | Controles del escenario (supuestos) |
-| `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso, frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta». Al final, la línea «En el plan: … → Planificar aquí» |
-| `src/componentes/Plan.tsx` | Pestaña «Plan» (`#plan`): lista de obras editable (botones «Plan recomendado» y «A tu medida»: con un presupuesto o a mano), en dos tablas (colegios e institutos; centros de salud; las obras nuevas entran arriba de su tabla con `anadirObra`), resultado con la comparación sin reubicar, calendario (Recharts), parámetros con la mediana de obras reales y «Ver en el mapa». Lo que construye el plan va en el CSV del escenario (`plan_obras`, `plan_apertura`). Las cuentas, en `motor.ts` (`planOptimo`, `evaluarPlan`). Debajo, `PromocionarEnPlan` (`Promocionar.tsx`): dónde promocionar a cada grupo, con enlace a «Atraer» para cambiarlo |
+| `src/componentes/Ficha.tsx` | Ficha de un municipio: vaso (con «Reubicar», lo de después de reubicar: `vasoFicha`), frase y los 4 límites. La cuenta con números va tapada en «Ver la cuenta». Al final, la línea «En el plan: … → Planificar aquí» |
+| `src/componentes/Plan.tsx` | Pestaña «Plan» (`#plan`): lista de obras editable (botones «Plan recomendado» y «A tu medida»: con un presupuesto o a mano), en dos tablas (colegios e institutos; centros de salud; las obras nuevas entran arriba de su tabla con `anadirObra`), interruptor propio «Reubicar» (por defecto, sí; `escenarioDelPlan(esc, reubica)`), cualquier tipo de obra en cada fila (`cambiarTipoObra`), resultado con la comparación del caso contrario con las mismas obras (`sinSitioAlReves`), calendario (Recharts), parámetros con la mediana de obras reales y «Ver en el mapa». Lo que construye el plan va en el CSV del escenario (`plan_obras`, `plan_apertura`). Las cuentas, en `motor.ts` (`planOptimo`, `evaluarPlan`). Debajo, `PromocionarEnPlan` (`Promocionar.tsx`): dónde promocionar a cada grupo, con enlace a «Atraer» para cambiarlo |
 | `src/componentes/Promocionar.tsx` | «Dónde promocionar a cada grupo» (`GruposPromocion`: los 5 municipios que más reciben de cada perfil, con el porqué). Lo usan «Atraer» y el final de «Plan» (`PromocionarEnPlan`) |
 | `src/fuentesPlan.ts` | Nombres de las obras, cómo se cuentan en los textos (`textoObras`) y fuente del tamaño y plazo de cada obra. El coste por defecto es la mediana de `public/datos/obras_referencia.json` (de `etl/obras_referencia.py`), que `motor.ts` importa (`OBRAS_REFERENCIA`, `PARAMETROS_PLAN`) |
 | `src/componentes/ObrasReferencia.tsx` | «Mediana de N obras de la Comunidad…» y la lista desplegable de obras con su enlace (en «Plan» y «Cómo funciona») |
@@ -37,7 +37,9 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/diseno.css` | Estilos del rediseño (3 columnas, vaso, portada, móvil). Va después de `estilo.css` |
 | `src/colores.ts` | Paleta de los 4 tipos. Úsala siempre, no metas colores sueltos |
 | `src/formato.ts` | Formato español de números y porcentajes |
-| `public/datos/` | **Generado** por el ETL. No editar a mano |
+| `public/datos/` | **Generado** por el ETL. No editar a mano. `resultados_2035.csv`, `plan_recomendado.csv` y `zonas_salud.csv` los genera `scripts/datasets.ts` |
+| `scripts/datasets.ts` | `npm run datasets`: los CSV de resultados del escenario por defecto para `data/out` (y `public/datos`), con el motor de la web. Volver a ejecutarlo si cambia el motor |
+| `scripts/copia-offline.mjs` | `npm run offline`: la web en un solo HTML sin internet (`offline/`); se copia a `entrega/offline/` |
 
 ## Asistente con IA
 

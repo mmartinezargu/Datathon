@@ -1,6 +1,6 @@
 # Lo que falta para la final (jueves 29/10)
 
-Regla: **congelación hoy, miércoles 28, a las 18:00**. Lo que no esté fusionado en `main` a esa hora no entra. Después, solo ensayos y textos de diapositivas. La final es el jueves 29 a las 10:00 (llegada 9:15).
+Regla: **congelado el 28/10: el 29 solo se presenta**. La final es el jueves 29 a las 10:00 (llegada 9:15).
 
 ## Decisiones del martes 27 (tomadas)
 
@@ -32,12 +32,12 @@ Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por
 | # | Tarea | Quién | Hecho |
 |---|---|---|---|
 | R1 | Plan: «Plan recomendado», poda y «pasan a caber» sin ceros | | ✅ 28/10 (rama `mejora/plan-recomendado`) |
-| R2 | Textos de «Supuestos del cálculo», de la ficha y del deslizador de personas | | |
-| R3 | «Atraer»: mayores y teletrabajo no ocupan plazas de colegio | | |
-| R4 | «Dónde vivir»: hospital cerca por defecto para familias y frase con lo más justo | | |
-| R5 | Datasets nuevos en `data/out` | | |
-| R6 | Diapositivas y guion con las cifras finales (después de R1) | | ✅ 28/10 (falta solo quitar la trampa del deslizador, si entra R2) |
-| R7 | Prueba completa en portátil y móvil, y copia offline en 2 portátiles y un USB, probada sin red | | |
+| R2 | Textos de «Supuestos del cálculo», de la ficha y del deslizador de personas | | ✅ 28/10 (rama `entrega/final-29`) |
+| R3 | «Atraer»: mayores y teletrabajo no ocupan plazas de colegio | | ✅ 28/10 (rama `entrega/final-29`) |
+| R4 | «Dónde vivir»: hospital cerca por defecto para familias y frase con lo más justo | | ✅ 28/10 (rama `entrega/final-29`) |
+| R5 | Datasets nuevos en `data/out` | | ✅ 28/10 (rama `entrega/final-29`) |
+| R6 | Diapositivas y guion con las cifras finales (después de R1) | | ✅ 28/10 (versión final en `entrega/final-29`: fuentes en la 6, QR en la 11, trampa del deslizador fuera) |
+| R7 | Prueba completa en portátil y móvil, y copia offline en 2 portátiles y un USB, probada sin red | | ✅ copia en `entrega/offline/`, probada sin red con Playwright (28/10). Falta copiarla a los 2 portátiles y al USB |
 | R8 | Guion: respuesta sobre Oracle y reparto de voces | | ✅ 28/10 |
 
 ### R1. Plan: de «Plan óptimo» a «Plan recomendado»
@@ -71,14 +71,20 @@ Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por
 - «Ver la cuenta» de sanidad: «Quedan 816 plazas en la zona» → «La zona tiene sitio para 816 personas más».
 - Deslizador de personas: la pista dice «Por defecto, 134.000»; tiene que decir la cifra exacta (134.426). Además, que encaje en el valor por defecto al pasar cerca (±500) y que salga un enlace «Volver a 134.426» cuando el valor sea otro. Así desaparece la trampa del guion.
 
+- **Hecho (28/10, `entrega/final-29`).** Títulos y ayudas con los números del motor: en la exigencia media, en un municipio de 5.000 vecinos un colegio de primaria se llena con unos 281 alumnos (estricta, 249; flexible, 368) y una zona de salud con 38.891 vecinos (30.239 y 46.842). «De municipios de tamaño parecido» en todos los textos, «Al límite hoy» sin el «X % por encima», «La zona tiene sitio para…», y el deslizador encaja en 134.426 (±500) con el enlace «Volver a 134.426». En la ayuda del ritmo, si se cambia el 3 %, dice «Con el 3,0 % de CABIDA, el modelo acierta 77…» (el 77 solo vale con el 3 %).
+
 ### R3. «Atraer»: mayores y colegios
 - En `web/src/reparto.ts`, `hueco()` usa `caben`, que incluye el límite de colegios, para todos los grupos. Un municipio lleno de colegios no recibe jubilados aunque tenga casas y centro de salud.
 - Llevar por municipio lo que queda de cada límite (vivienda, colegios, sanidad y ritmo). Las familias gastan los cuatro; mayores y teletrabajo, todos menos colegios.
 - Test: un municipio con colegios a 0 y sitio en casas y sanidad recibe mayores y no familias.
 
+- **Hecho (28/10).** `reparto.ts` lleva lo que queda de cada límite por municipio (`LIMITES_DE`). Con el escenario por defecto, en minutos, «Atraer» coloca **121.746** personas (antes 86.462): caben todos los mayores y los de teletrabajo, y se quedan sin sitio 12.680 familias. «Atraer» sigue pidiendo hospital cerca solo a los mayores.
+
 ### R4. «Dónde vivir»
 - Marcar por defecto «Con hospital a menos de 30 min» también para «Familia con hijos». Hoy los primeros son Rascafría (hospital a 49 min) y Cenicientos (a 65). Teletrabajo sigue sin marcar, para que funcione el ejemplo de la Sierra Norte. Comprobar que los 3 ejemplos siguen dando resultados y que el de Getafe sigue sacando Humanes de Madrid, como en el guion.
 - En la frase de cada municipio, nombrar también lo que va más justo. Rascafría: casa solo para unas 254 personas.
+
+- **Hecho (28/10).** Familias y mayores, con hospital a menos de 30 min por defecto; teletrabajo, no. Los 3 ejemplos dan resultados (Getafe: Humanes de Madrid, 75, y San Martín de la Vega; jubilado: 15 municipios; Sierra Norte: 13). La frase añade «Lo más justo: …» cuando no es ya una de las dos razones (Rascafría: casa solo para unas 254 personas).
 
 ### R5. Datasets nuevos en `data/out`
 Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo las columnas de minutos (ODbL, como las demás).
@@ -87,11 +93,19 @@ Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo
 - `zonas_salud.csv`: las 286 zonas (población, límite, municipios).
 - Añadirlos a `data/out/README.md`, al diccionario y a «Llévate los datos».
 
+- **Hecho (28/10).** `web/scripts/datasets.ts` (`npm run datasets` en `web/`), con el motor de la web: `resultados_2035.csv` (155), `plan_recomendado.csv` (17 obras, 97,1 M€) y `zonas_salud.csv` (286). Están en el diccionario, en `data/out/README.md`, en «Llévate los datos» y en la copia sin internet. Si cambia el motor, hay que volver a ejecutarlo.
+
 ### R6. Diapositivas y guion (cuando R1 dé las cifras)
 - Diapositiva 9: «unos 282 millones frente a unos 103» → **261** frente a **97,1** (o lo que dé R1); «Plan óptimo» → «Plan recomendado»; «pueblos» → «municipios» en todas las diapositivas. Regenerar `entrega/CABIDA_presentacion_final.pdf`.
 - `presentacion/GUION.md`: lo mismo. Además, el paso 8 («el plan óptimo elige, una a una…») y la nota de 103 M€; la respuesta sobre costes (ahora son 28 obras reales y la mediana de cada tipo, en la tabla «Lo que vale cada obra del plan»); quitar la trampa del deslizador cuando esté R2.
 - **Hecho en parte (rama `correccion/textos-guion-diapositivas`)**: los 261 / 97 ya estaban; «Plan óptimo» → «Plan recomendado» en la diapositiva 9, en la versión detallada (2 sitios) y en el guion (pasos 8 y «Si vamos mal de tiempo»); paso 8 = «la que hace caber a más gente por cada euro, y luego quita las que sobran»; los dos PDF regenerados. **Queda**: la trampa del deslizador (después de R2).
 - **Hecho (28/10, rama `correccion/pueblos-a-municipios`)**: «pueblos» → «municipios» en las dos presentaciones y en el guion, con los dos PDF regenerados; también en el diccionario (`etl/diccionario.py` → `data/out/diccionario.csv`), `data/out/README.md` y `THIRD_PARTY.md`. En el código solo queda en nombres internos y comentarios (`reparto.pueblos`, el tamaño `'pueblo'`), que no se ven. Ojo: las medianas de coste salen de 24 obras (10 + 2 + 5 + 7), no de las 28 del catálogo.
+
+### Última tanda (28/10 tarde, rama `entrega/final-29`)
+- **Plan:** interruptor propio «Reubicar en municipios cercanos» (activado por defecto); «Ver en el mapa» lleva ese valor. La comparación usa siempre las obras de la lista y enseña el caso contrario: con el plan recomendado reubicando, «Sin reubicar…, con estas mismas obras, seguirían sin sitio 40.245». Los 261 M€ y las 47 obras se ven quitando el interruptor y pulsando «Plan recomendado».
+- **Plan a mano:** cada fila puede ser cualquiera de los 4 tipos y pasa a su tabla; sin restricciones. Un centro puesto a mano se queda en su municipio (solo el plan recomendado lo lleva al más poblado de la zona).
+- **Ficha con «Reubicar»:** el vaso y la frase enseñan lo de después de reubicar («Se van a municipios cercanos» / «Recibe de municipios cercanos»). La suma de «no caben» de las 155 fichas es 51.284 (test).
+- **Copias sin internet** en `entrega/offline/`: `CABIDA.html` (con `datos/`) y `CABIDA_diapositivas.html`. La copia de la web estaba rota (el código se pegaba con `replace` de texto y los «$'» lo estropeaban): arreglado en `scripts/copia-offline.mjs`.
 
 ### R7. Prueba completa y copia offline
 - Portátil y móvil, todas las palancas, «Plan», «Atraer» y «Dónde vivir». Los fallos, en la PR correspondiente.
