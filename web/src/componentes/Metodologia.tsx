@@ -133,11 +133,13 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
         <h2>Y además</h2>
         <p>
           <b>Plan: ¿qué hace falta para que quepan?</b> Una lista de obras (ampliar un colegio, colegio nuevo, instituto o centro de salud)
-          con sus plazas, su coste y el año en que abren. El «plan óptimo» va añadiendo, una a una, la obra que hace caber a más gente por
-          cada euro: en cada municipio, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
+          con sus plazas, su coste y el año en que abren. El «plan recomendado» añade, una a una, la obra con más personas por euro y luego
+          quita las que sobran; se llama «recomendado» porque no se prueban todas las combinaciones. Al añadir, elige en cada municipio, la más barata que suelta su límite (primero ampliar, luego construir), y como mucho un centro de salud
           por zona cada vez, porque sirve a toda la zona (se pone en el municipio más poblado de la zona). Lo que gana una obra se cuenta en los 155, no solo en su municipio: un centro suma
           lo que da a toda su zona y, reubicando, lo que libera a los municipios vecinos. Para cuando lo que limita es la vivienda o el ritmo,
-          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Se calcula reubicando en municipios cercanos y se compara con
+          o ninguna obra hace caber a {MARGEN_MINIMO} personas más. Al quitar, prueba cada obra de la más cara a la más barata: si sin ella
+          no se queda nadie más sin sitio, sale. «Pasan a caber» de cada obra es cuánta gente se quedaría sin sitio si se quitara solo esa,
+          con las demás puestas. Se calcula reubicando en municipios cercanos y se compara con
           «cada municipio con lo suyo». Con un plan cargado, el mapa colorea según lo que falta después de reubicar y con las obras. «Dónde vivir» no cuenta el plan: enseña los colegios y centros de salud que hay hoy. Con un presupuesto anual, el coste de cada obra se reparte entre sus años de obra y las obras se escalonan
           para no pasarse. Todos los valores se pueden cambiar; los de partida y su fuente están en la tabla de abajo.
         </p>
@@ -353,7 +355,7 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
               edad que viven en el municipio por vecino. Cada centro de salud nuevo sirve a toda su zona básica: suma a lo que aguanta la
               zona las personas que atiende (de partida, la mediana de las zonas); si la zona ya se pasa del límite, primero cubre esa parte,
               y cada municipio de la zona se lleva su parte según sus vecinos. Después se recalcula todo: a veces el límite pasa a otro
-              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan óptimo cuenta las dos juntas.
+              recurso. Si con una obra no cabe nadie más porque otro servicio también está lleno, el plan recomendado cuenta las dos juntas.
             </p>
             <p>
               <b>Dónde vivir y atraer.</b> Cada perfil ordena los municipios por el sitio que les queda en colegios, centro de salud y vivienda

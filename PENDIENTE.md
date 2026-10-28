@@ -31,7 +31,7 @@ Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por
 
 | # | Tarea | Quién | Hecho |
 |---|---|---|---|
-| R1 | Plan: «Plan recomendado», poda y «pasan a caber» sin ceros | | |
+| R1 | Plan: «Plan recomendado», poda y «pasan a caber» sin ceros | | ✅ 28/10 (rama `mejora/plan-recomendado`) |
 | R2 | Textos de «Supuestos del cálculo», de la ficha y del deslizador de personas | | |
 | R3 | «Atraer»: mayores y teletrabajo no ocupan plazas de colegio | | |
 | R4 | «Dónde vivir»: hospital cerca por defecto para familias y frase con lo más justo | | |
@@ -50,6 +50,11 @@ Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por
 - «Cómo funciona», en 2 frases: añade la obra con más personas por euro y luego quita las que sobran; se llama «recomendado» porque no se prueban todas las combinaciones. Si la comprobación no encuentra nada: «Comprobado en el escenario por defecto: quitar o cambiar una obra no lo abarata».
 - Tests: ninguna obra del plan con «pasan a caber» 0; la poda nunca sube la gente sin sitio.
 - Al acabar, apuntar aquí las cifras nuevas del plan (coste, obras, pasan a caber, sin sitio), en minutos y en km. Hoy: 97,1 M€ y 17 obras en minutos; 79,4 M€ en km.
+- **Hecho (28/10).** «Plan recomendado» en la web y en «Cómo funciona»; poda después del voraz (`podarPlan`); «pasan a caber» = lo que sube la gente sin sitio al quitar solo esa obra, con nota bajo la tabla; tests (ninguna obra con 0 en minutos y en km, también con presupuesto; la poda).
+  - **Las cifras no cambian**: la poda no quita ninguna obra del plan por defecto. Minutos: 17 obras (7 ampliaciones, 3 institutos, 7 centros) en 17 municipios, **97,1 M€**, pasan a caber **42.663**, siguen sin sitio **8.621**. Km: 15 obras, **79,4 M€**, 41.455 y 9.319. Sin reubicar: 47 obras, 261,0 M€, sin sitio 23.874.
+  - **Colmenarejo**: el instituto pasa de 0 a **1.050** personas (antes se contaba antes de los centros de salud de los que depende). La obra que menos rinde ahora es el centro de Torrelodones: 183 personas (36.538 € por persona); se queda porque sin él 183 más se quedan sin sitio.
+  - **Comprobación de cambios de obra (script, no está en la web: tarda 8 s).** Cambiar una obra por otra más barata, de otro tipo o municipio, SÍ abarata el plan. En minutos, 6 cambios: de 97,1 a **67,1 M€** y de 8.621 a **4.986** sin sitio (p. ej. el instituto de Colmenarejo por ampliar el colegio de El Álamo: −8,6 M€ y 251 menos sin sitio; los centros de San Agustín del Guadalix y Torrelodones por ampliar colegios en Arroyomolinos y Becerril). En km, 4 cambios: de 79,4 a **58,0 M€** y de 9.319 a **6.673**. Por eso en «Cómo funciona» NO se dice «comprobado: no se abarata».
+  - **Por qué**: el voraz solo propone obras donde falta sitio. Reubicando, ampliar un colegio en un municipio cercano con casas y hospital cerca (El Álamo, El Escorial, Becerril) hace caber a los que llegan de los vecinos. Probado dejar que el voraz mire también esos municipios: en minutos sale **22 obras, 122,2 M€, sin sitio 1.322** (49.962 pasan a caber); en km, 23 obras, 112,0 M€, sin sitio 761. **No está metido**: cambia todas las cifras del plan de las diapositivas y del guion. Decidir antes de las 18:00; si no, respuesta para preguntas: «el plan es recomendado, no óptimo: ya sabemos que reubicando sale más barato construir también donde llega la gente de los vecinos».
 
 ### R2. Textos
 - «Hasta dónde se cargan colegios y centros de salud» → título **«¿Cuándo damos por lleno un colegio o un centro de salud?»**. Ayuda, con los números que da el motor para la opción elegida:

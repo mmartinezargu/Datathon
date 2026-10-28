@@ -123,7 +123,7 @@ export interface ParametrosPlan {
   anioInicio: number // año en que pueden empezar las obras
 }
 
-/** Con qué se rellena el plan óptimo. Sin presupuesto ni municipios: todo lo que haga falta, en los 155. */
+/** Con qué se rellena el plan recomendado. Sin presupuesto ni municipios: todo lo que haga falta, en los 155. */
 export interface OpcionesPlan {
   presupuestoTotal?: number // euros
   presupuestoAnual?: number // euros al año: las obras se escalonan para no pasarse
@@ -143,7 +143,7 @@ export interface ResultadoPlan {
   reubicadas: number // con el plan, personas que van a un pueblo cercano
   ultimaApertura: number | null
   calendario: { anio: number; personas: number }[] // personas que pasan a caber cada año, según abren las obras
-  ganaPorObra: number[] // lo que baja la gente sin sitio en los 155 al sumar cada obra a las de antes en la lista (suman pasanACaber)
+  ganaPorObra: number[] // cuánta gente se quedaría sin sitio de más en los 155 si se quita solo esa obra (no tienen por qué sumar pasanACaber)
 }
 
 /** Curva de alumnos por colegio según el tamaño: log(límite) = a + b · log(población) + ajuste. */
