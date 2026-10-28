@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { PARAMETROS_PLAN, calcular, escenarioDelPlan, escenarioPorDefecto, inversionesDe, planOptimo, resultadosSinPlan } from '../src/motor'
-import { FILTROS_INICIALES, rankingMudanza } from '../src/mudanza'
+import { EJEMPLOS_FRASE, FILTROS_INICIALES, interpretarFrase, rankingMudanza } from '../src/mudanza'
 import type { Municipio, ZonaSalud } from '../src/tipos'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
@@ -11,6 +11,28 @@ const zonas = leer<ZonaSalud[]>('zonas_salud.json')
 const porIne = new Map(municipios.map((m) => [m.ine, m]))
 
 describe('Dónde vivir', () => {
+
+  // Las frases de ejemplo de la caja deben dar resultados; la primera es la de la demo
+  describe('frases de ejemplo', () => {
+    const esc = escenarioPorDefecto(2035, 'min')
+    const res = calcular(municipios, zonas, esc)
+    const candidatos = (frase: string) => {
+      const lectura = interpretarFrase(frase, municipios, FILTROS_INICIALES, esc.medida)
+      return rankingMudanza(res, porIne, lectura.filtros, esc.medida).map((c) => porIne.get(c.ine)!.nombre)
+    }
+
+    it.each(EJEMPLOS_FRASE)('«%s» encuentra algún municipio', (frase) => {
+      expect(candidatos(frase).length).toBeGreaterThan(0)
+    })
+
+    it('la primera (la de la demo) da 10 municipios medianos, con El Boalo primero', () => {
+      const nombres = candidatos(EJEMPLOS_FRASE[0])
+      expect(nombres).toHaveLength(10)
+      expect(nombres.slice(0, 3)).toEqual(['El Boalo', 'Villalbilla', 'Villarejo de Salvanés'])
+      expect(nombres.every((n) => { const m = municipios.find((x) => x.nombre === n)!; return m.poblacion['2025'] >= 5000 && m.poblacion['2025'] < 20000 })).toBe(true)
+    })
+  })
+
   it.each([false, true])('el ranking es el mismo con y sin plan (reubicando: %s)', (reequilibrio) => {
     const esc = { ...escenarioPorDefecto(2035, 'min'), reequilibrio }
     const plan = planOptimo(municipios, zonas, escenarioDelPlan(esc), PARAMETROS_PLAN)
