@@ -35,6 +35,8 @@ ESCENARIO = ("Cálculo de CABIDA en la web (web/src/motor.ts) con el escenario e
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
 NOTICIAS_CM = ("Comunidad de Madrid, noticias de obras en comunidad.madrid (2023–2026); la de cada obra, en la columna url",
                "https://www.comunidad.madrid/noticias")
+RESULTADOS = ("Cálculo de CABIDA con el motor de la web (web/scripts/datasets.ts, npm run datasets): escenario por defecto, "
+              "2035, minutos en coche, exigencia media", "https://cabida.vercel.app")
 OBRAS_CABIDA = ("Cálculo de CABIDA (etl/obras_referencia.py) a partir de las noticias", "https://www.comunidad.madrid/noticias")
 
 # archivo -> [(columna, descripción, unidad, (fuente, url))]
@@ -160,6 +162,50 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("fuente", "Quién lo publica y cuándo", "texto", NOTICIAS_CM),
         ("url", "Página de la noticia en comunidad.madrid", "URL", NOTICIAS_CM),
         ("nota", "Aclaraciones: terminación o fase, otra fecha de la que sale una cifra, por qué no entra en la mediana", "texto", NOTICIAS_CM),
+    ],
+    "resultados_2035.csv": [
+        ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),
+        ("municipio", "Nombre del municipio", "texto", PADRON),
+        ("zona", "Zona estadística de la Comunidad de Madrid (NUTS4)", "texto", MUNICIPIOS),
+        ("poblacion_2025", "Población a 1 de enero de 2025", "personas", PADRON),
+        ("llegan_hasta_2035", "Personas que le llegarían hasta 2035 si sigue la tendencia (escenario por defecto: 134.426 en los 155)", "personas", RESULTADOS),
+        ("caben", "Personas que caben sin ampliar servicios: el menor de los cuatro límites", "personas", RESULTADOS),
+        ("sin_sitio", "Personas que llegan y no caben, sin reubicar: max(0, llegan − caben)", "personas", RESULTADOS),
+        ("caben_por_vivienda", "Personas que caben según la vivienda (vacías que se ocupan y suelo previsto que se construye)", "personas", RESULTADOS),
+        ("caben_por_colegios", "Personas que caben según las plazas libres de primaria y ESO; vacío si no tiene colegio", "personas", RESULTADOS),
+        ("caben_por_sanidad", "Personas que caben según su zona básica de salud", "personas", RESULTADOS),
+        ("caben_por_ritmo", "Personas que caben según lo máximo que crece un municipio al año (3 %)", "personas", RESULTADOS),
+        ("limita", "El recurso que pone el límite", "texto", RESULTADOS),
+        ("tipo", "En tensión, Polo de crecimiento, Oportunidad o Consolidación (sin reubicar)", "texto", RESULTADOS),
+        ("condicionada", "sí si es una oportunidad con el hospital a más de 30 min en coche", "sí/no", RESULTADOS),
+        ("hospital_min", "Minutos en coche, sin tráfico, al hospital general público más cercano (ODbL, de OpenStreetMap)", "minutos", OSRM),
+        ("reubicando_envia", "Reubicando a 30 min: personas que no caben y van a municipios cercanos con sitio", "personas", RESULTADOS),
+        ("reubicando_recibe", "Reubicando a 30 min: personas de municipios cercanos que vienen aquí", "personas", RESULTADOS),
+        ("reubicando_sin_sitio", "Reubicando a 30 min: personas que siguen sin sitio (51.284 en los 155)", "personas", RESULTADOS),
+        ("reubicando_tipo", "Tipo después de reubicar (como colorea el mapa con «Reubicar»)", "texto", RESULTADOS),
+        ("envia_a", "Reubicando: municipios a los que envía gente, con las personas entre paréntesis", "texto", RESULTADOS),
+        ("recibe_de", "Reubicando: municipios de los que recibe gente, con las personas entre paréntesis", "texto", RESULTADOS),
+    ],
+    "plan_recomendado.csv": [
+        ("ine", "Código INE del municipio donde va la obra", "código", PADRON),
+        ("municipio", "Municipio donde va la obra (un centro de salud, en el más poblado de su zona)", "texto", PADRON),
+        ("obra", "Ampliar colegio, Colegio nuevo, Instituto o Centro de salud", "texto", RESULTADOS),
+        ("zona_salud", "Zona básica de salud del municipio", "texto", ZONAS_SALUD),
+        ("plazas_o_personas_que_atiende", "Plazas escolares que suma, o personas que atiende el centro de salud", "plazas / personas", OBRAS_CABIDA),
+        ("eur_por_plaza", "Euros por plaza (mediana de obras reales de la Comunidad, en obras_referencia.csv); vacío en centros de salud", "€/plaza", OBRAS_CABIDA),
+        ("coste_eur", "Coste estimado de la obra", "€", OBRAS_CABIDA),
+        ("inicio", "Año en que empieza la obra (supuesto: 2027)", "año", RESULTADOS),
+        ("abre", "Año en que abre", "año", RESULTADOS),
+        ("pasan_a_caber", "Cuánta gente se quedaría sin sitio en los 155 si se quitara solo esta obra (las filas no suman el total)", "personas", RESULTADOS),
+    ],
+    "zonas_salud.csv": [
+        ("codigo", "Código de la zona básica de salud", "código", ZONAS_SALUD),
+        ("zona_salud", "Nombre de la zona básica de salud", "texto", ZONAS_SALUD),
+        ("poblacion", "Personas que atiende la zona (Padrón 2019 actualizado con el crecimiento de su municipio principal)", "personas", ZONAS_SALUD),
+        ("limite", "Hasta cuántas personas se da por llena una zona: más que 9 de cada 10 zonas de la Comunidad (igual para todas)", "personas", RESULTADOS),
+        ("sitio_libre", "limite − poblacion (negativo = por encima del límite)", "personas", RESULTADOS),
+        ("municipios_del_reto", "Municipios de los 155 asignados a la zona, separados por «;»", "texto", ZONAS_SALUD),
+        ("centros_plan_recomendado", "Centros de salud nuevos del plan recomendado en la zona", "centros", RESULTADOS),
     ],
     "validacion_municipios.csv": [
         ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),

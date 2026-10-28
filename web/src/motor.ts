@@ -211,6 +211,17 @@ export function quedanSinSitio(r: ResultadoMunicipio): number {
   return Math.max(0, -r.margen) - r.envia
 }
 
+/**
+ * Las cifras del vaso de la ficha. Sin reubicar: lo que llega, lo que cabe y lo que no. Reubicando, lo de después de reubicar:
+ * si envía, «no caben» son los que siguen sin sitio y aparte van los que se van a municipios cercanos;
+ * si recibe, «caben» son su gente más la que recibe.
+ */
+export function vasoFicha(r: ResultadoMunicipio, reubica: boolean) {
+  const suyos = Math.min(r.llegan, r.caben)
+  if (!reubica) return { capacidad: r.caben, dentro: suyos, fuera: Math.max(0, -r.margen), seVan: 0, recibe: 0 }
+  return { capacidad: r.caben, dentro: suyos + r.recibe, fuera: quedanSinSitio(r), seVan: r.envia, recibe: r.recibe }
+}
+
 /** Las cifras de cabecera del mapa: con la reubicación, lo que va a pueblos cercanos pasa de «sin sitio» a «caben». */
 export function cifrasCabecera(resultados: ResultadoMunicipio[]) {
   const reubicadas = resultados.reduce((s, r) => s + r.envia, 0)
@@ -231,9 +242,18 @@ export function resultadosSinPlan(municipios: Municipio[], zonas: ZonaSalud[], e
   return calcular(municipios, zonas, esc, {}, { tiposDespues: esc.reequilibrio })
 }
 
-/** El plan se calcula reubicando en pueblos cercanos: «Ver en el mapa» pone el simulador así. */
-export function escenarioDelPlan(esc: Escenario): Escenario {
-  return { ...esc, reequilibrio: true }
+/** El plan se calcula reubicando en pueblos cercanos o no, según su interruptor (por defecto, reubicando): «Ver en el mapa» pone el simulador así. */
+export function escenarioDelPlan(esc: Escenario, reubica = true): Escenario {
+  return { ...esc, reequilibrio: reubica }
+}
+
+/**
+ * Para la frase de comparación del plan: con estas mismas obras, cuánta gente seguiría sin sitio en el caso contrario
+ * (sin reubicar si el plan reubica, y al revés). null con la lista vacía (no se enseña).
+ */
+export function sinSitioAlReves(municipios: Municipio[], zonas: ZonaSalud[], esc: Escenario, obras: Obra[]): number | null {
+  if (!obras.length) return null
+  return evaluarPlan(municipios, zonas, { ...esc, reequilibrio: !esc.reequilibrio }, obras).sinSitio
 }
 
 /**
@@ -389,15 +409,29 @@ export function ordenarObras(obras: Obra[]): Obra[] {
   return [...obras.filter((o) => o.tipo !== 'centro_salud'), ...obras.filter((o) => o.tipo === 'centro_salud')]
 }
 
-/** Añade una obra arriba de su grupo (colegios e institutos, o centros de salud), en el municipio que le toca (colocarObra). */
-export function anadirObra(obras: Obra[], nueva: Obra, municipios: Municipio[]): Obra[] {
-  const o = colocarObra(nueva, municipios)
+/**
+ * Añade una obra a mano arriba de su grupo (colegios e institutos, o centros de salud), en el municipio elegido:
+ * a mano, un centro de salud se queda donde se pone (su efecto es sobre la zona igual). Solo el plan recomendado usa colocarObra.
+ */
+export function anadirObra(obras: Obra[], o: Obra): Obra[] {
   const ordenadas = ordenarObras(obras)
   const colegios = ordenadas.filter((x) => x.tipo !== 'centro_salud')
   return o.tipo === 'centro_salud' ? [...colegios, o, ...ordenadas.slice(colegios.length)] : [o, ...ordenadas]
 }
 
 /** Suma las obras de cada municipio donde se ponen: plazas de primaria, de ESO, y centros de salud con las personas que atienden. */
+/**
+ * Cambia el tipo de la obra i: toma plazas, € y años de los parámetros de ese tipo. Si pasa de colegio a centro de salud
+ * (o al revés), sale de su tabla y entra arriba de la otra; si no, se queda en su sitio. Sin restricciones: vale cualquier obra
+ * en cualquier municipio.
+ */
+export function cambiarTipoObra(obras: Obra[], i: number, tipo: TipoObra, params: ParametrosPlan): Obra[] {
+  const o = { ...obras[i], tipo, ...params.obras[tipo] }
+  const centro = (t: TipoObra) => t === 'centro_salud'
+  if (centro(tipo) === centro(obras[i].tipo)) return obras.map((x, k) => (k === i ? o : x))
+  return anadirObra(obras.filter((_, k) => k !== i), o)
+}
+
 export function inversionesDe(obras: Obra[]): Inversiones {
   const inv: Inversiones = {}
   for (const o of obras) inv[o.ine] = sumarObra(inv[o.ine] ?? SIN_INVERSION, o)

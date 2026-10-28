@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, colocarObra, ordenarObras, RADIO_REUBICACION_MIN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, podarPlan, quedanSinSitio, resumenReubicacion,
+  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, podarPlan, quedanSinSitio, resumenReubicacion, cambiarTipoObra, sinSitioAlReves, vasoFicha,
 } from '../src/motor'
 import type { Municipio, Obra, ResultadoMunicipio, TipoObra, ZonaSalud } from '../src/tipos'
+import { textoComparacion } from '../src/fuentesPlan'
 
 const leer = <T>(archivo: string): T => JSON.parse(readFileSync(new URL(`../public/datos/${archivo}`, import.meta.url), 'utf8'))
 const municipios = leer<Municipio[]>('municipios.json')
@@ -223,12 +224,47 @@ describe('plan', () => {
     expect(ordenarObras(plan)).toEqual(plan)
     const colegio = nuevaObra(navalcarnero.ine, 'instituto', PARAMETROS_PLAN)
     const centro = nuevaObra(navalcarnero.ine, 'centro_salud', PARAMETROS_PLAN)
-    const conColegio = anadirObra(plan, colegio, municipios)
+    const conColegio = anadirObra(plan, colegio)
     expect(conColegio[0]).toEqual(colegio)
-    const conCentro = anadirObra(plan, centro, municipios)
+    const conCentro = anadirObra(plan, centro)
     const colegios = plan.filter((o) => o.tipo !== 'centro_salud').length
-    expect(conCentro[colegios]).toEqual(colocarObra(centro, municipios))
+    // A mano, el centro de salud se queda en el municipio elegido
+    expect(conCentro[colegios]).toEqual(centro)
     expect(conCentro.length).toBe(plan.length + 1)
+  })
+
+  it('cada obra puede cambiar a cualquiera de los 4 tipos y pasa a su tabla', () => {
+    const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
+    const colegios = plan.filter((o) => o.tipo !== 'centro_salud').length
+    // Un centro de salud pasa a instituto: arriba de los colegios, con los valores del instituto
+    const aInstituto = cambiarTipoObra(plan, colegios, 'instituto', PARAMETROS_PLAN)
+    expect(aInstituto[0]).toMatchObject({ ine: plan[colegios].ine, tipo: 'instituto', ...PARAMETROS_PLAN.obras.instituto })
+    expect(aInstituto.length).toBe(plan.length)
+    // Un colegio pasa a centro de salud: arriba de los centros, en su mismo municipio
+    const aCentro = cambiarTipoObra(plan, 0, 'centro_salud', PARAMETROS_PLAN)
+    expect(aCentro[colegios - 1]).toMatchObject({ ine: plan[0].ine, tipo: 'centro_salud', ...PARAMETROS_PLAN.obras.centro_salud })
+    // Dentro de la misma tabla, se queda en su sitio
+    expect(cambiarTipoObra(plan, 0, 'colegio_primaria', PARAMETROS_PLAN)[0].tipo).toBe('colegio_primaria')
+    // Sin restricciones: un segundo centro en la misma zona se puede poner (aunque no haga caber a nadie más)
+    const doble = anadirObra(plan, nuevaObra(plan[colegios].ine, 'centro_salud', PARAMETROS_PLAN))
+    expect(evaluarPlan(municipios, zonas, conReubicar, doble).ganaPorObra.every((g) => g >= 0)).toBe(true)
+  })
+
+  it('la comparación usa las obras de la lista y enseña el caso contrario', () => {
+    const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
+    expect(sinSitioAlReves(municipios, zonas, conReubicar, [])).toBeNull()
+    const reubicando = sinSitioAlReves(municipios, zonas, conReubicar, plan)!
+    // Reubicando, enseña lo que pasaría sin reubicar con estas mismas obras
+    expect(reubicando).toBeCloseTo(evaluarPlan(municipios, zonas, sinReubicar, plan).sinSitio, 6)
+    // Con el interruptor al revés, se invierte
+    expect(sinSitioAlReves(municipios, zonas, sinReubicar, plan)).toBeCloseTo(evaluarPlan(municipios, zonas, conReubicar, plan).sinSitio, 6)
+    // Cambia al quitar o añadir una obra
+    expect(sinSitioAlReves(municipios, zonas, conReubicar, plan.slice(1))).toBeGreaterThan(reubicando)
+    const sinUna = sinSitioAlReves(municipios, zonas, conReubicar, plan.slice(1))!
+    expect(sinSitioAlReves(municipios, zonas, conReubicar, anadirObra(plan.slice(1), plan[0]))).toBeLessThan(sinUna)
+    // El texto: «Sin reubicar…» si el plan reubica, «Reubicando…» si no
+    expect(textoComparacion(true, 1234)).toBe('Sin reubicar en municipios cercanos, con estas mismas obras, seguirían sin sitio 1.234.')
+    expect(textoComparacion(false, 1234)).toBe('Reubicando en municipios cercanos, con estas mismas obras, seguirían sin sitio 1.234.')
   })
 
   it('plan recomendado por defecto, reubicando en pueblos cercanos', () => {
@@ -373,5 +409,23 @@ describe('plan', () => {
     expect(mapa.sinSitio).toBeCloseTo(r.sinSitio, 6)
     expect(mapa.reubicadas).toBeCloseTo(r.reubicadas, 6)
     expect(mapa.dentro).toBeCloseTo(esc.personas - r.sinSitio, 6)
+  })
+})
+
+describe('ficha reubicando', () => {
+  it('la suma de «no caben» de las 155 fichas reubicando a 30 min es la de la cabecera (51.284)', () => {
+    const e = { ...escenarioPorDefecto(2035, 'min'), reequilibrio: true }
+    const r = calcular(municipios, zonas, e)
+    const noCaben = r.reduce((s, x) => s + vasoFicha(x, true).fuera, 0)
+    expect(Math.round(noCaben)).toBe(51_284)
+    expect(Math.round(r.reduce((s, x) => s + vasoFicha(x, true).seVan, 0))).toBe(26_346)
+    // Sin reubicar, la ficha es la de siempre: 77.630
+    const sin = calcular(municipios, zonas, escenarioPorDefecto(2035, 'min'))
+    expect(Math.round(sin.reduce((s, x) => s + vasoFicha(x, false).fuera, 0))).toBe(77_630)
+    // En cada ficha: lo que llega = lo suyo que cabe + lo que se va + lo que no cabe
+    for (const x of r) {
+      const v = vasoFicha(x, true)
+      expect(v.dentro - v.recibe + v.seVan + v.fuera).toBeCloseTo(x.llegan, 6)
+    }
   })
 })

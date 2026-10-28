@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react'
 import { LIMITES } from '../colores'
 import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
 import { CORTO, FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
-import type { Escenario, FiltrosReparto, LecturaFrase, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
+import type { Escenario, FiltrosReparto, LecturaFrase, Limite, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, millones } from '../formato'
 import { csvAtraer, descargar } from '../descarga'
 import { costeObra } from '../motor'
@@ -206,8 +206,8 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
                     <tr key={f.ine}>
                       <td><button className="enlace" onClick={() => onVerEnMapa(f.ine)}>{porIne.get(f.ine)!.nombre}</button></td>
                       {ORDEN_REPARTO.map((p) => <td key={p} className="num">{f.porPerfil[p] ? miles(f.porPerfil[p]) : '—'}</td>)}
-                      <td className="num"><b>{miles(f.total)}</b><span className="sim-de"> de {miles(hueco(porIneRes.get(f.ine)!))}</span></td>
-                      <td>{f.lleno ? <LoLlena r={porIneRes.get(f.ine)!} /> : <span className="sim-de">queda sitio</span>}</td>
+                      <td className="num"><b>{miles(f.total)}</b><span className="sim-de"> de {miles(hueco(porIneRes.get(f.ine)!, 'mayor'))}</span></td>
+                      <td>{f.llenoPor ? <LoLlena limite={f.llenoPor} /> : <span className="sim-de">queda sitio</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -225,8 +225,8 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
             Cada grupo va primero a los municipios que mejor le encajan (colegios con sitio para las familias, centro de salud para las
             personas mayores, casas para quien teletrabaja); las familias solo a municipios con colegio y las personas mayores, con el
             hospital a menos de {umbralHospital(medida)} {MEDIDAS[medida].como}. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
-            son, y cada municipio recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
-            salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
+            son, y cada municipio recibe hasta llenarse. Las familias ocupan sitio en colegios, centro de salud y vivienda; las personas
+            mayores y quien teletrabaja, en todo menos en colegios. Es una simulación: en la realidad cada uno elige dónde vive.
           </p>
         </>)}
       </section>
@@ -242,6 +242,6 @@ function Casilla({ texto, valor, onCambiar }: { texto: string; valor: boolean; o
   )
 }
 
-function LoLlena({ r }: { r: ResultadoMunicipio }) {
-  return <span className="sim-llena"><Icono nombre={r.limitante} tamano={15} />{LIMITES[r.limitante].nombre}</span>
+function LoLlena({ limite }: { limite: Limite }) {
+  return <span className="sim-llena"><Icono nombre={limite} tamano={15} />{LIMITES[limite].nombre}</span>
 }

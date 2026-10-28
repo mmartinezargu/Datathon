@@ -3,7 +3,7 @@
 // Siempre sin el plan de obras (App le pasa resultadosSinPlan): con los colegios y centros de salud que hay hoy.
 
 import { TIPOS } from '../colores'
-import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
+import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, masJusto, rankingMudanza } from '../mudanza'
 import type { Candidato, Escenario, FiltrosMudanza, Medida, Municipio, Perfil, Recurso, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, pct } from '../formato'
 import { hospitalCercano, textoHospital, umbralHospital } from '../medida'
@@ -116,7 +116,7 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
                     <span className="ayuda">{miles(r.poblacion)} vecinos, {m.zona}</span>
                   </div>
                   <BarrasSitio c={c} poblacion={r.poblacion} />
-                  <p className="cand-frase">{frase(c, escenario.anio)}</p>
+                  <p className="cand-frase">{frase(c, escenario.anio, filtros.perfil)}</p>
                   <p className="ayuda cand-hospital">
                     <Icono nombre="sanidad" tamano={14} /> {textoHospital(m, medida)}
                   </p>
@@ -188,15 +188,23 @@ const QUE: Record<Recurso, { hay: (n: string) => string; falta: (n: string) => s
   vivienda: { hay: (n) => `hay casa para unas ${n} personas más`, falta: (n) => `faltaría casa para unas ${n} personas` },
 }
 
-/** Por qué sale: los dos recursos que más le suben en el ranking. */
-function frase(c: Candidato, anio: number): string {
-  const partes = c.razones
-    .filter((k) => c.sitio[k] !== null)
-    .slice(0, 2)
-    .map((k) => (c.sitio[k]! >= 0 ? QUE[k].hay(miles(c.sitio[k]!)) : QUE[k].falta(miles(-c.sitio[k]!))))
+const JUSTO: Record<Recurso, (n: string) => string> = {
+  colegios: (n) => `sus colegios, solo sitio para unas ${n} personas más`,
+  sanidad: (n) => `su centro de salud, solo para unas ${n} personas más`,
+  vivienda: (n) => `casa solo para unas ${n} personas`,
+}
+
+/** Por qué sale: los dos recursos que más le suben en el ranking y, si es otro, lo que va más justo. */
+function frase(c: Candidato, anio: number, perfil: Perfil): string {
+  const mostradas = c.razones.filter((k) => c.sitio[k] !== null).slice(0, 2)
+  const partes = mostradas.map((k) => (c.sitio[k]! >= 0 ? QUE[k].hay(miles(c.sitio[k]!)) : QUE[k].falta(miles(-c.sitio[k]!))))
   if (!partes.length) return ''
   const texto = partes.join(' y ')
-  return `${texto[0].toUpperCase()}${texto.slice(1)}, contando la gente que llegaría hasta ${anio}.`
+  const justo = masJusto(c, perfil, mostradas)
+  const cola = justo === null ? ''
+    : c.sitio[justo]! >= 0 ? ` Lo más justo: ${JUSTO[justo](miles(c.sitio[justo]!))}.`
+      : ` Lo más justo: ${QUE[justo].falta(miles(-c.sitio[justo]!))}.`
+  return `${texto[0].toUpperCase()}${texto.slice(1)}, contando la gente que llegaría hasta ${anio}.${cola}`
 }
 
 function Comparador({ elegidos, porIne, porIneRes, anio, medida, onQuitar, onVerEnMapa }: {

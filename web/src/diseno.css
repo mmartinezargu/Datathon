@@ -91,6 +91,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .vaso figcaption { display: flex; flex-direction: column; gap: 4px; }
 .vaso-frase { margin: 0; font-family: var(--disp); font-weight: 700; font-size: 17px; line-height: 1.25; }
 .vaso-nota { margin: 0; font-size: 12.5px; color: var(--tinta2); line-height: 1.4; }
+.vaso-linea { margin: 0; font-size: 13px; color: var(--tinta); font-weight: 600; }
 .vaso-agua { transition: y 0.5s ease, height 0.5s ease; }
 
 /* Desplegable «¿De dónde sale esto?» bajo el vaso */
@@ -382,3 +383,4 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .plan-lista-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .plan-lista-cabeza .desplegar { width: auto; }
 .plan-tabla-titulo { margin: 14px 0 6px; font-size: 15px; }
+.plan-reubicar { margin: 0 0 14px; max-width: 640px; }

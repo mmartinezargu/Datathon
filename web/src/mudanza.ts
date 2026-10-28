@@ -20,11 +20,21 @@ export const TAMANOS: Record<Tamano, { nombre: string; desde: number; hasta: num
   grande: { nombre: 'Grande', desde: 20_000, hasta: Infinity },
 }
 
-export const FILTROS_INICIALES: FiltrosMudanza = { perfil: 'familia', colegio: true, instituto: false, sitioLibre: true, hospitalCerca: false, zona: null, tamano: 'todos' }
+export const FILTROS_INICIALES: FiltrosMudanza = { perfil: 'familia', colegio: true, instituto: false, sitioLibre: true, hospitalCerca: true, zona: null, tamano: 'todos' }
 
-/** Al cambiar de perfil: una familia quiere colegio y una persona mayor, el hospital cerca; los demás, por defecto, no lo piden. */
+/** Al cambiar de perfil: una familia quiere colegio y hospital cerca; una persona mayor, el hospital cerca; quien teletrabaja, por defecto, no lo pide. */
 export function cambiarPerfil(f: FiltrosMudanza, perfil: Perfil): FiltrosMudanza {
-  return { ...f, perfil, colegio: perfil === 'familia', instituto: perfil === 'familia' && f.instituto, hospitalCerca: perfil === 'mayor' }
+  return { ...f, perfil, colegio: perfil === 'familia', instituto: perfil === 'familia' && f.instituto, hospitalCerca: perfil !== 'teletrabajo' }
+}
+
+/**
+ * Lo que va más justo de lo que le importa al perfil (el recurso con menos sitio), si no sale ya entre las razones mostradas.
+ * Para la frase de cada municipio: «Lo más justo: casa solo para unas 254 personas».
+ */
+export function masJusto(c: Candidato, perfil: Perfil, mostradas: Recurso[]): Recurso | null {
+  const k = RECURSOS.filter((x) => PERFILES[perfil].pesos[x] > 0 && c.sitio[x] !== null)
+    .reduce<Recurso | null>((a, x) => (a === null || c.sitio[x]! < c.sitio[a]! ? x : a), null)
+  return k && !mostradas.includes(k) ? k : null
 }
 
 const RECURSOS: Recurso[] = ['colegios', 'sanidad', 'vivienda']

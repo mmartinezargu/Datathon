@@ -13,7 +13,8 @@ const esc = escenarioPorDefecto()
 const r = calcular(municipios, zonas, esc)
 const porIne = new Map(municipios.map((m) => [m.ine, m]))
 const porIneRes = new Map(r.map((x) => [x.ine, x]))
-const capacidad = r.reduce((s, x) => s + hueco(x), 0)
+// Lo más que cabe en total: sin contar colegios (mayores y teletrabajo no los usan)
+const capacidad = r.reduce((s, x) => s + hueco(x, 'mayor'), 0)
 const llegan = llegadasPorPerfil(esc.personas, MEZCLA_SUPUESTA)
 
 describe('repartir a los que llegan', () => {
@@ -33,8 +34,10 @@ describe('repartir a los que llegan', () => {
     it(`${nombre}: nadie se pierde y ningún pueblo pasa de lo que le cabe`, () => {
       expect(rp.colocados + rp.sinSitio.familia + rp.sinSitio.mayor + rp.sinSitio.teletrabajo).toBe(esc.personas)
       for (const p of rp.pueblos) {
-        const cabe = hueco(porIneRes.get(p.ine)!)
+        const res = porIneRes.get(p.ine)!
+        const cabe = hueco(res, 'mayor')
         expect(p.total).toBeLessThanOrEqual(cabe)
+        expect(p.porPerfil.familia).toBeLessThanOrEqual(hueco(res, 'familia'))
         expect(p.lleno).toBe(p.total === cabe)
       }
     })
@@ -53,8 +56,27 @@ describe('repartir a los que llegan', () => {
     })
   }
 
+  it('mayores y teletrabajo no ocupan plazas de colegio: un municipio sin sitio en colegios recibe mayores y no familias', () => {
+    // Uno de verdad: colegios a 0, con sitio en casas y sanidad, colegio de primaria y hospital cerca
+    const res = r.find((x) => {
+      const m = porIne.get(x.ine)!
+      return (x.limites.colegios ?? 1) < 1 && (x.limites.vivienda ?? 0) > 200 && (x.limites.sanidad ?? 0) > 200 && (x.limites.ritmo ?? 0) > 200
+        && m.capacidad!.colegios_primaria > 0 && m.hospital_km <= HOSPITAL_LEJOS_KM
+    })!
+    expect(res).toBeDefined()
+    expect(hueco(res, 'familia')).toBe(0)
+    expect(hueco(res, 'mayor')).toBeGreaterThan(0)
+    const rp = repartir([res], porIne, { familia: 100, mayor: 100, teletrabajo: 100 })
+    const fila = rp.pueblos.find((p) => p.ine === res.ine)!
+    expect(fila.porPerfil.familia).toBe(0)
+    expect(fila.porPerfil.mayor).toBeGreaterThan(0)
+    expect(fila.porPerfil.teletrabajo).toBeGreaterThan(0)
+    expect(rp.sinSitio.familia).toBe(100)
+  })
+
   it('por turnos: si no hay sitio para todos, falta para los tres grupos', () => {
-    const rp = repartir(r, porIne, llegan)
+    // Con el triple de gente no cabe nadie más de ningún grupo (con la de por defecto, mayores y teletrabajo caben todos: no usan colegios)
+    const rp = repartir(r, porIne, llegadasPorPerfil(3 * esc.personas, MEZCLA_SUPUESTA))
     expect(rp.sinSitio.familia).toBeGreaterThan(0)
     expect(rp.sinSitio.mayor).toBeGreaterThan(0)
     expect(rp.sinSitio.teletrabajo).toBeGreaterThan(0)

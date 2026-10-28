@@ -9,6 +9,9 @@ Datos generados por CABIDA para los 179 municipios de la Comunidad de Madrid, co
 | `tabla_maestra.csv` | Los datos de partida de cada municipio: población 2005–2025, tendencia, vivienda, planeamiento, colegios, zona básica de salud y hospital más cercano | 179 (una por municipio; `universo = True` en los 155 del reto) | `etl/preparar.py` |
 | `validacion_municipios.csv` | Prueba contra el pasado: lo que el modelo, con datos hasta 2015, preveía que crecería cada municipio en 2015–2025, frente a lo que creció de verdad | 155 | `etl/validacion.py` |
 | `obras_referencia.csv` | Obras reales de la Comunidad de Madrid (2023–2026) con plazas (o vecinos que atiende), coste y € por plaza, y el enlace a su noticia en comunidad.madrid. La mediana de cada tipo es el coste por defecto del plan de la web | una por obra | `etl/obras_referencia.py` (desde `preparar.py`) |
+| `resultados_2035.csv` | Lo que calcula CABIDA para cada municipio en el escenario por defecto (2035, minutos en coche): llegan, caben, sin sitio, qué limita, tipo y la reubicación a 30 min | 155 | `web/scripts/datasets.ts` (`npm run datasets` en `web/`, con el motor de la web) |
+| `plan_recomendado.csv` | Las obras del plan recomendado (reubicando a 30 min): municipio, tipo, plazas o personas que atiende, coste, año en que abre y cuánta gente pasa a caber | una por obra (17) | `web/scripts/datasets.ts` |
+| `zonas_salud.csv` | Las 286 zonas básicas de salud: población, límite, sitio libre, municipios del reto y centros nuevos del plan recomendado | 286 | `web/scripts/datasets.ts` |
 | `diccionario.csv` | Qué significa cada columna de los archivos anteriores y del CSV del escenario que se descarga desde la web, en qué unidad va y de qué fuente sale | una por columna | `etl/preparar.py` (las descripciones están en `etl/diccionario.py`) |
 
 Formato: CSV en UTF-8, separador `,` y punto decimal. La clave para cruzar los archivos es `ine`, el código INE de 5 cifras del municipio (`28001` = La Acebeda).
@@ -52,7 +55,7 @@ Tres columnas no son CC BY 4.0, sino **Open Database License (ODbL) 1.0**, porqu
 
 | Columna | Dónde está |
 |---|---|
-| `hospital_min` | `tabla_maestra.csv` y el CSV del escenario que se descarga desde la web |
+| `hospital_min` | `tabla_maestra.csv`, `resultados_2035.csv` y el CSV del escenario que se descarga desde la web |
 | `hospital_min_municipio` | `tabla_maestra.csv` |
 | `vecinos_min` | `tabla_maestra.csv` |
 

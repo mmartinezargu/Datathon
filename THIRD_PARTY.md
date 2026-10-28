@@ -49,6 +49,14 @@ cd web && node -e 'const p=require("./package.json");for(const d of Object.keys(
 cd etl && uv run python -c "import importlib.metadata as md;[print(d, md.version(d), md.metadata(d).get('License-Expression') or md.metadata(d).get_all('Classifier')) for d in ['pandas','geopandas','pyogrio','shapely','requests','scipy','openpyxl']]"
 ```
 
+## Presentación
+
+| Herramienta | Versión | Licencia | Para qué |
+|---|---|---|---|
+| qrcode (npm) | 1.5.4 | MIT | Generó una vez el código QR de `https://cabida.vercel.app` de la diapositiva 11 (`presentacion/diapositivas.html`). El QR va dentro del HTML como SVG; la librería no es dependencia del proyecto. https://github.com/soldair/node-qrcode |
+
+Las tipografías de las diapositivas (Bricolage Grotesque y Public Sans, de Google Fonts) tienen licencia SIL Open Font License 1.1; en `entrega/offline/CABIDA_diapositivas.html` van dentro del archivo.
+
 ## Datos
 
 Los datos de partida son abiertos (INE, Portal de Datos Abiertos de la Comunidad de Madrid, IDEM). El detalle de las fuentes y su licencia está en [`data/out/README.md`](data/out/README.md).

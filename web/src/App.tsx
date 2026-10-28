@@ -87,6 +87,8 @@ export default function App() {
   const [obras, setObras] = useState<Obra[]>([])
   const [parametrosPlan, setParametrosPlan] = useState<ParametrosPlan>(PARAMETROS_PLAN)
   const [opcionesPlan, setOpcionesPlan] = useState<OpcionesPlan>({})
+  // «Reubicar» propio de la pestaña «Plan» (por defecto, sí: las cifras del guion son reubicando)
+  const [planReubica, setPlanReubica] = useState(true)
   const [filtros, setFiltros] = useState<FiltrosMudanza>(FILTROS_INICIALES)
   const [comparados, setComparados] = useState<string[]>([])
   const [mezcla, setMezcla] = useState<Record<Perfil, number>>(MEZCLA_SUPUESTA)
@@ -217,7 +219,7 @@ export default function App() {
   // «Planificar aquí» en la ficha: si el municipio no está en el plan, se añade (arriba de su tabla) la obra que suelta su límite
   const planificar = (r: ResultadoMunicipio) => {
     if (!obras.some((o) => o.ine === r.ine)) {
-      setObras(anadirObra(obras, nuevaObra(r.ine, obraSugerida(porIne.get(r.ine)!, r, umbrales, obras, parametrosPlan), parametrosPlan), municipios))
+      setObras(anadirObra(obras, nuevaObra(r.ine, obraSugerida(porIne.get(r.ine)!, r, umbrales, obras, parametrosPlan), parametrosPlan)))
     }
     setPestana('plan')
   }
@@ -257,9 +259,9 @@ export default function App() {
         <main className="pagina">
           <Plan municipios={municipios} zonas={zonas} porIne={porIne} escenario={escenario}
             obras={obras} onObras={setObras} parametros={parametrosPlan} onParametros={setParametrosPlan}
-            opciones={opcionesPlan} onOpciones={setOpcionesPlan}
+            opciones={opcionesPlan} onOpciones={setOpcionesPlan} reubica={planReubica} onReubica={setPlanReubica}
             onFicha={(ine) => { elegir(ine); setPestana('mapa') }}
-            onVerEnMapa={() => { setEscenario(escenarioDelPlan(escenario)); setSeleccionado(null); setPestana('mapa') }} />
+            onVerEnMapa={() => { setEscenario(escenarioDelPlan(escenario, planReubica)); setSeleccionado(null); setPestana('mapa') }} />
           {/* «Atraer» ya no está en el menú: lo que más importa de ella va aquí, y el enlace lleva a la pestaña completa (#atraer) */}
           <PromocionarEnPlan resultados={resultados} porIne={porIne} escenario={escenario} mezcla={mezcla} filtros={filtrosReparto}
             onAjustar={() => setPestana('atraer')} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
@@ -287,7 +289,7 @@ export default function App() {
             <section className="escenario">
               <p className="frase">Hasta <b>{escenario.anio}</b>, los municipios de menos de 50.000 habitantes acogen</p>
               <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
-              <Palancas escenario={escenario} onCambiar={setEscenario} />
+              <Palancas escenario={escenario} umbrales={umbrales} onCambiar={setEscenario} />
             </section>
             <Descarga resultados={resultados} porIne={porIne} escenario={escenario} obras={obras} />
           </aside>

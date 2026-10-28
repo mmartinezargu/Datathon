@@ -1,0 +1,156 @@
+ine,municipio,zona,poblacion_2025,llegan_hasta_2035,caben,sin_sitio,caben_por_vivienda,caben_por_colegios,caben_por_sanidad,caben_por_ritmo,limita,tipo,condicionada,hospital_min,reubicando_envia,reubicando_recibe,reubicando_sin_sitio,reubicando_tipo,envia_a,recibe_de
+28001,La Acebeda,Sierra Norte,70,10,24,0,42,,376,24,Ritmo de crecimiento,Oportunidad,sí,62.7,0,0,0,Oportunidad,,
+28002,Ajalvir,Este Metropolitano,4868,416,176,240,410,176,5147,1674,Colegios,En tensión,no,15.8,240,0,0,Consolidación,Daganzo de Arriba (240),
+28003,Alameda del Valle,Sierra Norte,267,40,85,0,85,,3580,92,Vivienda y suelo,Polo de crecimiento,no,51.5,0,0,0,Polo de crecimiento,,
+28004,El Álamo,Sudoeste Comunidad,10594,1802,0,1802,3195,1894,0,3643,Sanidad,En tensión,no,19.5,0,0,1802,En tensión,,
+28008,Aldea del Fresno,Sudoeste Comunidad,3503,848,821,27,821,1158,8756,1205,Vivienda y suelo,En tensión,no,29.8,0,0,27,En tensión,,
+28009,Algete,Norte Metropolitano,21144,912,7272,0,13872,11701,7444,7272,Ritmo de crecimiento,Oportunidad,no,12.6,0,6360,0,Consolidación,,El Molar (1862); Talamanca de Jarama (997); Valdeolmos-Alalpardo (790); San Agustín del Guadalix (737); Paracuellos de Jarama (630); Fuente el Saz de Jarama (526); Valdetorres de Jarama (398); Pedrezuela (224); Cobeña (198)
+28010,Alpedrete,Sierra Central,15686,1426,2175,0,2175,6026,23205,5395,Vivienda y suelo,Oportunidad,no,1.6,0,749,0,Oportunidad,,Guadarrama (571); Moralzarzal (179)
+28011,Ambite,Sudeste Comunidad,732,109,131,0,131,,567,252,Vivienda y suelo,Polo de crecimiento,no,41.4,0,0,0,Polo de crecimiento,,
+28012,Anchuelo,Sudeste Comunidad,1414,211,71,139,71,825,702,486,Vivienda y suelo,En tensión,no,20.6,139,0,0,Polo de crecimiento,Villalbilla (95); Meco (36); Santorcaz (8),
+28015,Arroyomolinos,Sudoeste Comunidad,38075,12305,816,11489,17531,12441,816,13095,Sanidad,En tensión,no,11.5,0,0,11489,En tensión,,
+28016,El Atazar,Sierra Norte,110,16,3,13,3,,515,38,Vivienda y suelo,Consolidación,no,64.2,0,0,13,Consolidación,,
+28017,Batres,Sudoeste Comunidad,1976,412,0,412,370,2592,0,680,Sanidad,En tensión,no,17.4,0,0,412,En tensión,,
+28018,Becerril de la Sierra,Sierra Central,6737,1076,922,154,1312,922,10799,2317,Colegios,En tensión,no,10.8,154,0,0,Polo de crecimiento,El Boalo (154),
+28019,Belmonte de Tajo,Sudeste Comunidad,1955,301,330,0,330,1493,2946,672,Vivienda y suelo,Polo de crecimiento,no,26.3,0,30,0,Polo de crecimiento,,Colmenar de Oreja (30)
+28020,Berzosa del Lozoya,Sierra Norte,242,36,11,25,11,,1300,83,Vivienda y suelo,Consolidación,no,62.7,0,0,25,Consolidación,,
+28021,El Berrueco,Sierra Norte,795,124,60,65,60,,3252,273,Vivienda y suelo,En tensión,no,38.0,0,0,65,En tensión,,
+28023,El Boalo,Sierra Central,8770,1362,2652,0,2652,4576,10346,3016,Vivienda y suelo,Polo de crecimiento,no,15.2,0,1290,0,Polo de crecimiento,,Cercedilla (808); Soto del Real (241); Becerril de la Sierra (154); Torrelodones (87)
+28024,Braojos,Sierra Norte,233,34,15,19,15,,1252,80,Vivienda y suelo,Consolidación,no,59.9,0,0,19,Consolidación,,
+28025,Brea de Tajo,Sudeste Comunidad,577,78,88,0,88,,870,198,Vivienda y suelo,Oportunidad,sí,39.6,0,0,0,Oportunidad,,
+28026,Brunete,Oeste Metropolitano,11287,965,72,893,72,834,435,3882,Vivienda y suelo,En tensión,no,18.4,496,0,397,En tensión,Villaviciosa de Odón (496),
+28027,Buitrago del Lozoya,Sierra Norte,2034,258,297,0,336,297,10930,700,Colegios,Oportunidad,sí,40.3,0,0,0,Oportunidad,,
+28028,Bustarviejo,Sierra Norte,2870,448,830,0,8990,830,1086,987,Colegios,Polo de crecimiento,no,39.5,0,0,0,Polo de crecimiento,,
+28029,Cabanillas de la Sierra,Sierra Norte,961,154,102,52,809,102,3931,331,Colegios,En tensión,no,27.4,0,0,52,En tensión,,
+28030,La Cabrera,Sierra Norte,2889,379,0,379,748,0,11817,994,Colegios,En tensión,no,31.2,0,0,379,En tensión,,
+28031,Cadalso de los Vidrios,Sierra Sur,3372,581,468,113,468,1148,18742,1160,Vivienda y suelo,En tensión,no,56.3,0,0,113,En tensión,,
+28032,Camarma de Esteruelas,Nordeste Comunidad,8331,1232,624,609,624,862,2734,2865,Vivienda y suelo,En tensión,no,13.8,609,0,0,Consolidación,Meco (609),
+28033,Campo Real,Sudeste Comunidad,6974,1075,0,1075,994,0,5400,2398,Colegios,En tensión,no,16.3,0,0,1075,En tensión,,
+28034,Canencia,Sierra Norte,475,64,78,0,78,,1943,163,Vivienda y suelo,Oportunidad,sí,55.2,0,0,0,Oportunidad,,
+28035,Carabaña,Sudeste Comunidad,2451,386,241,145,241,1629,7258,843,Vivienda y suelo,En tensión,no,24.9,145,0,0,Polo de crecimiento,Fuentidueña de Tajo (145),
+28036,Casarrubuelos,Sudoeste Comunidad,4323,846,0,846,1869,751,0,1487,Sanidad,En tensión,no,8.8,0,0,846,En tensión,,
+28037,Cenicientos,Sierra Sur,2152,283,451,0,451,2178,11961,740,Vivienda y suelo,Oportunidad,sí,64.8,0,0,0,Oportunidad,,
+28038,Cercedilla,Sierra Central,7772,911,52,859,506,52,11220,2673,Colegios,En tensión,no,16.0,859,0,0,Consolidación,El Boalo (808); Navacerrada (51),
+28039,Cervera de Buitrago,Sierra Norte,165,23,11,12,11,,887,57,Vivienda y suelo,Consolidación,no,58.8,0,0,12,Consolidación,,
+28040,Ciempozuelos,Sur Metropolitano,26350,2380,528,1852,528,3102,10569,9062,Vivienda y suelo,En tensión,no,16.3,1644,0,208,En tensión,San Martín de la Vega (1360); Titulcia (283),
+28041,Cobeña,Norte Metropolitano,7670,530,332,198,2724,332,2700,2638,Colegios,En tensión,no,13.6,198,0,0,Consolidación,Algete (198),
+28042,Colmenar del Arroyo,Sierra Sur,2044,370,145,225,145,2076,7686,703,Vivienda y suelo,En tensión,no,33.4,105,0,120,En tensión,Robledo de Chavela (105),
+28043,Colmenar de Oreja,Sudeste Comunidad,9127,1130,0,1130,4072,0,8533,3139,Colegios,En tensión,no,27.3,1130,0,0,Consolidación,Villarejo de Salvanés (1100); Belmonte de Tajo (30),
+28044,Colmenarejo,Sierra Central,9640,790,0,790,2145,415,0,3315,Sanidad,En tensión,no,17.7,0,0,790,En tensión,,
+28046,Collado Mediano,Sierra Central,7722,991,1570,0,1570,2159,12378,2656,Vivienda y suelo,Oportunidad,no,10.1,0,578,0,Oportunidad,,Guadarrama (578)
+28048,Corpa,Sudeste Comunidad,832,129,217,0,217,,413,286,Vivienda y suelo,Polo de crecimiento,no,31.3,0,0,0,Polo de crecimiento,,
+28050,Cubas de la Sagra,Sudoeste Comunidad,7238,1438,0,1438,4437,0,0,2489,Colegios,En tensión,no,12.2,0,0,1438,En tensión,,
+28051,Chapinería,Sierra Sur,2705,488,870,0,870,1876,10171,930,Vivienda y suelo,Polo de crecimiento,no,31.6,0,0,0,Polo de crecimiento,,
+28052,Chinchón,Sudeste Comunidad,5800,576,196,380,466,196,5423,1995,Colegios,En tensión,no,25.9,380,0,0,Consolidación,Fuentidueña de Tajo (246); Villarejo de Salvanés (133),
+28053,Daganzo de Arriba,Nordeste Comunidad,10764,1076,1375,0,1375,3478,11382,3702,Vivienda y suelo,Oportunidad,no,17.8,0,299,0,Oportunidad,,Ajalvir (240); Paracuellos de Jarama (59)
+28054,El Escorial,Sierra Central,17171,1751,2308,0,13052,2308,21720,5905,Colegios,Oportunidad,no,7.2,0,557,0,Oportunidad,,Galapagar (557)
+28055,Estremera,Sudeste Comunidad,1473,196,507,0,2113,1282,2220,507,Ritmo de crecimiento,Oportunidad,sí,36.1,0,0,0,Oportunidad,,
+28056,Fresnedillas de la Oliva,Sierra Sur,1883,319,595,0,595,823,5146,648,Vivienda y suelo,Polo de crecimiento,no,26.4,0,275,0,Polo de crecimiento,,Zarzalejo (275)
+28057,Fresno de Torote,Nordeste Comunidad,2561,449,607,0,4765,607,2708,881,Colegios,Polo de crecimiento,no,29.7,0,158,0,Polo de crecimiento,,Ribatejada (119); Valdeavero (38)
+28059,Fuente el Saz de Jarama,Nordeste Comunidad,7413,1042,517,526,6651,517,4796,2549,Colegios,En tensión,no,15.9,526,0,0,Consolidación,Algete (526),
+28060,Fuentidueña de Tajo,Sudeste Comunidad,2372,372,816,0,1152,1596,3575,816,Ritmo de crecimiento,Polo de crecimiento,no,29.1,0,443,0,Polo de crecimiento,,Chinchón (246); Carabaña (145); Morata de Tajuña (52)
+28061,Galapagar,Oeste Metropolitano,36758,4217,0,4217,1118,38770,0,12642,Sanidad,En tensión,no,12.1,1134,0,3083,En tensión,San Lorenzo de El Escorial (577); El Escorial (557),
+28062,Garganta de los Montes,Sierra Norte,441,65,128,0,128,,1804,152,Vivienda y suelo,Oportunidad,sí,49.1,0,0,0,Oportunidad,,
+28063,Gargantilla del Lozoya y Pinilla de Buitrago,Sierra Norte,396,57,136,0,339,,2128,136,Ritmo de crecimiento,Oportunidad,sí,53.6,0,0,0,Oportunidad,,
+28064,Gascones,Sierra Norte,252,39,87,0,148,,1354,87,Ritmo de crecimiento,Polo de crecimiento,no,45.9,0,0,0,Polo de crecimiento,,
+28066,Griñón,Sudoeste Comunidad,10799,1255,0,1255,1782,3173,0,3714,Sanidad,En tensión,no,9.8,1255,0,0,Consolidación,Humanes de Madrid (1255),
+28067,Guadalix de la Sierra,Sierra Norte,6993,965,733,232,2543,733,2646,2405,Colegios,En tensión,no,32.0,0,0,232,En tensión,,
+28068,Guadarrama,Sierra Central,17547,1900,276,1624,276,12325,21344,6035,Vivienda y suelo,En tensión,no,9.1,1624,0,0,Consolidación,Collado Mediano (578); Alpedrete (571); Los Molinos (295); San Lorenzo de El Escorial (180),
+28069,La Hiruela,Sierra Norte,88,13,5,8,5,,473,30,Vivienda y suelo,Polo de crecimiento,no,64.9,0,0,8,Polo de crecimiento,,
+28070,Horcajo de la Sierra-Aoslos,Sierra Norte,219,33,22,11,22,,1177,75,Vivienda y suelo,Polo de crecimiento,no,58.4,0,0,11,Polo de crecimiento,,
+28071,Horcajuelo de la Sierra,Sierra Norte,104,15,10,5,10,,559,36,Vivienda y suelo,Oportunidad,sí,79.2,0,0,5,Oportunidad,,
+28072,Hoyo de Manzanares,Oeste Metropolitano,9310,1276,892,384,1075,1562,892,3202,Sanidad,En tensión,no,21.7,0,0,384,En tensión,,
+28073,Humanes de Madrid,Sur Metropolitano,20500,1086,6092,0,6092,6164,8995,7050,Vivienda y suelo,Oportunidad,no,11.0,0,5006,0,Consolidación,,Torrejón de la Calzada (2183); Griñón (1255); Serranillos del Valle (824); Moraleja de Enmedio (744)
+28075,Loeches,Sudeste Comunidad,9261,1130,0,1130,4899,10327,0,3185,Sanidad,En tensión,no,15.2,261,0,869,En tensión,Meco (261),
+28076,Lozoya,Sierra Norte,598,78,43,36,43,2276,8019,206,Vivienda y suelo,En tensión,no,52.1,0,0,36,En tensión,,
+28078,Madarcos,Sierra Norte,69,10,5,5,5,,371,24,Vivienda y suelo,Polo de crecimiento,no,51.0,0,0,5,Polo de crecimiento,,
+28082,Manzanares el Real,Sierra Central,9648,1209,1906,0,1906,4064,11382,3318,Vivienda y suelo,Oportunidad,no,20.3,0,696,0,Oportunidad,,Soto del Real (696)
+28083,Meco,Nordeste Comunidad,15922,2615,5225,0,22163,5265,5225,5476,Sanidad,Polo de crecimiento,no,13.5,0,2609,0,Polo de crecimiento,,Mejorada del Campo (1416); Camarma de Esteruelas (609); Valdeavero (273); Loeches (261); Anchuelo (36); Los Santos de la Humosa (15)
+28084,Mejorada del Campo,Este Metropolitano,25049,1922,0,1922,6891,4028,0,8615,Sanidad,En tensión,no,13.5,1922,0,0,Consolidación,Meco (1416); San Fernando de Henares (506),
+28085,Miraflores de la Sierra,Sierra Central,7350,1240,1199,41,1199,3668,2781,2528,Vivienda y suelo,En tensión,no,41.7,0,0,41,En tensión,,
+28086,El Molar,Nordeste Comunidad,9999,1862,0,1862,10905,0,667,3439,Colegios,En tensión,no,20.8,1862,0,0,Polo de crecimiento,Algete (1862),
+28087,Los Molinos,Sierra Central,4781,469,764,0,764,3075,6902,1644,Vivienda y suelo,Oportunidad,no,15.3,0,295,0,Oportunidad,,Guadarrama (295)
+28088,Montejo de la Sierra,Sierra Norte,404,57,28,29,28,,2171,139,Vivienda y suelo,En tensión,no,60.6,0,0,29,En tensión,,
+28089,Moraleja de Enmedio,Sudoeste Comunidad,5580,810,66,744,1220,66,2448,1919,Colegios,En tensión,no,11.2,744,0,0,Consolidación,Humanes de Madrid (744),
+28090,Moralzarzal,Sierra Central,14772,2293,2115,179,2115,8532,24119,5080,Vivienda y suelo,En tensión,no,6.2,179,0,0,Polo de crecimiento,Alpedrete (179),
+28091,Morata de Tajuña,Sudeste Comunidad,8397,1028,0,1028,440,0,30494,2888,Colegios,En tensión,no,13.5,52,0,976,En tensión,Fuentidueña de Tajo (52),
+28093,Navacerrada,Sierra Central,3311,395,446,0,643,446,4780,1139,Colegios,Oportunidad,no,10.3,0,51,0,Oportunidad,,Cercedilla (51)
+28094,Navalafuente,Sierra Norte,1693,308,88,220,88,611,640,582,Vivienda y suelo,En tensión,no,36.2,0,0,220,En tensión,,
+28095,Navalagamella,Sierra Sur,3169,603,1090,0,2122,1563,8661,1090,Ritmo de crecimiento,Polo de crecimiento,no,24.0,0,487,0,Polo de crecimiento,,Valdemorillo (487)
+28096,Navalcarnero,Sudoeste Comunidad,33331,6886,0,6886,18322,22894,0,11463,Sanidad,En tensión,no,12.8,0,0,6886,En tensión,,
+28097,Navarredonda y San Mamés,Sierra Norte,163,24,15,9,15,,876,56,Vivienda y suelo,Oportunidad,sí,66.5,0,0,9,Oportunidad,,
+28099,Navas del Rey,Sierra Sur,3420,668,73,594,73,993,12860,1176,Vivienda y suelo,En tensión,no,33.1,594,0,0,Polo de crecimiento,Robledo de Chavela (594),
+28100,Nuevo Baztán,Sudeste Comunidad,7429,1236,533,703,533,1011,5753,2555,Vivienda y suelo,En tensión,no,29.2,144,0,559,En tensión,Pozuelo del Rey (144),
+28101,Olmeda de las Fuentes,Sudeste Comunidad,429,66,148,0,227,,332,148,Ritmo de crecimiento,Polo de crecimiento,no,45.1,0,0,0,Polo de crecimiento,,
+28102,Orusco de Tajuña,Sudeste Comunidad,1531,237,0,237,909,0,4534,527,Colegios,En tensión,no,26.2,0,0,237,En tensión,,
+28104,Paracuellos de Jarama,Este Metropolitano,27650,4830,4141,689,21798,4141,11241,9509,Colegios,En tensión,no,16.3,689,0,0,Polo de crecimiento,Algete (630); Daganzo de Arriba (59),
+28107,Patones,Sierra Norte,617,91,22,68,22,244,2891,212,Vivienda y suelo,En tensión,no,37.6,0,0,68,En tensión,,
+28108,Pedrezuela,Sierra Norte,6606,1180,441,739,1223,2942,441,2272,Sanidad,En tensión,no,23.3,224,0,516,En tensión,Algete (224),
+28109,Pelayos de la Presa,Sierra Sur,3195,620,617,3,617,1472,7002,1099,Vivienda y suelo,Polo de crecimiento,no,46.6,0,0,3,Polo de crecimiento,,
+28110,Perales de Tajuña,Sudeste Comunidad,3260,442,484,0,484,1346,9653,1121,Vivienda y suelo,Oportunidad,no,15.6,0,42,0,Oportunidad,,Tielmes (42)
+28111,Pezuela de las Torres,Sudeste Comunidad,1008,162,347,0,510,,501,347,Ritmo de crecimiento,Polo de crecimiento,no,40.2,0,0,0,Polo de crecimiento,,
+28112,Pinilla del Valle,Sierra Norte,200,28,18,10,18,,2682,69,Vivienda y suelo,Oportunidad,sí,54.3,0,0,10,Oportunidad,,
+28114,Piñuécar-Gandullas,Sierra Norte,183,26,17,10,17,,983,63,Vivienda y suelo,Oportunidad,sí,46.9,0,0,10,Oportunidad,,
+28116,Pozuelo del Rey,Sudeste Comunidad,1302,201,345,0,345,,1008,448,Vivienda y suelo,Polo de crecimiento,no,28.7,0,144,0,Polo de crecimiento,,Nuevo Baztán (144)
+28117,Prádena del Rincón,Sierra Norte,146,21,50,0,54,,785,50,Ritmo de crecimiento,Oportunidad,sí,56.6,0,0,0,Oportunidad,,
+28118,Puebla de la Sierra,Sierra Norte,98,15,8,6,8,,527,34,Vivienda y suelo,Polo de crecimiento,no,83.4,0,0,6,Polo de crecimiento,,
+28119,Quijorna,Sudoeste Comunidad,4044,856,156,700,2188,2253,156,1391,Sanidad,En tensión,no,23.6,0,0,700,En tensión,,
+28120,Rascafría,Sierra Norte,1704,174,428,0,428,2761,22849,586,Vivienda y suelo,Oportunidad,sí,48.7,0,0,0,Oportunidad,,
+28121,Redueña,Sierra Norte,288,42,19,22,419,,19,99,Sanidad,Consolidación,no,29.5,0,0,22,Consolidación,,
+28122,Ribatejada,Nordeste Comunidad,905,153,34,119,34,2281,957,311,Vivienda y suelo,En tensión,no,36.7,119,0,0,Polo de crecimiento,Fresno de Torote (119),
+28124,Robledillo de la Jara,Sierra Norte,118,17,12,5,12,,634,41,Vivienda y suelo,Oportunidad,sí,58.1,0,0,5,Oportunidad,,
+28125,Robledo de Chavela,Sierra Sur,4818,835,1535,0,1535,2320,13168,1657,Vivienda y suelo,Polo de crecimiento,no,25.3,0,700,0,Polo de crecimiento,,Navas del Rey (594); Colmenar del Arroyo (105)
+28126,Robregordo,Sierra Norte,79,12,12,0,12,,424,27,Vivienda y suelo,Polo de crecimiento,no,49.7,0,0,0,Polo de crecimiento,,
+28128,Rozas de Puerto Real,Sierra Sur,579,93,122,0,122,2026,3218,199,Vivienda y suelo,Polo de crecimiento,no,63.2,0,0,0,Polo de crecimiento,,
+28129,San Agustín del Guadalix,Norte Metropolitano,13825,737,0,737,2549,0,922,4755,Colegios,En tensión,no,15.5,737,0,0,Consolidación,Algete (737),
+28130,San Fernando de Henares,Este Metropolitano,39059,0,506,0,506,18950,19320,13433,Vivienda y suelo,Consolidación,no,4.7,0,506,0,Consolidación,,Mejorada del Campo (506)
+28131,San Lorenzo de El Escorial,Sierra Central,18872,904,1661,0,1661,17095,8431,6490,Vivienda y suelo,Oportunidad,no,7.5,0,756,0,Consolidación,,Galapagar (577); Guadarrama (180)
+28132,San Martín de la Vega,Sur Metropolitano,21010,1935,3295,0,3295,3344,17881,7226,Vivienda y suelo,Oportunidad,no,17.4,0,1360,0,Oportunidad,,Ciempozuelos (1360)
+28133,San Martín de Valdeiglesias,Sierra Sur,9324,1067,196,872,2234,196,20435,3207,Colegios,En tensión,no,52.0,0,0,872,En tensión,,
+28135,Santa María de la Alameda,Sierra Sur,1584,295,545,0,640,,708,545,Ritmo de crecimiento,Polo de crecimiento,no,24.5,0,72,0,Polo de crecimiento,,Zarzalejo (72)
+28136,Santorcaz,Sudeste Comunidad,1011,152,160,0,272,160,502,348,Colegios,Polo de crecimiento,no,24.9,0,8,0,Polo de crecimiento,,Anchuelo (8)
+28137,Los Santos de la Humosa,Sudeste Comunidad,2867,443,428,15,2191,428,941,986,Colegios,Polo de crecimiento,no,18.6,15,0,0,Polo de crecimiento,Meco (15),
+28138,La Serna del Monte,Sierra Norte,110,16,8,8,8,,591,38,Vivienda y suelo,Polo de crecimiento,no,52.3,0,0,8,Polo de crecimiento,,
+28140,Serranillos del Valle,Sudoeste Comunidad,4670,824,0,824,2988,279,0,1606,Sanidad,En tensión,no,13.5,824,0,0,Polo de crecimiento,Humanes de Madrid (824),
+28141,Sevilla la Nueva,Sudoeste Comunidad,9802,1237,56,1181,56,7863,18394,3371,Vivienda y suelo,En tensión,no,19.0,255,0,926,En tensión,Villanueva de Perales (255),
+28143,Somosierra,Sierra Norte,93,14,5,8,5,,500,32,Vivienda y suelo,Consolidación,no,70.8,0,0,8,Consolidación,,
+28144,Soto del Real,Sierra Central,9400,937,0,937,1468,0,3556,3233,Colegios,En tensión,no,30.9,937,0,0,Consolidación,Manzanares el Real (696); El Boalo (241),
+28145,Talamanca de Jarama,Nordeste Comunidad,4607,997,0,997,967,0,2980,1584,Colegios,En tensión,no,25.5,997,0,0,Polo de crecimiento,Algete (997),
+28146,Tielmes,Sudeste Comunidad,2964,414,168,246,168,939,8777,1019,Vivienda y suelo,En tensión,no,17.2,246,0,0,Consolidación,Villarejo de Salvanés (204); Perales de Tajuña (42),
+28147,Titulcia,Sudeste Comunidad,1389,195,478,0,1052,496,557,478,Ritmo de crecimiento,Oportunidad,no,21.3,0,283,0,Oportunidad,,Ciempozuelos (283)
+28149,Torrejón de la Calzada,Sudoeste Comunidad,10653,2726,0,2726,3522,2788,0,3664,Sanidad,En tensión,no,6.7,2183,0,543,En tensión,Humanes de Madrid (2183),
+28150,Torrejón de Velasco,Sudoeste Comunidad,4900,843,0,843,18496,558,0,1685,Sanidad,En tensión,no,7.9,0,0,843,En tensión,,
+28151,Torrelaguna,Sierra Norte,5081,501,0,501,378,0,23804,1747,Colegios,En tensión,no,31.3,0,0,501,En tensión,,
+28152,Torrelodones,Oeste Metropolitano,25433,2260,209,2051,209,20495,2437,8747,Vivienda y suelo,En tensión,no,9.9,87,0,1964,En tensión,El Boalo (87),
+28153,Torremocha de Jarama,Sierra Norte,1157,176,38,138,38,,5420,398,Vivienda y suelo,En tensión,no,38.5,0,0,138,En tensión,,
+28154,Torres de la Alameda,Sudeste Comunidad,7824,404,0,404,2166,0,3887,2691,Colegios,En tensión,no,20.0,0,0,404,En tensión,,
+28155,Valdaracete,Sudeste Comunidad,658,88,0,88,299,0,992,226,Colegios,En tensión,no,28.4,88,0,0,Consolidación,Villarejo de Salvanés (88),
+28156,Valdeavero,Nordeste Comunidad,1896,344,32,312,32,1684,622,652,Vivienda y suelo,En tensión,no,29.1,312,0,0,Polo de crecimiento,Meco (273); Fresno de Torote (38),
+28157,Valdelaguna,Sudeste Comunidad,1122,188,386,0,604,,1049,386,Ritmo de crecimiento,Polo de crecimiento,no,32.6,0,0,0,Polo de crecimiento,,
+28158,Valdemanco,Sierra Norte,1097,163,296,0,296,,4487,377,Vivienda y suelo,Polo de crecimiento,no,40.9,0,0,0,Polo de crecimiento,,
+28159,Valdemaqueda,Sierra Sur,870,136,139,0,139,,2378,299,Vivienda y suelo,Polo de crecimiento,no,34.7,0,0,0,Polo de crecimiento,,
+28160,Valdemorillo,Sierra Central,14420,2030,1476,554,1476,6797,24471,4959,Vivienda y suelo,En tensión,no,19.9,487,0,67,En tensión,Navalagamella (487),
+28162,Valdeolmos-Alalpardo,Nordeste Comunidad,4626,790,0,790,970,0,2993,1591,Colegios,En tensión,no,18.5,790,0,0,Polo de crecimiento,Algete (790),
+28163,Valdepiélagos,Nordeste Comunidad,612,92,210,0,242,,396,210,Ritmo de crecimiento,Polo de crecimiento,no,30.7,0,0,0,Polo de crecimiento,,
+28164,Valdetorres de Jarama,Nordeste Comunidad,5175,887,490,398,490,1280,3348,1780,Vivienda y suelo,En tensión,no,20.4,398,0,0,Polo de crecimiento,Algete (398),
+28165,Valdilecha,Sudeste Comunidad,3289,470,6,463,1274,6,2547,1131,Colegios,En tensión,no,16.5,0,0,463,En tensión,,
+28166,Valverde de Alcalá,Sudeste Comunidad,565,88,170,0,170,,281,194,Vivienda y suelo,Polo de crecimiento,no,36.0,0,0,0,Polo de crecimiento,,
+28167,Velilla de San Antonio,Este Metropolitano,14468,1734,0,1734,6274,0,0,4976,Colegios,En tensión,no,16.5,0,0,1734,En tensión,,
+28168,El Vellón,Sierra Norte,2281,378,152,226,1051,1546,152,784,Sanidad,En tensión,no,24.1,0,0,226,En tensión,,
+28169,Venturada,Sierra Norte,2622,468,175,293,404,1411,175,902,Sanidad,En tensión,no,24.9,0,0,293,En tensión,,
+28170,Villaconejos,Sudeste Comunidad,3569,369,152,217,152,480,3337,1227,Vivienda y suelo,En tensión,no,18.1,0,0,217,En tensión,,
+28171,Villa del Prado,Sudoeste Comunidad,7743,1445,0,1445,1935,0,19354,2663,Colegios,En tensión,no,41.4,0,0,1445,En tensión,,
+28172,Villalbilla,Sudeste Comunidad,18687,6332,6427,0,14885,12880,9283,6427,Ritmo de crecimiento,Polo de crecimiento,no,13.5,0,95,0,Polo de crecimiento,,Anchuelo (95)
+28173,Villamanrique de Tajo,Sudeste Comunidad,859,129,295,0,932,,1295,295,Ritmo de crecimiento,Polo de crecimiento,no,32.8,0,0,0,Polo de crecimiento,,
+28174,Villamanta,Sudoeste Comunidad,2899,515,0,515,1272,1608,0,997,Sanidad,En tensión,no,21.6,218,0,297,En tensión,Villamantilla (218),
+28175,Villamantilla,Sudoeste Comunidad,1660,353,571,0,1425,986,3115,571,Ritmo de crecimiento,Polo de crecimiento,no,29.2,0,218,0,Polo de crecimiento,,Villamanta (218)
+28176,Villanueva de la Cañada,Oeste Metropolitano,24028,4483,172,4310,172,21787,926,8264,Vivienda y suelo,En tensión,no,18.5,0,0,4310,En tensión,,
+28177,Villanueva del Pardillo,Sierra Central,18466,1644,78,1566,78,5655,20425,6351,Vivienda y suelo,En tensión,no,11.9,0,0,1566,En tensión,,
+28178,Villanueva de Perales,Sudoeste Comunidad,1715,335,590,0,1000,1320,3218,590,Ritmo de crecimiento,Polo de crecimiento,no,26.5,0,255,0,Polo de crecimiento,,Sevilla la Nueva (255)
+28179,Villar del Olmo,Sudeste Comunidad,2341,325,442,0,442,,1813,805,Vivienda y suelo,Oportunidad,sí,35.6,0,0,0,Oportunidad,,
+28180,Villarejo de Salvanés,Sudeste Comunidad,8042,893,2418,0,3207,2418,12120,2766,Colegios,Oportunidad,no,20.7,0,1525,0,Oportunidad,,Colmenar de Oreja (1100); Tielmes (204); Chinchón (133); Valdaracete (88)
+28181,Villaviciosa de Odón,Oeste Metropolitano,30127,2920,3416,0,3416,42968,8764,10361,Vivienda y suelo,Oportunidad,no,9.1,0,496,0,Oportunidad,,Brunete (496)
+28182,Villavieja del Lozoya,Sierra Norte,332,49,30,19,30,,1784,114,Vivienda y suelo,Oportunidad,sí,58.7,0,0,19,Oportunidad,,
+28183,Zarzalejo,Sierra Sur,1946,347,0,347,68,0,869,669,Colegios,En tensión,no,19.0,347,0,0,Polo de crecimiento,Fresnedillas de la Oliva (275); Santa María de la Alameda (72),
+28901,Lozoyuela-Navas-Sieteiglesias,Sierra Norte,1468,226,0,226,449,0,6005,505,Colegios,En tensión,no,34.1,0,0,226,En tensión,,
+28902,Puentes Viejas,Sierra Norte,759,112,261,0,475,,4078,261,Ritmo de crecimiento,Oportunidad,sí,75.1,0,0,0,Oportunidad,,

@@ -50,7 +50,7 @@ export function OrigenTodos({ llegan, anio, reequilibrio }: { llegan: number; an
       ]} />
       <p className="origen-aviso">
         <b>Ojo:</b> «caben» es una estimación, no una cifra oficial. No tenemos las plazas reales de las aulas ni de los centros de salud.
-        Por defecto, un colegio se considera lleno cuando tiene tantos alumnos como el 10 % más cargado de los municipios de su tamaño, y un centro de salud cuando atiende a tanta gente como el 10 % de las zonas más pobladas.
+        Por defecto, un colegio se considera lleno cuando tiene tantos alumnos como el 10 % más cargado de los municipios de tamaño parecido, y un centro de salud cuando atiende a tanta gente como el 10 % de las zonas más pobladas.
         Ese criterio se cambia en «Supuestos del cálculo».
       </p>
     </>

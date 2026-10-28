@@ -21,6 +21,14 @@ export function caben(n: number): string {
   return n < 1 ? '0 (al límite)' : miles(n)
 }
 
+/** La exigencia con los servicios en palabras: 0,9 -> «9 de cada 10». */
+export function deCada(exigencia: number): string {
+  if (exigencia === 0.75) return '3 de cada 4'
+  if (exigencia === 0.97) return '97 de cada 100'
+  if (exigencia === 0.9) return '9 de cada 10'
+  return `${Math.round(exigencia * 100)} de cada 100`
+}
+
 /** Euros en millones: 9500000 -> "9,5 M€"; 16000000 -> "16 M€". */
 export function millones(n: number): string {
   return (n / 1e6).toFixed(1).replace(/\.0$/, '').replace('.', ',') + ' M€'

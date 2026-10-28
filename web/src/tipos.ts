@@ -263,7 +263,7 @@ export interface FiltrosReparto {
 
 /** Pestaña «Atraer»: cómo se reparten los que llegan entre los pueblos, según quiénes son. */
 export interface Reparto {
-  pueblos: { ine: string; porPerfil: Record<Perfil, number>; total: number; lleno: boolean }[] // de más a menos recibidos
+  pueblos: { ine: string; porPerfil: Record<Perfil, number>; total: number; lleno: boolean; llenoPor: Limite | null }[] // de más a menos recibidos
   colocados: number
   sinSitio: Record<Perfil, number>
 }

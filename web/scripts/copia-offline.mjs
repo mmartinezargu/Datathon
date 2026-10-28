@@ -2,7 +2,7 @@
 //
 // Genera offline/CABIDA.html: un único archivo con todo dentro (código, estilos, tipografías
 // y datos). Se abre con doble clic, sin servidor y sin conexión. Al lado deja
-// offline/datos/tabla_maestra.csv para el enlace de descarga.
+// offline/datos/ con los CSV de los enlaces de descarga (tabla maestra y resultados del escenario por defecto).
 //
 // Uso (desde web/):  npm run offline     (compila y genera la copia)
 
@@ -28,7 +28,7 @@ if (enlaceFuentes) {
     const fuente = Buffer.from(await (await fetch(url)).arrayBuffer()).toString('base64')
     return b.replace(url, `data:font/woff2;base64,${fuente}`)
   }))
-  html = html.replace(enlaceFuentes[0], `<style>${embebidos.join('\n')}</style>`)
+  html = html.replace(enlaceFuentes[0], () => `<style>${embebidos.join('\n')}</style>`)
   console.log(`  tipografías: ${embebidos.length} dentro del HTML`)
 }
 
@@ -40,11 +40,14 @@ html = html.replace(script[0], '')
 // 3. Datos, dentro del HTML (App.tsx los lee de window.__DATOS_CABIDA__ en vez de pedirlos)
 const datos = Object.fromEntries(DATOS.map((f) => [f, JSON.parse(readFileSync(new URL(`datos/${f}`, DIST), 'utf8'))]))
 const sinCierre = (texto) => texto.replaceAll('</script', '<\\/script') // que no corte la etiqueta <script>
-html = html.replace('</body>',
+// Con función, no con texto: si no, replace interpreta los «$'» y «$&» que pueda traer el código minificado
+html = html.replace('</body>', () =>
   `<script>window.__DATOS_CABIDA__ = ${sinCierre(JSON.stringify(datos))}</script>\n` +
   `<script type="module">${sinCierre(leer(script[1]))}</script>\n</body>`)
 
 mkdirSync(new URL('datos/', SALIDA), { recursive: true })
 writeFileSync(new URL('CABIDA.html', SALIDA), html)
-copyFileSync(new URL('datos/tabla_maestra.csv', DIST), new URL('datos/tabla_maestra.csv', SALIDA))
+for (const csv of ['tabla_maestra.csv', 'resultados_2035.csv', 'plan_recomendado.csv', 'zonas_salud.csv']) {
+  copyFileSync(new URL(`datos/${csv}`, DIST), new URL(`datos/${csv}`, SALIDA))
+}
 console.log(`  offline/CABIDA.html: ${(Buffer.byteLength(html) / 1e6).toFixed(1)} MB`)

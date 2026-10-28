@@ -7,9 +7,10 @@
 | Qué | Dónde |
 |---|---|
 | **La web (MVP)** | https://cabida.vercel.app: funciona en el navegador, también en el móvil |
-| **Los datasets elaborados** | Carpeta [`data/out/`](data/out/): [`tabla_maestra.csv`](data/out/tabla_maestra.csv) (datos de partida de los 179 municipios), [`validacion_municipios.csv`](data/out/validacion_municipios.csv) (prueba contra 2015-2025) y [`diccionario.csv`](data/out/diccionario.csv) (qué significa cada columna). Fuentes, licencia (CC BY 4.0; las columnas de minutos en coche, ODbL por venir de OpenStreetMap) y cómo regenerarlos en su [README](data/out/README.md) |
+| **Los datasets elaborados** | Carpeta [`data/out/`](data/out/): [`tabla_maestra.csv`](data/out/tabla_maestra.csv) (datos de partida de los 179 municipios), [`validacion_municipios.csv`](data/out/validacion_municipios.csv) (prueba contra 2015-2025), y los resultados del escenario por defecto (2035, minutos en coche): [`resultados_2035.csv`](data/out/resultados_2035.csv) (los 155 municipios), [`plan_recomendado.csv`](data/out/plan_recomendado.csv) (sus 17 obras) y [`zonas_salud.csv`](data/out/zonas_salud.csv) (las 286 zonas de salud). Todo con [`diccionario.csv`](data/out/diccionario.csv) (qué significa cada columna). Fuentes, licencia (CC BY 4.0; las columnas de minutos en coche, ODbL por venir de OpenStreetMap) y cómo regenerarlos en su [README](data/out/README.md) |
 | **Los datos de cada escenario** | Se descargan en CSV desde la web: «Llévate los datos» (mapa; con el plan, en las columnas `plan_…`) y «Atraer». Los costes de referencia del plan, en `data/out/obras_referencia.csv` |
 | **La presentación** | [`entrega/CABIDA_presentacion_final.pdf`](entrega/CABIDA_presentacion_final.pdf). Con sus animaciones: carpeta [`presentacion/`](presentacion/) (se abre `diapositivas.html` en el navegador) |
+| **Sin internet** | [`entrega/offline/`](entrega/offline/), doble clic: `CABIDA.html` (la web entera, con los datos dentro) y `CABIDA_diapositivas.html` (la presentación, con tipografías e imágenes dentro). Se copia la carpeta entera, con `datos/` para las descargas |
 | **La propuesta inicial** | Los 3 PDF de [`entrega/`](entrega/): aproximación técnica, fuentes de datos e interfaz |
 | **El código** | Este repositorio: `etl/` (Python) y `web/` (React + TypeScript). Licencias de terceros en [`THIRD_PARTY.md`](THIRD_PARTY.md) |
 

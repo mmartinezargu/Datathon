@@ -7,10 +7,10 @@
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
-  OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, aperturaObra, calcularUmbrales, costeObra, escenarioDelPlan, evaluarPlan, nuevaObra, obraSugerida,
-  planOptimo, resumenReubicacion,
+  OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, aperturaObra, calcularUmbrales, cambiarTipoObra, costeObra, escenarioDelPlan, evaluarPlan,
+  nuevaObra, obraSugerida, planOptimo, resumenReubicacion, sinSitioAlReves,
 } from '../motor'
-import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA, textoObras, valorObra } from '../fuentesPlan'
+import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA, textoComparacion, textoObras, valorObra } from '../fuentesPlan'
 import { LIMITES, TIPOS } from '../colores'
 import { decimal, miles, millones } from '../formato'
 import { radioReubicacion } from '../medida'
@@ -27,28 +27,27 @@ interface Props {
   onObras: (obras: Obra[]) => void
   parametros: ParametrosPlan
   onParametros: (p: ParametrosPlan) => void
-  opciones: OpcionesPlan // con qué se rellenó el último plan (para la comparación sin reubicar)
+  opciones: OpcionesPlan // con qué se rellenó el último reparto de presupuesto
   onOpciones: (o: OpcionesPlan) => void
+  reubica: boolean // interruptor propio del plan: reubicar en municipios cercanos (por defecto, sí)
+  onReubica: (v: boolean) => void
   onFicha: (ine: string) => void
   onVerEnMapa: () => void
 }
 
 const TIPOS_OBRA = Object.keys(NOMBRE_OBRA) as TipoObra[]
-const TIPOS_COLEGIO = TIPOS_OBRA.filter((t) => t !== 'centro_salud')
 type Modo = 'optimo' | 'medida' | null // cuál de los dos botones está elegido
 
-export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, parametros, onParametros, opciones, onOpciones, onFicha, onVerEnMapa }: Props) {
+export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, parametros, onParametros, opciones, onOpciones, reubica, onReubica,
+  onFicha, onVerEnMapa }: Props) {
   const [modo, setModo] = useState<Modo>(null)
-  const esc = useMemo(() => escenarioDelPlan(escenario), [escenario])
+  const esc = useMemo(() => escenarioDelPlan(escenario, reubica), [escenario, reubica])
   const delReto = useMemo(() => municipios.filter((m) => m.universo && m.capacidad).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')), [municipios])
   const umbrales = useMemo(() => calcularUmbrales(delReto, zonas, esc.exigencia), [delReto, zonas, esc.exigencia])
 
   const resultado = useMemo(() => evaluarPlan(municipios, zonas, esc, obras), [municipios, zonas, esc, obras])
-  // «Cada municipio con lo suyo»: el mismo plan recomendado, con las mismas opciones, sin reubicar
-  const comparacion = useMemo(() => {
-    const sinReubicar = { ...escenario, reequilibrio: false }
-    return evaluarPlan(municipios, zonas, sinReubicar, planOptimo(municipios, zonas, sinReubicar, parametros, opciones))
-  }, [municipios, zonas, escenario, parametros, opciones])
+  // Con estas mismas obras, el caso contrario al del interruptor (null con la lista vacía)
+  const alReves = useMemo(() => sinSitioAlReves(municipios, zonas, esc, obras), [municipios, zonas, esc, obras])
 
   const rellenar = (o: OpcionesPlan) => {
     onOpciones(o)
@@ -58,20 +57,32 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
     const r = resultado.resultados.find((x) => x.ine === ine)
     const m = porIne.get(ine)
     if (!r || !m) return
-    onObras(anadirObra(obras, nuevaObra(ine, obraSugerida(m, r, umbrales, obras, parametros), parametros), municipios))
+    onObras(anadirObra(obras, nuevaObra(ine, obraSugerida(m, r, umbrales, obras, parametros), parametros)))
   }
   const cambiar = (i: number, parcial: Partial<Obra>) => onObras(obras.map((o, k) => (k === i ? { ...o, ...parcial } : o)))
+  const cambiarTipo = (i: number, tipo: TipoObra) => onObras(cambiarTipoObra(obras, i, tipo, parametros))
 
   return (
     <div className="plan">
       <section className="val-cabeza">
         <h1>¿Qué hace falta para que quepan?</h1>
         <p>
-          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas. Aun reubicando en municipios cercanos,{' '}
+          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas. {reubica ? 'Aun reubicando en municipios cercanos' : 'Sin reubicar'},{' '}
           <b>{miles(resultado.sinSitioAntes)}</b> se quedan sin sitio. Aquí se decide qué colegios y centros de salud construir, dónde y cuándo.
           El escenario se cambia en el <a href="#mapa">mapa</a>.
         </p>
       </section>
+
+      <label className="control interruptor plan-reubicar">
+        <input type="checkbox" role="switch" checked={reubica} onChange={(e) => onReubica(e.target.checked)} />
+        <span className="interruptor-texto">
+          <b>Reubicar en municipios cercanos</b>
+          <span className="pista">
+            Quien no cabe en su municipio va al más cercano con sitio, a menos de {radioReubicacion(escenario)} y con hospital cerca.
+            Lo usan el plan recomendado, «Lo que consigue» y la tabla.
+          </span>
+        </span>
+      </label>
 
       <div className="plan-botones" role="group" aria-label="Rellenar la lista">
         <button className={`plan-boton${modo === 'optimo' ? ' principal' : ''}`} aria-pressed={modo === 'optimo'}
@@ -88,7 +99,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
           <Presupuesto delReto={delReto} porIne={porIne} opciones={opciones} onRepartir={rellenar} />
           <div className="plan-seccion">
             <h3>O añade una obra a mano</h3>
-            <p className="ayuda">Elige un municipio: se añade arriba de su tabla la obra que suelta su límite, y ahí puedes cambiarla.</p>
+            <p className="ayuda">Elige un municipio: se añade arriba de su tabla la obra que suelta su límite, y ahí puedes cambiarla por cualquier otra.</p>
             <Buscador municipios={delReto} onElegir={anadir} texto="Añadir municipio" />
           </div>
         </div>
@@ -97,20 +108,20 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
       <div className="plan-cuerpo">
         <div className="plan-izquierda">
           <Lista obras={obras} resultado={resultado} porIne={porIne} parametros={parametros} horizonte={escenario.anio}
-            onCambiar={cambiar} onBorrar={(i) => onObras(obras.filter((_, k) => k !== i))} onVaciar={() => { onObras([]); setModo(null) }}
+            onCambiar={cambiar} onCambiarTipo={cambiarTipo} onBorrar={(i) => onObras(obras.filter((_, k) => k !== i))} onVaciar={() => { onObras([]); setModo(null) }}
             onFicha={onFicha} />
           <Parametros parametros={parametros} onParametros={onParametros} />
         </div>
 
         <aside className="plan-derecha" aria-label="Resultado del plan">
-          <Resumen r={resultado} comparacion={comparacion} hayObras={obras.length > 0} presupuesto={opciones.presupuestoTotal} />
+          <Resumen r={resultado} alReves={alReves} reubica={reubica} />
           <div className="plan-acciones">
             <button className="plan-boton principal" disabled={!obras.length} onClick={onVerEnMapa}>
-              <b>Ver en el mapa</b><span>Con la lista y la reubicación en el simulador</span>
+              <b>Ver en el mapa</b><span>{reubica ? 'Con la lista y la reubicación en el simulador' : 'Con la lista, sin reubicar, en el simulador'}</span>
             </button>
           </div>
           <Calendario r={resultado} desde={obras.length ? Math.min(...obras.map((o) => o.inicio)) : parametros.anioInicio} />
-          <ComoSeConsigue r={resultado} esc={esc} />
+          {reubica && <ComoSeConsigue r={resultado} esc={esc} />}
         </aside>
       </div>
     </div>
@@ -158,9 +169,9 @@ function Presupuesto({ delReto, porIne, opciones, onRepartir }: {
   )
 }
 
-function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onBorrar, onVaciar, onFicha }: {
+function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onCambiarTipo, onBorrar, onVaciar, onFicha }: {
   obras: Obra[]; resultado: ResultadoPlan; porIne: Map<string, Municipio>; parametros: ParametrosPlan; horizonte: number
-  onCambiar: (i: number, parcial: Partial<Obra>) => void; onBorrar: (i: number) => void; onVaciar: () => void; onFicha: (ine: string) => void
+  onCambiar: (i: number, parcial: Partial<Obra>) => void; onCambiarTipo: (i: number, tipo: TipoObra) => void; onBorrar: (i: number) => void; onVaciar: () => void; onFicha: (ine: string) => void
 }) {
   const limitante = new Map(resultado.resultados.map((r) => [r.ine, r.limitante]))
   // Cada fila con su sitio en la lista (las dos tablas editan la misma lista)
@@ -172,6 +183,14 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
   // Columnas que comparten las dos tablas: municipio al principio; años, coste, apertura, lo que gana y borrar al final
   const municipio = (o: Obra) => (
     <td><button className="enlace" onClick={() => onFicha(o.ine)} title="Ver su ficha en el mapa">{nombre(o)}</button></td>
+  )
+  // Cualquiera de los 4 tipos en cualquier fila: al cambiar, toma los valores de ese tipo y pasa a su tabla
+  const tipo = (o: Obra, i: number) => (
+    <td className="plan-obra">
+      <select value={o.tipo} aria-label={`Obra en ${nombre(o)}`} onChange={(e) => onCambiarTipo(i, e.target.value as TipoObra)}>
+        {TIPOS_OBRA.map((t) => <option key={t} value={t}>{NOMBRE_OBRA[t]}</option>)}
+      </select>
+    </td>
   )
   const finales = (o: Obra, i: number) => {
     const gana = resultado.ganaPorObra[i] ?? 0
@@ -220,12 +239,7 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
                 {colegios.map(({ o, i }) => (
                   <tr key={i}>
                     {municipio(o)}
-                    <td className="plan-obra">
-                      <select value={o.tipo} aria-label={`Obra en ${nombre(o)}`}
-                        onChange={(e) => { const tipo = e.target.value as TipoObra; onCambiar(i, { tipo, ...parametros.obras[tipo] }) }}>
-                        {TIPOS_COLEGIO.map((t) => <option key={t} value={t}>{NOMBRE_OBRA[t]}</option>)}
-                      </select>
-                    </td>
+                    {tipo(o, i)}
                     <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })} etiqueta={`Plazas en ${nombre(o)}`} /></td>
                     <td className="num"><Numero valor={o.eurosPorPlaza} onCambiar={(eurosPorPlaza) => onCambiar(i, { eurosPorPlaza })}
                       etiqueta={`Euros por plaza en ${nombre(o)}`} /></td>
@@ -244,13 +258,14 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
           <div className="tabla-scroll">
             <table className="plan-tabla">
               <thead>
-                <tr><th>Municipio</th><th>Zona de salud</th><th className="num">Personas<br />que atiende</th>{cabeceraFinal}</tr>
+                <tr><th>Municipio</th><th>Obra</th><th>Zona de salud</th><th className="num">Personas<br />que atiende</th>{cabeceraFinal}</tr>
               </thead>
               <tbody>
                 {centros.map(({ o, i }) => (
                   <tr key={i}>
                     {municipio(o)}
-                    <td className="plan-obra">{porIne.get(o.ine)?.capacidad?.zbs_nombre}</td>
+                    {tipo(o, i)}
+                    <td>{porIne.get(o.ine)?.capacidad?.zbs_nombre}</td>
                     <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })}
                       etiqueta={`Personas que atiende el centro de ${nombre(o)}`} /></td>
                     {finales(o, i)}
@@ -260,7 +275,8 @@ function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onB
             </table>
           </div>
           <p className="ayuda plan-pie">
-            Un centro de salud sirve a toda su zona básica: va al municipio más poblado de la zona. El coste es el del centro
+            Un centro de salud sirve a toda su zona básica, esté en el municipio que esté: el plan recomendado lo pone en el más poblado
+            de la zona; a mano, se queda donde lo pongas. El coste es el del centro
             ({millones(parametros.obras.centro_salud.eurosPorPlaza)} por defecto); se puede cambiar en cada fila.
           </p>
         </>
@@ -301,9 +317,8 @@ function Numero({ valor, onCambiar, etiqueta, escala = 1, sufijo, corto = false,
   )
 }
 
-function Resumen({ r, comparacion, hayObras, presupuesto }: {
-  r: ResultadoPlan; comparacion: ResultadoPlan; hayObras: boolean; presupuesto?: number
-}) {
+function Resumen({ r, alReves, reubica }: { r: ResultadoPlan; alReves: number | null; reubica: boolean }) {
+  const hayObras = alReves !== null
   const total = Object.values(r.obras).reduce((s, n) => s + n, 0)
   const otros = r.sinSitioPor.colegios + r.sinSitioPor.sanidad
   const motivos = [
@@ -327,13 +342,7 @@ function Resumen({ r, comparacion, hayObras, presupuesto }: {
         {motivos.length > 0 && <>: {motivos.length > 1 ? `${motivos.slice(0, -1).join(', ')} y ${motivos[motivos.length - 1]}` : motivos[0]}</>}.
         {(r.sinSitioPor.vivienda >= 1 || r.sinSitioPor.ritmo >= 1) && ' La vivienda y el ritmo no se arreglan con colegios ni centros de salud.'}
       </p>
-      <p className="plan-comparacion">
-        <b>Cada municipio con lo suyo.</b>{' '}
-        {presupuesto
-          ? <>Con los mismos {millones(presupuesto)}, sin reubicar, siguen sin sitio <b>{miles(comparacion.sinSitio)}</b>.</>
-          : <>Sin reubicar en municipios cercanos, harían falta {textoObras(comparacion.obras) || 'ninguna obra'},{' '}
-            <b>{millones(comparacion.coste)}</b>, y aun así siguen sin sitio <b>{miles(comparacion.sinSitio)}</b>.</>}
-      </p>
+      {alReves !== null && <p className="plan-comparacion">{textoComparacion(reubica, alReves)}</p>}
     </section>
   )
 }
