@@ -96,6 +96,27 @@ export interface Obra extends ValoresObra {
   inicio: number // año en que empiezan las obras
 }
 
+/** Una obra real de la Comunidad de Madrid (web/public/datos/obras_referencia.json, de etl/obras_referencia.py). */
+export interface ObraReferencia {
+  tipo: string // «ampliación de colegio», «colegio nuevo», «instituto nuevo», «ampliación de instituto», «centro de salud nuevo»
+  obra_plan: TipoObra | '' // la obra del plan cuyo valor por defecto sale de su mediana; '' = de referencia, no entra
+  nombre: string
+  municipio: string
+  fecha: string // AAAA-MM-DD
+  plazas: number | null // plazas escolares o, en un centro de salud, vecinos que atiende
+  coste_eur: number
+  eur_por_plaza: number | null
+  fuente: string
+  url: string
+  nota: string
+}
+
+/** Las obras de referencia y, por obra del plan, la mediana (€/plaza; en un centro de salud, € por centro), el mínimo y el máximo. */
+export interface DatosObrasReferencia {
+  obras: ObraReferencia[]
+  medianas: Record<TipoObra, { n: number; mediana: number; min: number; max: number }>
+}
+
 /** Valores por defecto del plan: todos editables, con su fuente en «Cómo funciona». */
 export interface ParametrosPlan {
   obras: Record<TipoObra, ValoresObra>

@@ -9,5 +9,9 @@ export function modelosClave(datos: DatosValidacion) {
   return { nuestro, tendencia }
 }
 
+/** «si se mira por comarcas (las 10 zonas estadísticas de la Comunidad, como Sierra Norte o Sur Metropolitano)». */
+export const porComarcas = (comarcas: number) =>
+  `si se mira por comarcas (las ${comarcas} zonas estadísticas de la Comunidad, como Sierra Norte o Sur Metropolitano)`
+
 /** De cada 100 personas, en cuántas acierta el municipio (o la zona) donde van. */
 export const deCada100 = (fuera: number) => Math.round((1 - fuera) * 100)

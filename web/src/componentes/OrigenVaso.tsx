@@ -32,25 +32,25 @@ export function OrigenTodos({ llegan, anio, reequilibrio }: { llegan: number; an
       <Filas items={[
         {
           color: TINTA, titulo: `Llegan (${miles(llegan)})`,
-          texto: `Lo que ya pasó, repetido. Entre 2015 y 2025 estos 155 pueblos ganaron ${miles(CRECIMIENTO_DECADA)} personas (Padrón del INE). ` +
-            `Por defecto se supone que sigue ese ritmo hasta ${anio}, y se reparte pueblo a pueblo según cuánto creció cada uno. No es una predicción.`,
+          texto: `Lo que ya pasó, repetido. Entre 2015 y 2025 estos 155 municipios ganaron ${miles(CRECIMIENTO_DECADA)} personas (Padrón del INE). ` +
+            `Por defecto se supone que sigue ese ritmo hasta ${anio}, y se reparte municipio a municipio según cuánto creció cada uno. No es una predicción.`,
         },
         {
           color: AZUL, titulo: 'Caben',
-          texto: 'En cada pueblo se miran cuatro cosas (casas, colegios, centro de salud y ritmo de crecimiento) y manda la que se queda más corta. ' +
+          texto: 'En cada municipio se miran cuatro cosas (casas, colegios, centro de salud y ritmo de crecimiento) y manda la que se queda más corta. ' +
             'Después se suma lo que cabe en cada uno de los 155.',
         },
         {
           color: ROJO, titulo: 'No caben',
           texto: reequilibrio
-            ? 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente va al pueblo con sitio más cercano (con el hospital cerca). ' +
+            ? 'Lo que llega menos lo que cabe, municipio a municipio. Esa gente va al municipio con sitio más cercano (con el hospital cerca). ' +
               'Lo que queda aquí es lo que no encuentra sitio a la distancia elegida.'
-            : 'Lo que llega menos lo que cabe, pueblo a pueblo. Esa gente no se manda a otro pueblo: el mapa solo dice dónde faltaría sitio.',
+            : 'Lo que llega menos lo que cabe, municipio a municipio. Esa gente no se manda a otro municipio: el mapa solo dice dónde faltaría sitio.',
         },
       ]} />
       <p className="origen-aviso">
         <b>Ojo:</b> «caben» es una estimación, no una cifra oficial. No tenemos las plazas reales de las aulas ni de los centros de salud.
-        Por defecto, un colegio se considera lleno cuando tiene tantos alumnos como el 10 % más cargado de los pueblos de su tamaño, y un centro de salud cuando atiende a tanta gente como el 10 % de las zonas más pobladas.
+        Por defecto, un colegio se considera lleno cuando tiene tantos alumnos como el 10 % más cargado de los municipios de su tamaño, y un centro de salud cuando atiende a tanta gente como el 10 % de las zonas más pobladas.
         Ese criterio se cambia en «Supuestos del cálculo».
       </p>
     </>
@@ -64,12 +64,12 @@ export function OrigenMunicipio({ anio, limitante }: { anio: number; limitante: 
       <Filas items={[
         {
           color: TINTA, titulo: 'Llegan',
-          texto: `Lo que ha crecido este pueblo entre 2015 y 2025, mezclado con el ritmo de su zona, y llevado hasta ${anio}. ` +
+          texto: `Lo que ha crecido este municipio entre 2015 y 2025, mezclado con el ritmo de su zona, y llevado hasta ${anio}. ` +
             'Si es muy pequeño, pesa más su zona para que un año raro no lo descuadre.',
         },
         {
           color: AZUL, titulo: 'Caben',
-          texto: `El más bajo de cuatro límites: casas, colegios, centro de salud y ritmo de crecimiento. En este pueblo manda: ${LIMITES[limitante].nombre.toLowerCase()}.`,
+          texto: `El más bajo de cuatro límites: casas, colegios, centro de salud y ritmo de crecimiento. En este municipio manda: ${LIMITES[limitante].nombre.toLowerCase()}.`,
         },
         {
           color: ROJO, titulo: 'No caben',
@@ -77,7 +77,7 @@ export function OrigenMunicipio({ anio, limitante }: { anio: number; limitante: 
         },
       ]} />
       <p className="origen-aviso">
-        La cuenta exacta está más abajo, en «Ver la cuenta». Recuerda que «caben» compara los colegios con pueblos de tamaño parecido y la sanidad con todas las zonas de la Comunidad: no es una norma oficial.
+        La cuenta exacta está más abajo, en «Ver la cuenta». Recuerda que «caben» compara los colegios con municipios de tamaño parecido y la sanidad con todas las zonas de la Comunidad: no es una norma oficial.
       </p>
     </>
   )

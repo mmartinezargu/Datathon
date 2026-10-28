@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, PARAMETROS_PLAN, RADIO_REUBICACION_MIN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
+  HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, colocarObra, ordenarObras, RADIO_REUBICACION_MIN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
   evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, quedanSinSitio, resumenReubicacion,
 } from '../src/motor'
 import type { Municipio, Obra, ResultadoMunicipio, TipoObra, ZonaSalud } from '../src/tipos'
@@ -174,8 +174,61 @@ describe('plan', () => {
     const p = zonas.map((z) => z.poblacion).sort((a, b) => a - b)
     expect(zonas.length).toBe(286)
     expect(PARAMETROS_PLAN.obras.centro_salud.plazas).toBe((p[142] + p[143]) / 2)
-    expect(costeObra(nuevaObra('28001', 'colegio_primaria', PARAMETROS_PLAN))).toBe(450 * 12_900)
-    expect(costeObra(nuevaObra('28001', 'centro_salud', PARAMETROS_PLAN))).toBe(7_100_000) // coste fijo
+    expect(costeObra(nuevaObra('28001', 'colegio_primaria', PARAMETROS_PLAN))).toBe(450 * 18_583)
+    expect(costeObra(nuevaObra('28001', 'centro_salud', PARAMETROS_PLAN))).toBe(6_670_000) // coste fijo
+  })
+
+  it('el coste por defecto de cada obra es la mediana de sus obras de referencia', () => {
+    const med = (v: number[]) => { const s = [...v].sort((a, b) => a - b); const k = Math.floor(s.length / 2); return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2 }
+    for (const t of ['ampliar_primaria', 'colegio_primaria', 'instituto', 'centro_salud'] as TipoObra[]) {
+      const obras = OBRAS_REFERENCIA.obras.filter((o) => o.obra_plan === t)
+      const valores = obras.map((o) => (t === 'centro_salud' ? o.coste_eur : o.coste_eur / o.plazas!))
+      expect(obras.length).toBe(OBRAS_REFERENCIA.medianas[t].n)
+      expect(PARAMETROS_PLAN.obras[t].eurosPorPlaza).toBe(Math.round(med(valores)))
+      expect(obras.every((o) => o.url.startsWith('https://www.comunidad.madrid/') && !o.url.includes('download'))).toBe(true)
+    }
+    expect(PARAMETROS_PLAN.obras).toMatchObject({
+      ampliar_primaria: { eurosPorPlaza: 10_936 }, colegio_primaria: { eurosPorPlaza: 18_583 },
+      instituto: { eurosPorPlaza: 12_562 }, centro_salud: { eurosPorPlaza: 6_670_000 },
+    })
+  })
+
+  it('un centro de salud va al municipio más poblado de su zona, sin cambiar coste ni personas', () => {
+    const mejorada = municipios.find((m) => m.nombre === 'Mejorada del Campo')!
+    const loeches = municipios.find((m) => m.nombre === 'Loeches')!
+    expect(loeches.capacidad!.zbs_codigo).toBe(mejorada.capacidad!.zbs_codigo)
+    const enLoeches = nuevaObra(loeches.ine, 'centro_salud', PARAMETROS_PLAN)
+    expect(colocarObra(enLoeches, municipios).ine).toBe(mejorada.ine)
+    // Un colegio no se mueve
+    expect(colocarObra(nuevaObra(loeches.ine, 'ampliar_primaria', PARAMETROS_PLAN), municipios).ine).toBe(loeches.ine)
+    for (const e of [conReubicar, sinReubicar]) {
+      const plan = planOptimo(municipios, zonas, e, PARAMETROS_PLAN)
+      const zona = (ine: string) => municipios.find((m) => m.ine === ine)!.capacidad!.zbs_codigo
+      for (const o of plan.filter((x) => x.tipo === 'centro_salud')) {
+        const deZona = municipios.filter((m) => m.universo && m.capacidad?.zbs_codigo === zona(o.ine))
+        expect(o.ine).toBe(deZona.sort((a, b) => b.poblacion['2025'] - a.poblacion['2025'])[0].ine)
+      }
+      // Con el centro en cualquier otro municipio de su zona, las cifras son las mismas
+      const otro = plan.map((o) => (o.tipo !== 'centro_salud' ? o
+        : { ...o, ine: municipios.filter((m) => m.universo && m.capacidad?.zbs_codigo === zona(o.ine)).at(-1)!.ine }))
+      const a = evaluarPlan(municipios, zonas, e, plan)
+      const b = evaluarPlan(municipios, zonas, e, otro)
+      expect(b.coste).toBe(a.coste)
+      expect(b.sinSitio).toBeCloseTo(a.sinSitio, 6)
+    }
+  })
+
+  it('la lista va con los colegios arriba y las obras nuevas se añaden arriba de su grupo', () => {
+    const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
+    expect(ordenarObras(plan)).toEqual(plan)
+    const colegio = nuevaObra(navalcarnero.ine, 'instituto', PARAMETROS_PLAN)
+    const centro = nuevaObra(navalcarnero.ine, 'centro_salud', PARAMETROS_PLAN)
+    const conColegio = anadirObra(plan, colegio, municipios)
+    expect(conColegio[0]).toEqual(colegio)
+    const conCentro = anadirObra(plan, centro, municipios)
+    const colegios = plan.filter((o) => o.tipo !== 'centro_salud').length
+    expect(conCentro[colegios]).toEqual(colocarObra(centro, municipios))
+    expect(conCentro.length).toBe(plan.length + 1)
   })
 
   it('plan óptimo por defecto, reubicando en pueblos cercanos', () => {
@@ -183,7 +236,7 @@ describe('plan', () => {
     const r = evaluarPlan(municipios, zonas, conReubicar, plan)
     expect(cuantas(plan)).toEqual({ ampliar_primaria: 7, colegio_primaria: 0, instituto: 2, centro_salud: 6 })
     expect(r.municipios).toBe(15)
-    expect(r.coste).toBe(81_266_000)
+    expect(r.coste).toBe(79_353_320)
     expect(Math.round(r.sinSitioAntes)).toBe(50_774)
     expect(Math.round(r.sinSitio)).toBe(9_319)
     expect(Math.round(r.sinSitioPor.vivienda)).toBe(9_319) // lo que queda es todo por vivienda
@@ -199,8 +252,8 @@ describe('plan', () => {
     const plan = planOptimo(municipios, zonas, sinReubicar, PARAMETROS_PLAN)
     const r = evaluarPlan(municipios, zonas, sinReubicar, plan)
     expect(cuantas(plan)).toEqual({ ampliar_primaria: 26, colegio_primaria: 0, instituto: 13, centro_salud: 8 })
-    expect(r.municipios).toBe(42)
-    expect(r.coste).toBe(281_804_000)
+    expect(r.municipios).toBe(41)
+    expect(r.coste).toBe(261_044_880)
     expect(Math.round(r.sinSitioAntes)).toBe(77_630)
     expect(Math.round(r.sinSitio)).toBe(23_874)
   })
@@ -235,7 +288,7 @@ describe('plan', () => {
   it('edición a mano: añadir, cambiar plazas y borrar filas', () => {
     const fila = nuevaObra(navalcarnero.ine, 'centro_salud', PARAMETROS_PLAN)
     const uno = evaluarPlan(municipios, zonas, conReubicar, [fila])
-    expect(uno.coste).toBe(7_100_000)
+    expect(uno.coste).toBe(6_670_000)
     expect(uno.obras.centro_salud).toBe(1)
     expect(uno.ganaPorObra[0]).toBeGreaterThan(0)
     expect(uno.pasanACaber).toBeGreaterThan(0)
@@ -244,7 +297,7 @@ describe('plan', () => {
     // Una ampliación más pequeña cuesta menos y gana menos o lo mismo
     const colegio = { ...nuevaObra(navalcarnero.ine, 'ampliar_primaria', PARAMETROS_PLAN), plazas: 100, eurosPorPlaza: 7_000, anios: 1 }
     const dos = evaluarPlan(municipios, zonas, conReubicar, [fila, colegio])
-    expect(dos.coste).toBe(7_100_000 + 700_000)
+    expect(dos.coste).toBe(6_670_000 + 700_000)
     expect(aperturaObra(colegio)).toBe(2028)
     const grande = evaluarPlan(municipios, zonas, conReubicar, [fila, { ...colegio, plazas: 225 }])
     expect(grande.ganaPorObra[1]).toBeGreaterThanOrEqual(dos.ganaPorObra[1])
@@ -279,7 +332,7 @@ describe('plan', () => {
     const plan = planOptimo(municipios, zonas, conReubicar, PARAMETROS_PLAN)
     const inv = inversionesDe(plan)
     const antes = calcular(municipios, zonas, conReubicar, inv)
-    const despues = calcular(municipios, zonas, conReubicar, inv, { tiposConPlan: true })
+    const despues = calcular(municipios, zonas, conReubicar, inv, { tiposDespues: true })
     expect(despues.map((r) => r.caben)).toEqual(antes.map((r) => r.caben)) // solo cambian los colores
     const tension = despues.filter((r) => r.tipo === 'tension')
     expect(tension.map((r) => r.ine)).toEqual(despues.filter((r) => quedanSinSitio(r) >= 25).map((r) => r.ine))

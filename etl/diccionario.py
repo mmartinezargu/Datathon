@@ -33,6 +33,9 @@ OSRM = ("OSRM (router.project-osrm.org, perfil de coche, sin tráfico) sobre Ope
         "ODbL); hospitales: Portal de Datos Abiertos de la Comunidad de Madrid, Centros sanitarios", "https://project-osrm.org")
 ESCENARIO = ("Cálculo de CABIDA en la web (web/src/motor.ts) con el escenario elegido; se descarga desde «Llévate los datos»", "")
 CABIDA = ("Cálculo de CABIDA (etl/validacion.py) a partir del Padrón", "https://www.ine.es/jaxiT3/Tabla.htm?t=2881")
+NOTICIAS_CM = ("Comunidad de Madrid, noticias de obras en comunidad.madrid (2023–2026); la de cada obra, en la columna url",
+               "https://www.comunidad.madrid/noticias")
+OBRAS_CABIDA = ("Cálculo de CABIDA (etl/obras_referencia.py) a partir de las noticias", "https://www.comunidad.madrid/noticias")
 
 # archivo -> [(columna, descripción, unidad, (fuente, url))]
 DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
@@ -137,6 +140,26 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
          "esté en el municipio que esté)", "centros", ESCENARIO),
         ("plan_coste_eur", "Con el plan: coste de las obras que se hacen en este municipio (valores por defecto y su fuente "
          "en la pestaña «Plan»)", "euros", ESCENARIO),
+        ("plan_obras", "Con el plan: las obras que se hacen en este municipio, separadas por «;» (p. ej. «1 ampliación; "
+         "1 centro de salud»). Vacío = ninguna", "texto", ESCENARIO),
+        ("plan_apertura", "Con el plan: año en que abre la última obra de este municipio. Vacío = ninguna", "año", ESCENARIO),
+    ],
+    # Obras reales que dan los costes por defecto del plan (etl/obras_referencia.py). CC BY 4.0
+    "obras_referencia.csv": [
+        ("tipo", "Ampliación de colegio, colegio nuevo, instituto nuevo, ampliación de instituto o centro de salud nuevo. "
+         "Las terminaciones y fases de un colegio que ya funciona cuentan como ampliación", "texto", NOTICIAS_CM),
+        ("obra_plan", "Tipo de obra del plan de la web cuyo valor por defecto sale de la mediana de estas obras: ampliar_primaria, "
+         "colegio_primaria, instituto o centro_salud. Vacío = de referencia, no entra en ninguna mediana (ver nota)", "código", OBRAS_CABIDA),
+        ("nombre", "Nombre del centro, como lo da la noticia", "texto", NOTICIAS_CM),
+        ("municipio", "Municipio (en Madrid capital, con el barrio o distrito)", "texto", NOTICIAS_CM),
+        ("fecha", "Fecha de la noticia de la que sale el coste", "AAAA-MM-DD", NOTICIAS_CM),
+        ("plazas", "Plazas escolares nuevas o, en un centro de salud, vecinos que atenderá. Vacío = la noticia no lo dice",
+         "plazas o personas", NOTICIAS_CM),
+        ("coste_eur", "Inversión que da la noticia para esa obra (con «más de» o «cerca de», la cifra que da)", "euros", NOTICIAS_CM),
+        ("eur_por_plaza", "coste_eur ÷ plazas (en un centro de salud, euros por vecino que atiende)", "euros", OBRAS_CABIDA),
+        ("fuente", "Quién lo publica y cuándo", "texto", NOTICIAS_CM),
+        ("url", "Página de la noticia en comunidad.madrid", "URL", NOTICIAS_CM),
+        ("nota", "Aclaraciones: terminación o fase, otra fecha de la que sale una cifra, por qué no entra en la mediana", "texto", NOTICIAS_CM),
     ],
     "validacion_municipios.csv": [
         ("ine", "Código INE del municipio (5 cifras)", "código", PADRON),

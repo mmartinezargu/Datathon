@@ -21,7 +21,7 @@ const MAX_PROMOCIONAR = 5
 const EJEMPLOS = [
   'Llegan un 30 % de familias y un 50 % de jubilados',
   '¿Dónde atraemos a los jubilados en el sur?',
-  'Atraed a las familias a pueblos pequeños',
+  'Atraed a las familias a municipios pequeños',
 ]
 
 /** Nombre corto de cada grupo para el resumen de los ajustes. */
@@ -97,8 +97,8 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
       <section className="val-cabeza">
         <h1>¿Dónde conviene atraer a cada uno?</h1>
         <p>
-          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas a los 155 pueblos, y muchas irán donde ya no caben.
-          Si se pudiera orientar a dónde va cada uno (con campañas, ayudas al alquiler o teletrabajo rural), ¿a qué pueblos
+          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas a los 155 municipios, y muchas irán donde ya no caben.
+          Si se pudiera orientar a dónde va cada uno (con campañas, ayudas al alquiler o teletrabajo rural), ¿a qué municipios
           convendría atraer a las familias, a las personas mayores y a quien teletrabaja? Construir es la otra palanca: está
           en <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
         </p>
@@ -106,7 +106,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
 
       <section className="val-tarjeta filtros simulador">
         <Asistente porIne={porIne} actual={FILTROS_INICIALES} medida={medida} ejemplos={EJEMPLOS} boton="Calcular"
-          noEntendido="Prueba a decir a quién queréis atraer (familias, jubilados, teletrabajo), una zona o un municipio, o si debe ser a pueblos pequeños o con hospital cerca."
+          noEntendido="Prueba a decir a quién queréis atraer (familias, jubilados, teletrabajo), una zona o un municipio, o si debe ser a municipios pequeños o con hospital cerca."
           onLectura={alLeer} />
 
         <details className="atraer-ajustes">
@@ -134,7 +134,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
         <div className="casillas">
           <Casilla texto={`Todos con hospital a menos de ${umbralHospital(medida)}${medida === 'min' ? ' en coche' : ''}`} valor={filtros.hospitalCerca}
             onCambiar={(hospitalCerca) => cambiar({ hospitalCerca })} />
-          <Casilla texto="Familias: solo pueblos con instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
+          <Casilla texto="Familias: solo municipios con instituto" valor={filtros.instituto} onCambiar={(instituto) => cambiar({ instituto })} />
         </div>
         <div className="filtros-fila">
           <label className="control">
@@ -164,7 +164,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
 
       <section className="val-tarjeta simulador">
         <div className="sim-resumen">
-          <div><b>{miles(reparto.colocados)}</b><span>caben si se atrae a cada uno a su sitio, en {miles(reparto.pueblos.length)} pueblos</span></div>
+          <div><b>{miles(reparto.colocados)}</b><span>caben si se atrae a cada uno a su sitio, en {miles(reparto.pueblos.length)} municipios</span></div>
           <div className={sinSitio > 0 ? 'sim-falta' : ''}><b>{miles(sinSitio)}</b><span>se quedan sin sitio aun así</span></div>
           <div><b>{miles(sinDirigir)}</b><span>caben si cada uno va donde le lleva la tendencia (el mapa)</span></div>
         </div>
@@ -189,7 +189,7 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
           {promocionar.map(({ perfil, pueblos }) => (
             <div key={perfil} className="atraer-grupo">
               <h3>A {PARA_QUIEN[perfil]}</h3>
-              {pueblos.length === 0 ? <p className="ayuda">Ningún pueblo con sitio cumple lo que pides.</p> : (
+              {pueblos.length === 0 ? <p className="ayuda">Ningún municipio con sitio cumple lo que pides.</p> : (
                 <ol>
                   {pueblos.map((f) => (
                     <li key={f.ine}>
@@ -206,23 +206,23 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
 
         <button className="desplegar atraer-descarga" disabled={!reparto.pueblos.length}
           onClick={() => descargar(`cabida_atraer_${escenario.anio}.csv`, csvAtraer(reparto, resultados, porIne, mezcla, filtros))}>
-          Descargar CSV de los pueblos a promocionar<span className="flecha" aria-hidden="true">↓</span>
+          Descargar CSV de los municipios a promocionar<span className="flecha" aria-hidden="true">↓</span>
         </button>
 
         <details className="atraer-detalle">
-        <summary><b>Ver pueblo a pueblo</b> <span className="ayuda">({miles(reparto.pueblos.length)} pueblos)</span></summary>
+        <summary><b>Ver municipio a municipio</b> <span className="ayuda">({miles(reparto.pueblos.length)} municipios)</span></summary>
         <p className="ayuda">
-          Cuántos de cada grupo convendría atraer a cada pueblo, de lo que le cabe. «Lo llena» es lo primero que se le acaba:
+          Cuántos de cada grupo convendría atraer a cada municipio, de lo que le cabe. «Lo llena» es lo primero que se le acaba:
           si son los colegios o el centro de salud, se puede ampliar en <button className="enlace" onClick={onIrAlPlan}>Plan</button>.
         </p>
         {reparto.pueblos.length === 0 ? (
-          <p className="vacio">No hay ningún pueblo con sitio que cumpla lo que pides. Prueba a quitar algún filtro.</p>
+          <p className="vacio">No hay ningún municipio con sitio que cumpla lo que pides. Prueba a quitar algún filtro.</p>
         ) : (
           <div className="tabla-scroll">
             <table className="sim-tabla">
               <thead>
                 <tr>
-                  <th>Pueblo</th>
+                  <th>Municipio</th>
                   {ORDEN_REPARTO.map((p) => <th key={p} className="num">{PERFILES[p].nombre}</th>)}
                   <th className="num">Recibe</th>
                   <th>Lo llena</th>
@@ -243,16 +243,16 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
         )}
         {reparto.pueblos.length > MAX_FILAS && (
           <button className="enlace" onClick={() => setTodos(!todos)}>
-            {todos ? `Ver solo los ${MAX_FILAS} primeros` : `Ver los ${miles(reparto.pueblos.length)} pueblos`}
+            {todos ? `Ver solo los ${MAX_FILAS} primeros` : `Ver los ${miles(reparto.pueblos.length)} municipios`}
           </button>
         )}
         </details>
 
         <p className="nota">
-          Cada grupo va primero a los pueblos que mejor le encajan (colegios con sitio para las familias, centro de salud para las
-          personas mayores, casas para quien teletrabaja); las familias solo a pueblos con colegio y las personas mayores, con el
+          Cada grupo va primero a los municipios que mejor le encajan (colegios con sitio para las familias, centro de salud para las
+          personas mayores, casas para quien teletrabaja); las familias solo a municipios con colegio y las personas mayores, con el
           hospital a menos de {umbralHospital(medida)} {MEDIDAS[medida].como}. Los tres grupos eligen por turnos y a la par, cada uno en proporción a cuántos
-          son, y cada pueblo recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
+          son, y cada municipio recibe hasta llenarse. Como en el resto del modelo, cada persona ocupa sitio en colegios, centro de
           salud y vivienda a la vez. Es una simulación: en la realidad cada uno elige dónde vive.
         </p>
       </section>

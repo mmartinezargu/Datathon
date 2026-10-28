@@ -88,7 +88,6 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .vaso-etiqueta { font-family: var(--texto); font-size: 13px; font-weight: 600; }
 .vaso-valor { font-family: var(--disp); font-size: 21px; font-weight: 750; font-variant-numeric: tabular-nums; }
 .vaso-valor.fuerte { font-size: 27px; }
-.vaso-dentro-texto { font-family: var(--texto); font-size: 12.5px; font-weight: 700; }
 .vaso figcaption { display: flex; flex-direction: column; gap: 4px; }
 .vaso-frase { margin: 0; font-family: var(--disp); font-weight: 700; font-size: 17px; line-height: 1.25; }
 .vaso-nota { margin: 0; font-size: 12.5px; color: var(--tinta2); line-height: 1.4; }
@@ -371,3 +370,15 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .barra-nombre small { display: block; font-size: 11.5px; color: var(--tinta2); font-weight: 500; margin-top: 1px; }
 .val-frase { font-size: 14px; line-height: 1.55; margin: 0 0 12px; max-width: 72ch; }
 .val-reto { font-size: 11.5px; color: var(--tinta2); font-weight: 600; }
+.ranking .ver-todos { margin-top: 10px; }
+.l-valor .l-sin { display: block; font-size: 11px; font-weight: 500; color: var(--tinta2); line-height: 1.1; }
+.obras-ref { margin-top: 6px; font-size: 13px; }
+.obras-ref-resumen { margin: 0 0 4px; font-weight: 600; }
+.obras-ref summary { cursor: pointer; font-size: 13px; color: var(--cielo); font-weight: 600; }
+.obras-ref ul { margin: 6px 0 0; padding-left: 18px; }
+.obras-ref li { margin: 3px 0; }
+.obras-ref li.fuera { color: var(--tinta2); }
+.plan-tuyo { display: block; margin-top: 3px; font-size: 12px; color: var(--tinta2); }
+.plan-lista-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.plan-lista-cabeza .desplegar { width: auto; }
+.plan-tabla-titulo { margin: 14px 0 6px; font-size: 15px; }

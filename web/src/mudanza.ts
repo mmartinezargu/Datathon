@@ -15,7 +15,7 @@ export const PERFILES: Record<Perfil, { nombre: string; que: string; pesos: Reco
 
 export const TAMANOS: Record<Tamano, { nombre: string; desde: number; hasta: number }> = {
   todos: { nombre: 'Da igual', desde: 0, hasta: Infinity },
-  pueblo: { nombre: 'Pueblo', desde: 0, hasta: 5_000 },
+  pueblo: { nombre: 'Pequeño', desde: 0, hasta: 5_000 },
   mediano: { nombre: 'Mediano', desde: 5_000, hasta: 20_000 },
   grande: { nombre: 'Grande', desde: 20_000, hasta: Infinity },
 }
@@ -89,7 +89,7 @@ function posiciones(v: number[]): number[] {
 /** Frases de ejemplo para la caja de texto. */
 export const EJEMPLOS_FRASE = [
   'Somos 4 y trabajo en Getafe',
-  'Estoy jubilado y quiero un pueblo tranquilo',
+  'Estoy jubilado y quiero un municipio tranquilo',
   'Teletrabajo y busco algo en la Sierra Norte',
 ]
 
@@ -222,14 +222,14 @@ export function interpretarFrase(frase: string, municipios: Municipio[], actual:
   }
   if (mezcla) {
     entendido.push(textoMezcla(mezcla))
-    if (instituto) entendido.push('Familias: solo pueblos con instituto.')
+    if (instituto) entendido.push('Familias: solo municipios con instituto.')
   } else entendido.push(...lineasPerfil)
   const filtros = cambiarPerfil(FILTROS_INICIALES, mezcla ? actual.perfil : perfil ?? actual.perfil)
   if (instituto) filtros.instituto = true
   if (/\b(hospital\w*|medic[oa]s?|urgencias)\b/.test(t)) filtros.hospitalCerca = true
 
   // Tamaño y zona: la del municipio que nombra o una zona dicha por su nombre
-  const tamano: Tamano | null = /\b(pueblos?|tranquil[oa]|campo)\b/.test(t) ? 'pueblo'
+  const tamano: Tamano | null = /\b(pueblos?|tranquil[oa]|campo|pequen[oa]s?)\b/.test(t) ? 'pueblo'
     : /\bmediano\b/.test(t) ? 'mediano'
       : /\b(ciudad|municipio grande|sitio grande)\b/.test(t) ? 'grande' : null
   const zona = zonasConCandidatos(municipios).find((z) => buscar(t, normalizar(z)).length)
@@ -252,7 +252,7 @@ function completar(filtros: FiltrosMudanza, entendido: string[], tamano: Tamano 
     filtros.tamano = tamano
     const { desde, hasta } = TAMANOS[tamano]
     entendido.push(hasta === Infinity ? `Un sitio grande: más de ${miles(desde)} vecinos.`
-      : desde === 0 ? `Un pueblo: menos de ${miles(hasta)} vecinos.`
+      : desde === 0 ? `Pequeño: menos de ${miles(hasta)} vecinos.`
         : `Un sitio mediano: entre ${miles(desde)} y ${miles(hasta)} vecinos.`)
   }
   const zonas = zonasConCandidatos(municipios)
@@ -287,7 +287,7 @@ export function lecturaDeIA(datos: unknown, municipios: Municipio[], actual: Fil
   const mezcla = dichos.length ? Object.fromEntries(dichos.map((p) => [p, Math.round(m[p] as number)])) as Partial<Record<Perfil, number>> : null
   if (mezcla) {
     entendido.push(textoMezcla(mezcla))
-    if (instituto) entendido.push('Familias: solo pueblos con instituto.')
+    if (instituto) entendido.push('Familias: solo municipios con instituto.')
   } else if (perfil === 'familia' || instituto) {
     entendido.push(instituto ? 'Con hijos en edad de instituto: buscamos colegio e instituto.' : 'Familia con hijos: buscamos que haya colegio.')
   } else if (perfil) {
