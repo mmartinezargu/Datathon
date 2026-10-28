@@ -39,7 +39,8 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 | `src/formato.ts` | Formato español de números y porcentajes |
 | `public/datos/` | **Generado** por el ETL. No editar a mano. `resultados_2035.csv`, `plan_recomendado.csv` y `zonas_salud.csv` los genera `scripts/datasets.ts` |
 | `scripts/datasets.ts` | `npm run datasets`: los CSV de resultados del escenario por defecto para `data/out` (y `public/datos`), con el motor de la web. Volver a ejecutarlo si cambia el motor |
-| `scripts/copia-offline.mjs` | `npm run offline`: la web en un solo HTML sin internet (`offline/`); se copia a `entrega/offline/` |
+| `scripts/copia-offline.mjs` | `npm run offline`: la web en un solo HTML sin internet (`offline/`), con `datos/` y `datos-abiertos/` (la página de datos con sus tipografías dentro y «Volver a CABIDA» → `CABIDA.html`); se copia a `entrega/offline/` |
+| `scripts/datos-abiertos.mjs` | `npm run datos-abiertos` (también al final de `npm run datasets`): página estática `public/datos-abiertos/` (https://cabida.vercel.app/datos-abiertos/), fuera de React. Copia los 7 CSV de `data/out` y rellena la plantilla `scripts/datos-abiertos.html` con sus filas y la tabla de fuentes de `data/out/README.md`. No se edita a mano; `tests/datos-abiertos.test.ts` avisa si se queda vieja. «Cómo funciona» enlaza a ella |
 
 ## Asistente con IA
 

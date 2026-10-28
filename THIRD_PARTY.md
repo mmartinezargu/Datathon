@@ -53,7 +53,7 @@ cd etl && uv run python -c "import importlib.metadata as md;[print(d, md.version
 
 | Herramienta | Versión | Licencia | Para qué |
 |---|---|---|---|
-| qrcode (npm) | 1.5.4 | MIT | Generó una vez el código QR de `https://cabida.vercel.app` de la diapositiva 11 (`presentacion/diapositivas.html`). El QR va dentro del HTML como SVG; la librería no es dependencia del proyecto. https://github.com/soldair/node-qrcode |
+| qrcode (npm) | 1.5.4 | MIT | Generó una vez el código QR de `https://cabida.vercel.app` de la diapositiva 11 (`presentacion/diapositivas.html`). El de `https://cabida.vercel.app/datos-abiertos/` se hizo con el mismo formato (corrección M, SVG sin margen), con un generador propio que reproduce el primero bit a bit. Los dos van dentro del HTML como SVG; la librería no es dependencia del proyecto. https://github.com/soldair/node-qrcode |
 
 Las tipografías de las diapositivas (Bricolage Grotesque y Public Sans, de Google Fonts) tienen licencia SIL Open Font License 1.1; en `entrega/offline/CABIDA_diapositivas.html` van dentro del archivo.
 

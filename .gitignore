@@ -27,3 +27,6 @@ __pycache__/
 node_modules/
 web/dist/
 *.log
+
+# Zip para el grupo (node entrega/hacer-zip.mjs)
+CABIDA_final.zip

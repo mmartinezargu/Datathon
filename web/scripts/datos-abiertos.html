@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- Plantilla de la página de datos abiertos (https://cabida.vercel.app/datos-abiertos/).
+     No se edita web/public/datos-abiertos/index.html: lo genera scripts/datos-abiertos.mjs con esta plantilla.
+     {{ARCHIVOS}} y {{FUENTES}} se rellenan con los CSV de data/out y la tabla de fuentes de data/out/README.md. -->
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CABIDA · Datos abiertos</title>
+<meta name="description" content="Los datos que usa y genera CABIDA, para descargar y reutilizar (CC BY 4.0)." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Public+Sans:wght@400..700&display=swap" rel="stylesheet" />
+<script>
+  // Sin la barra final, los enlaces de descarga (relativos) apuntarían a la raíz de la web
+  if (location.protocol !== 'file:' && !location.pathname.endsWith('/') && !location.pathname.endsWith('.html')) {
+    location.replace(location.pathname + '/' + location.search + location.hash)
+  }
+</script>
+<style>
+:root {
+  --tinta: #15233B;
+  --tinta2: #4E5D70;
+  --cielo: #2F6FEB;
+  --cielo-claro: #E4EDFD;
+  --fondo: #EEF4FA;
+  --papel: #FFFFFF;
+  --linea: #D8E1EA;
+  --morado: #6E2A8C;
+  --disp: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  --texto: "Public Sans", "Segoe UI", sans-serif;
+  --radio: 14px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--texto); color: var(--tinta); background: var(--fondo); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: var(--cielo); }
+code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.9em; background: var(--cielo-claro); padding: 1px 5px; border-radius: 5px; }
+h1, h2 { font-family: var(--disp); letter-spacing: -0.015em; margin: 0; }
+:focus-visible { outline: 2.5px solid var(--cielo); outline-offset: 2px; border-radius: 4px; }
+
+.cabecera {
+  background: var(--tinta); color: #fff; padding: 38px 16px 34px;
+  border-bottom: 4px solid transparent;
+  border-image: linear-gradient(90deg, #FBD050 0 25%, #F6A229 25% 50%, #C9305E 50% 75%, #6E2A8C 75% 100%) 1;
+}
+.cabecera .dentro { max-width: 1008px; margin: 0 auto; }
+main { max-width: 1040px; margin: 0 auto; }
+.marca { display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 36px; flex-shrink: 0; }
+h1 { font-size: clamp(28px, 6vw, 44px); font-weight: 800; line-height: 1.05; }
+h1 .punto { color: #8392A5; font-weight: 600; }
+.cabecera p { margin: 12px 0 0; color: #C9D4E3; font-size: clamp(16px, 2.6vw, 19px); }
+
+main { padding: 28px 16px 48px; }
+section { margin-top: 36px; }
+section:first-child { margin-top: 0; }
+h2 { font-size: 24px; margin-bottom: 6px; }
+.ayuda { color: var(--tinta2); margin: 0 0 16px; }
+
+.archivos { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.tarjeta { background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+.tarjeta h3 { margin: 0; font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.tarjeta p { margin: 0; color: var(--tinta2); }
+.tarjeta .meta { font-size: 13.5px; color: var(--tinta2); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: auto; padding-top: 6px; }
+.tarjeta .meta b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+.etiqueta { font-size: 12px; font-weight: 600; color: var(--morado); background: #F1E8F6; border-radius: 999px; padding: 2px 9px; }
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; align-self: flex-start;
+  background: var(--tinta); color: #fff; text-decoration: none; font-weight: 600; border-radius: 999px; padding: 9px 18px;
+}
+.boton:hover { background: var(--cielo); }
+
+.tabla-scroll { overflow-x: auto; background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--linea); }
+th { font-weight: 600; color: var(--tinta2); background: #F6F9FC; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { min-width: 240px; }
+td a { white-space: nowrap; }
+
+.caja { background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); padding: 18px 20px; }
+.caja p { margin: 0 0 10px; }
+.caja ul { margin: 0 0 10px; padding-left: 20px; }
+.caja li { margin-bottom: 4px; }
+.caja > :last-child { margin-bottom: 0; }
+blockquote { margin: 0 0 10px; padding: 12px 16px; border-left: 4px solid var(--cielo); background: var(--cielo-claro); border-radius: 0 10px 10px 0; }
+h3.sub { font-family: var(--disp); font-size: 18px; margin: 18px 0 8px; }
+
+.pie { text-align: center; margin-top: 44px; }
+.volver { font-family: var(--disp); font-size: 18px; }
+</style>
+</head>
+<body>
+<header class="cabecera">
+  <div class="dentro">
+    <div class="marca">
+      <svg class="logo" viewBox="0 0 40 36" aria-hidden="true">
+        <polygon points="11,1.5 18.36,5.75 18.36,14.25 11,18.5 3.64,14.25 3.64,5.75" fill="#1B998B" />
+        <polygon points="26,1.5 33.36,5.75 33.36,14.25 26,18.5 18.64,14.25 18.64,5.75" fill="#D7263D" />
+        <polygon points="18.5,14.5 25.86,18.75 25.86,27.25 18.5,31.5 11.14,27.25 11.14,18.75" fill="#2F6FEB" />
+      </svg>
+      <h1>CABIDA <span class="punto">·</span> Datos abiertos</h1>
+    </div>
+    <p>Los datos que usa y genera CABIDA, para descargar y reutilizar.</p>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>Archivos</h2>
+    <p class="ayuda">CSV en UTF-8, separados por comas y con punto decimal. Se cruzan por <code>ine</code>, el código de 5 cifras del municipio (<code>28001</code> = La Acebeda). Los resultados son los del escenario por defecto de la web: 2035, minutos en coche.</p>
+    <div class="archivos">
+{{ARCHIVOS}}
+    </div>
+  </section>
+
+  <section>
+    <h2>De dónde salen los datos</h2>
+    <p class="ayuda">Todo son datos abiertos oficiales. Los minutos en coche se calcularon una sola vez con OpenStreetMap.</p>
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>Dato</th><th>Quién lo publica</th><th>Enlace</th></tr></thead>
+        <tbody>
+{{FUENTES}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Licencia</h2>
+    <div class="caja">
+      <p>Estos datos se publican con licencia <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noreferrer"><b>Creative Commons Atribución 4.0 Internacional (CC BY 4.0)</b></a>: se pueden copiar, redistribuir, transformar y usar con cualquier fin, también comercial, siempre que se cite la fuente. Cita propuesta:</p>
+      <blockquote>CABIDA, II Datathon LoDCOREMadrid 2026. Elaborado a partir de datos del INE, del Portal de Datos Abiertos de la Comunidad de Madrid y del IDEM. Licencia CC BY 4.0.</blockquote>
+      <h3 class="sub">Excepción: los minutos en coche (ODbL 1.0)</h3>
+      <p>Tres columnas, <code>hospital_min</code>, <code>hospital_min_municipio</code> y <code>vecinos_min</code>, se calculan con OSRM sobre mapas de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> y tienen licencia <b>Open Database License (ODbL) 1.0</b>:</p>
+      <ul>
+        <li>Hay que citar a OpenStreetMap: «© colaboradores de OpenStreetMap».</li>
+        <li>Si se publica una base de datos derivada de esas columnas, esa parte mantiene la ODbL.</li>
+        <li>Quien no quiera la ODbL puede quitar esas tres columnas, o usar <code>hospital_km</code> (en línea recta), y quedarse solo con CC BY 4.0.</li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="pie"><a class="volver" href="https://cabida.vercel.app">← Volver a CABIDA</a></p>
+</main>
+</body>
+</html>
