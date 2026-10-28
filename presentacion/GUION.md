@@ -1,6 +1,17 @@
 # Guion de la final (10 minutos)
 
-Cuatro voces y un solo «piloto» (quien tiene el portátil: pasa las diapositivas y maneja el ratón en la demo). Las voces y el piloto se pueden repartir como queráis; lo importante es que **solo haya un piloto**.
+Cuatro voces y un solo «piloto» (quien tiene el portátil: pasa las diapositivas y maneja el ratón en la demo). Lo importante es que **solo haya un piloto**.
+
+**Reparto (decidido el 28/10):**
+
+| Quién | Qué cuenta | Tiempo |
+|---|---|---|
+| **Mario Velandia** | Diapositivas 1–7 (el problema y la solución) y, al volver de la demo, diapositivas 8–11 (¿acierta?, impacto, todo abierto y cierre) | 3:05 + 2:10 |
+| **Víctor García** | Demo: **Ver** (el mapa) | 1:30 |
+| **Mario Martínez** | Demo: **Decidir** (el plan) | 1:30 |
+| **Rodrigo Manchado** | Demo: **Elegir** (dónde vivir) y una pincelada de **Cómo funciona** | 1:00 + 0:30 |
+
+**Piloto: Mario Velandia** (propuesta: termina de hablar a los 3:05 y se queda pulsando; si preferís otro, cambiadlo aquí). Durante la demo, el piloto pulsa y la voz de cada parte habla.
 
 Las frases están pensadas para decirlas casi tal cual, pero con vuestras palabras. **Frases cortas, un solo mensaje por pulsación.**
 
@@ -8,29 +19,30 @@ Las frases están pensadas para decirlas casi tal cual, pero con vuestras palabr
 
 | Minuto | Voz | Qué se ve | Duración | Truco |
 |---|---|---|---|---|
-| 0:00 | **Voz 1** | Diapositiva 1: portada | 0:15 | Gancho: el lema |
-| 0:15 | Voz 1 | Diapositiva 2: «Madrid crece» | 0:30 | Pregunta que deja esperando |
-| 0:45 | Voz 1 | Diapositiva 3: 134.426 | 0:20 | Un solo número |
-| 1:05 | Voz 1 | Diapositiva 4: el vaso | 0:45 | Aversión a la pérdida |
-| 1:50 | **Voz 2** | Diapositiva 5: «Esto es CABIDA» | 0:30 | Un solo producto, regla de tres |
-| 2:20 | Voz 2 | Diapositiva 6: la regla | 0:30 | Una regla simple, fácil de repetir |
-| 2:50 | Voz 2 | Diapositiva 7: «Veámoslo» | 0:15 | Tres actos |
-| 3:05 | Voz 2 | **Demo: Ver** (el mapa) | 1:30 | Mostrar, no contar |
-| 4:35 | **Voz 3** | **Demo: Decidir** (el plan) | 1:30 | De la información a la acción |
-| 6:05 | Voz 3 | **Demo: Elegir** (dónde vivir) | 1:00 | Un mismo producto, dos públicos |
-| 7:05 | **Voz 4** | Diapositiva 8: ¿acierta? | 0:45 | Credibilidad con un solo número |
-| 7:50 | Voz 4 | Diapositiva 9: impacto | 1:00 | Comparación: la opción que elegimos |
-| 8:50 | Voz 4 | Diapositiva 10: todo abierto | 0:20 | Confianza |
-| 9:10 | Voz 4 | Diapositiva 11: cierre | 0:30 | Una sola acción: probarlo |
-| 9:40 | | Margen y preguntas | 0:20 | |
+| 0:00 | **Mario V.** | Diapositiva 1: portada | 0:15 | Gancho: el lema |
+| 0:15 | Mario V. | Diapositiva 2: «Madrid crece» | 0:30 | Pregunta que deja esperando |
+| 0:45 | Mario V. | Diapositiva 3: 134.426 | 0:20 | Un solo número |
+| 1:05 | Mario V. | Diapositiva 4: el vaso | 0:45 | Aversión a la pérdida |
+| 1:50 | Mario V. | Diapositiva 5: «Esto es CABIDA» | 0:30 | Un solo producto, regla de tres |
+| 2:20 | Mario V. | Diapositiva 6: la regla | 0:30 | Una regla simple, fácil de repetir |
+| 2:50 | Mario V. | Diapositiva 7: «Veámoslo» | 0:15 | Tres actos |
+| 3:05 | **Víctor** | **Demo: Ver** (el mapa) | 1:30 | Mostrar, no contar |
+| 4:35 | **Mario M.** | **Demo: Decidir** (el plan) | 1:30 | De la información a la acción |
+| 6:05 | **Rodrigo** | **Demo: Elegir** (dónde vivir) | 1:00 | Un mismo producto, dos públicos |
+| 7:05 | Rodrigo | **Demo: Cómo funciona** (pincelada) | 0:30 | «Aquí está todo» |
+| 7:35 | **Mario V.** | Diapositiva 8: ¿acierta? | 0:20 | Ya lo ha dicho Rodrigo: solo recordarlo |
+| 7:55 | Mario V. | Diapositiva 9: impacto | 1:00 | Comparación: la opción que elegimos |
+| 8:55 | Mario V. | Diapositiva 10: todo abierto | 0:20 | Confianza |
+| 9:15 | Mario V. | Diapositiva 11: cierre | 0:30 | Una sola acción: probarlo |
+| 9:45 | | Margen y preguntas | 0:15 | |
 
-Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
+Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 · Rodrigo, 1:30.
 
 **Pulsaciones.** En cada diapositiva, flecha derecha o espacio suelta la siguiente idea; cuando no quedan, pasa a la siguiente diapositiva. Ideas por diapositiva (sin contar la primera vista): 2 → 2, 3 → 1, 4 → 2, 5 → 3, 6 → 1, 7 → 3, 8 → 2, 9 → 3, 10 → 3, 11 → 1. La diapositiva 1 no tiene ideas sueltas.
 
 ---
 
-## Bloque 1: el problema (Voz 1, 1:50)
+## Bloque 1: el problema (Mario V., 1:50)
 
 **Diapositiva 1.** Sin pulsar.
 > «Buenas. Somos [nombres] y esto es CABIDA: saber dónde cabe la gente, antes de que llegue.»
@@ -49,7 +61,7 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 - *(pulsar)* «Caben 56.796.»
 - *(pulsar)* «Las otras 77.630, no. Casi seis de cada diez. Y eso no se ve a ojo, pueblo por pueblo: hay que calcularlo.»
 
-## Bloque 2: la solución (Voz 2, 1:15 + demo)
+## Bloque 2: la solución (Mario V., 1:15)
 
 **Diapositiva 5: «Esto es CABIDA.»**
 - *(pulsar)* «155 pueblos.»
@@ -70,7 +82,7 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 
 **Antes de empezar la demo: recargar la web (F5)** para que las cifras sean las de las diapositivas.
 
-### Ver: el mapa (Voz 2, 1:30)
+### Ver: el mapa (Víctor, 1:30)
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
@@ -81,7 +93,7 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 | 5 | Pulsar **Arroyomolinos** (el primero de la lista de la derecha) | Ficha: llegan 12.305, no caben 11.489, caben 816. Hospital más cercano: Móstoles, a 12 min | «Arroyomolinos: llegarían unas 12.300 personas y caben 816.» |
 | 6 | Nada. Señalar las cuatro barras de la ficha | Vivienda 17.531 · Colegios 12.441 · **Sanidad 816** · Ritmo 13.095 | «¿Por qué? Tiene casas y colegios, pero el centro de salud no da más: ese es su límite.» |
 
-### Decidir: el plan (Voz 3, 1:30)
+### Decidir: el plan (Mario M., 1:30)
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
@@ -92,7 +104,7 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 
 > **Sobre el dinero.** En pantalla se ven los millones (97 M€). No los comentéis como dato firme: son estimaciones (la mediana de obras reales de la Comunidad, que son pocas). Si preguntan: «Son estimaciones; las fuentes de cada coste están en la pestaña Plan». En las diapositivas hablamos de obras y de personas.
 
-### Elegir: dónde vivir (Voz 3, 1:00)
+### Elegir: dónde vivir (Rodrigo, 1:00)
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
@@ -100,18 +112,28 @@ Tiempo de voz: Voz 1, 1:50 · Voz 2, 2:45 · Voz 3, 2:30 · Voz 4, 2:35.
 | 12 | Pulsar el ejemplo **«Somos 4 y trabajo en Getafe»** (se rellena y busca solo; tarda unos 3-4 segundos) | «Hemos entendido: …». Sin IA (palabras clave) sale: «Sois 4: os tratamos como una familia con hijos. Getafe tiene más de 50.000 habitantes y queda fuera del estudio: buscamos cerca, en su zona (Sur Metropolitano).» Con la IA, la frase puede variar un poco | «Se lo contamos con nuestras palabras: somos cuatro y trabajamos en Getafe. Lo entiende solo.» |
 | 13 | Nada | **Humanes de Madrid**, «encaja 75 sobre 100»: colegios +5.079, centro de salud +7.910, casas +5.006; hospital en Parla, a 11 min. El segundo: San Martín de la Vega | «Solo dos pueblos aguantan. El primero, Humanes de Madrid: tiene sitio en colegios, centro de salud y casas, y el hospital a 11 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
 
-Después, **Alt + Tab a las diapositivas** (siguen en la 7).
+### Cómo funciona: la pincelada (Rodrigo, 0:30)
+
+No se explica la página: solo se enseña que existe.
+
+| # | Qué se pulsa | Qué se ve | Qué se dice |
+|---|---|---|---|
+| 14 | Pestaña **Cómo funciona** | Los 4 pasos | «Todo esto no es magia. Aquí explicamos cómo lo calculamos, en cuatro pasos: cuánta gente llega, cuánta cabe, qué tipo de municipio es y si acierta.» |
+| 15 | Bajar hasta **«¿Acierta?»** | «Acierta dónde va 77 de cada 100 personas» | «Lo probamos con el pasado: acierta el municipio de 77 de cada 100 personas. Si queréis verlo en detalle, con las fuentes y las limitaciones, está todo aquí.» |
+
+Después, **Alt + Tab a las diapositivas** (siguen en la 7) y habla Mario V.
 
 ---
 
-## Bloque 3: la prueba y el cierre (Voz 4, 2:35)
+## Bloque 3: la prueba y el cierre (Mario V., 2:10)
 
 Desde la diapositiva 7, pulsar para pasar a la 8.
 
 **Diapositiva 8: ¿acierta?**
-- *(se ve)* «¿Y si se equivoca? Lo probamos con el pasado.»
-- *(pulsar)* «Con los datos de 2015 predijimos dónde iría la gente hasta 2025 y lo comparamos con lo que pasó de verdad. Acertamos el pueblo de 77 de cada 100 personas.»
-- *(pulsar)* «Seguir la tendencia sin más acierta 67. Y mirando por comarcas, 89.» *(el 89 no está en la diapositiva; está en la web, en «Cómo funciona», sección «¿Acierta?»)*
+Rodrigo ya lo ha contado en la web: aquí solo se recuerda, rápido.
+- *(se ve)* «Como acabamos de ver, lo probamos con el pasado.»
+- *(pulsar)* «Con los datos de 2015, acertamos el municipio de 77 de cada 100 personas que llegaron hasta 2025.»
+- *(pulsar)* «Seguir la tendencia sin más acierta 67.»
 
 **Diapositiva 9: impacto.**
 - *(pulsar)* «Si cada pueblo se arregla solo: 47 obras y aun así 23.874 personas sin sitio.»
@@ -145,11 +167,20 @@ Desde la diapositiva 7, pulsar para pasar a la 8.
 
 ### Si vamos mal de tiempo
 
-Recortar, por este orden: el paso 4 (Reubicar), el paso 3 (2039) y, si hace falta, el bloque **Elegir** entero. No recortar la ficha de Arroyomolinos ni el plan recomendado.
+Recortar, por este orden: el paso 4 (Reubicar), el paso 3 (2039), la pincelada de **Cómo funciona** (pasos 14-15) y, si hace falta, el bloque **Elegir** entero. No recortar la ficha de Arroyomolinos ni el plan recomendado.
 
 ---
 
 ## Preguntas que pueden hacernos
+
+Responde uno, y los demás no interrumpen. Si se atasca, el «dueño» del tema añade una frase:
+
+| Tema | Quién responde |
+|---|---|
+| Modelo, el «77 de 100», el plan y los costes | Víctor |
+| La IA, «Dónde vivir» y «Atraer» | Mario M. |
+| Datos, fuentes, licencias y minutos en coche (OSRM) | Mario V. |
+| La idea, para qué sirve y siguientes pasos | Rodrigo |
 
 | Pregunta | Respuesta corta |
 |---|---|
