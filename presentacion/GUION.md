@@ -111,9 +111,9 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
-| 11 | Pulsar la pestaña **Dónde vivir**. Si «Reubicar» sigue activo, quitarlo antes en el mapa: con la reubicación, Humanes y San Martín de la Vega se llenan y el paso 13 sale vacío | Caja «Cuéntanoslo con tus palabras» y tres ejemplos | «Y no solo es para quien planifica. También es para quien se muda.» |
-| 12 | Pulsar el ejemplo **«Somos 4 y trabajo en Getafe»** (se rellena y busca solo; tarda unos 3-4 segundos) | «Hemos entendido: …». Sin IA (palabras clave) sale: «Sois 4: os tratamos como una familia con hijos. Con el hospital a menos de 30 min en coche, sin tráfico. Getafe tiene más de 50.000 habitantes y queda fuera del estudio: buscamos cerca, en su zona (Sur Metropolitano).» Con la IA, la frase puede variar un poco | «Se lo contamos con nuestras palabras: somos cuatro y trabajamos en Getafe. Lo entiende solo.» |
-| 13 | Nada | **Humanes de Madrid**, «encaja 75 sobre 100»: colegios +5.079, centro de salud +7.910, casas +5.006; hospital en Parla, a 11 min. El segundo: San Martín de la Vega | «Solo dos municipios aguantan. El primero, Humanes de Madrid: tiene sitio en colegios, centro de salud y casas, y el hospital a 11 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
+| 11 | Pulsar la pestaña **Dónde vivir**. Si «Reubicar» sigue activo, quitarlo antes en el mapa: con la reubicación, varios municipios se llenan y el paso 13 sale vacío | Caja «Cuéntanoslo con tus palabras» y tres ejemplos (no los leáis) | «Y no solo es para quien planifica. También es para quien se muda.» |
+| 12 | **Escribir (mejor pegar, ya copiada) la frase «Somos 4, tenemos hijos y buscamos un municipio mediano»** y pulsar **Buscar** (tarda unos 3-4 segundos). No usar el botón de Getafe: da solo 2 opciones | «Hemos entendido: Familia con hijos: buscamos que haya colegio. Con el hospital a menos de 30 min en coche, sin tráfico. Un sitio mediano: entre 5.000 y 20.000 vecinos.» A veces la IA dice «hijos en edad de instituto: colegio e instituto»; la lista es la misma. Sin IA (palabras clave) sale «Con niños: buscamos que haya colegio…» y también salen 10 | «Se lo contamos con nuestras palabras: somos cuatro, tenemos hijos y buscamos un municipio mediano. Lo entiende solo.» |
+| 13 | Nada. Señalar «10 cumplen lo que pides» | **10 municipios** de 5.000 a 20.000 vecinos. El primero, **El Boalo**, «encaja 68 sobre 100»: colegios +3.214, centro de salud +8.984, casas +1.290; hospital en Collado Villalba, a 15 min. Después: Villalbilla (58), Villarejo de Salvanés (57), Manzanares el Real (54)… | «Salen diez municipios medianos que encajan. El primero, El Boalo: tiene sitio en colegios, centro de salud y casas, y el hospital a 15 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
 
 ### Cómo funciona: la pincelada (Rodrigo, 0:30)
 
@@ -166,7 +166,8 @@ Rodrigo ya lo ha contado en la web: aquí solo se recuerda, rápido.
 - **El deslizador «Personas que absorben los 155 municipios» ya vuelve solo a 134.426**: al pasar cerca encaja en esa cifra, y si está en otra sale el enlace **«Volver a 134.426»**. Aun así, para «mover» el escenario en la demo usad el año (2030/2035/2039) o «Reubicar».
 - **La IA tarda unos segundos.** Si se queda pensando, esperad; si falla, la web usa las palabras clave y lo avisa.
 - **Las cifras de la demo coinciden con las diapositivas solo con la web recién cargada.**
-- **«Reubicar» se quita antes de «Dónde vivir».** Con la reubicación activa, los municipios que reciben gente se llenan y el ejemplo de Getafe da «Ningún municipio cumple todo».
+- **«Reubicar» se quita antes de «Dónde vivir».** Con la reubicación activa, los municipios que reciben gente se llenan y la frase da menos opciones o «Ningún municipio cumple todo».
+- **La frase de «Dónde vivir» se pega, no se improvisa.** Cambiar una palabra cambia las opciones: con «en Getafe» o «en Alcalá» salen 1 o 2 municipios, y con «mediano» salen 10. Tenerla copiada y probarla el miércoles, con y sin internet. Los puestos 8 y 9 (El Escorial, Meco) tienen vivienda estimada alta: si preguntan, ver «¿Las viviendas previstas son reales?».
 
 ### Si vamos mal de tiempo
 
