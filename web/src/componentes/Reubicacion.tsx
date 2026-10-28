@@ -1,4 +1,4 @@
-// Bloque «Reubicar en pueblos cercanos» de la columna de resultado: qué hace la reubicación
+// Bloque «Reubicar en municipios cercanos con sitio» de la columna de resultado: qué hace la reubicación
 // y los traslados más grandes. Al pulsar uno se abre la ficha del municipio de origen.
 
 import type { Medida, Municipio, Traslado } from '../tipos'

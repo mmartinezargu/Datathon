@@ -267,7 +267,7 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
   color: var(--tinta2); border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; vertical-align: 1px;
 }
 
-/* Bloque «Reubicar en pueblos cercanos» (columna de resultado) */
+/* Bloque «Reubicar en municipios cercanos con sitio» (columna de resultado) */
 .reubicacion { border-top: 3px solid var(--cielo); background: var(--papel); padding: 14px 16px; }
 .reubicacion h2 { font-size: 17px; margin: 0 0 6px; }
 .reubicacion p { font-size: 13.5px; margin: 0 0 6px; }

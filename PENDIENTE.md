@@ -18,7 +18,7 @@ Regla: **congelación hoy, miércoles 28, a las 18:00**. Lo que no esté fusiona
 |---|---|---|
 | 6 | Licencia de los minutos | Se quedan los de OSRM sobre OpenStreetMap, con la excepción ODbL ya escrita. No se rehacen con otra fuente: las bases solo limitan lo que digan las licencias de los datasets usados, y cambiarlos hoy movería las cifras del plan, la reubicación y las condicionadas |
 | 7 | Transporte público (GTFS del CRTM) | Fuera hasta después de la final. Si sale en preguntas: «siguiente paso» |
-| 8 | Oracle | No se usa. Respuesta preparada en R8 |
+| 8 | Oracle | No se usa. Respuesta en el guion (R8) |
 | 9 | «Vivienda vacía que se ocupa» | Se queda en **15 %** |
 | 10 | «Plan óptimo» | Pasa a **«Plan recomendado»** (R1) |
 | 11 | «Atraer» | Se queda al final de «Plan» (#24). Se arregla lo de mayores y colegios (R3) |
@@ -36,9 +36,9 @@ Salen de revisar la web publicada (`main` 5aeb014, 11:45). Una rama y una PR por
 | R3 | «Atraer»: mayores y teletrabajo no ocupan plazas de colegio | | |
 | R4 | «Dónde vivir»: hospital cerca por defecto para familias y frase con lo más justo | | |
 | R5 | Datasets nuevos en `data/out` | | |
-| R6 | Diapositivas y guion con las cifras finales (después de R1) | | |
+| R6 | Diapositivas y guion con las cifras finales (después de R1) | | ✅ 28/10 (falta solo quitar la trampa del deslizador, si entra R2) |
 | R7 | Prueba completa en portátil y móvil, y copia offline en 2 portátiles y un USB, probada sin red | | |
-| R8 | Guion: respuesta sobre Oracle y reparto de voces | | |
+| R8 | Guion: respuesta sobre Oracle y reparto de voces | | ✅ 28/10 |
 
 ### R1. Plan: de «Plan óptimo» a «Plan recomendado»
 - Hoy el plan incluye el **instituto de Colmenarejo: 11,1 M€ y «pasan a caber» 0**. También el centro de salud de Torrelodones (6,7 M€ para 183 personas, 36.538 € por persona). Es lo primero que vería el jurado.
@@ -90,20 +90,21 @@ Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo
 ### R6. Diapositivas y guion (cuando R1 dé las cifras)
 - Diapositiva 9: «unos 282 millones frente a unos 103» → **261** frente a **97,1** (o lo que dé R1); «Plan óptimo» → «Plan recomendado»; «pueblos» → «municipios» en todas las diapositivas. Regenerar `entrega/CABIDA_presentacion_final.pdf`.
 - `presentacion/GUION.md`: lo mismo. Además, el paso 8 («el plan óptimo elige, una a una…») y la nota de 103 M€; la respuesta sobre costes (ahora son 28 obras reales y la mediana de cada tipo, en la tabla «Lo que vale cada obra del plan»); quitar la trampa del deslizador cuando esté R2.
-- **Hecho en parte (rama `correccion/textos-guion-diapositivas`)**: los 261 / 97 ya estaban; «Plan óptimo» → «Plan recomendado» en la diapositiva 9, en la versión detallada (2 sitios) y en el guion (pasos 8 y «Si vamos mal de tiempo»); paso 8 = «la que hace caber a más gente por cada euro, y luego quita las que sobran»; los dos PDF regenerados. **Queda**: «pueblos» → «municipios» en las diapositivas y la trampa del deslizador (después de R2). Ojo: las medianas de coste salen de 24 obras (10 + 2 + 5 + 7), no de las 28 del catálogo.
+- **Hecho en parte (rama `correccion/textos-guion-diapositivas`)**: los 261 / 97 ya estaban; «Plan óptimo» → «Plan recomendado» en la diapositiva 9, en la versión detallada (2 sitios) y en el guion (pasos 8 y «Si vamos mal de tiempo»); paso 8 = «la que hace caber a más gente por cada euro, y luego quita las que sobran»; los dos PDF regenerados. **Queda**: la trampa del deslizador (después de R2).
+- **Hecho (28/10, rama `correccion/pueblos-a-municipios`)**: «pueblos» → «municipios» en las dos presentaciones y en el guion, con los dos PDF regenerados; también en el diccionario (`etl/diccionario.py` → `data/out/diccionario.csv`), `data/out/README.md` y `THIRD_PARTY.md`. En el código solo queda en nombres internos y comentarios (`reparto.pueblos`, el tamaño `'pueblo'`), que no se ven. Ojo: las medianas de coste salen de 24 obras (10 + 2 + 5 + 7), no de las 28 del catálogo.
 
 ### R7. Prueba completa y copia offline
 - Portátil y móvil, todas las palancas, «Plan», «Atraer» y «Dónde vivir». Los fallos, en la PR correspondiente.
 - `npm run offline` en `web/`; abrir `web/offline/CABIDA.html` con el wifi apagado en 2 portátiles y desde un USB, y hacer la demo entera.
 
 ### R8. Guion: Oracle y voces
-- Añadir a «Preguntas que pueden hacernos»: **¿Por qué no Oracle?** → «Lo probamos para el asistente, pero en la región de Madrid de la cuenta no había modelos disponibles; por eso Groq, que es gratis. Los datos están listos para servirse desde Oracle como siguiente paso.»
+- ~~Añadir a «Preguntas que pueden hacernos»: **¿Por qué no Oracle?**~~ **Hecho (28/10)**: teníamos créditos de Oracle Cloud, pero el servicio de IA de la región de Madrid estaba caído y en la de Fráncfort no nos dejaba entrar; por eso Groq, que es gratis. El asistente ya acepta Oracle como alternativa.
 - ~~Cerrar quién es cada voz y quién es el piloto.~~ **Hecho (28/10)**: Mario V. (diapositivas 1–7 y 8–11), Víctor (mapa), Mario M. (plan), Rodrigo (dónde vivir y pincelada de «Cómo funciona»). Piloto propuesto: Mario V. Está en `presentacion/GUION.md`.
 - Duración: las bases dicen 15 min + preguntas; el guion es de 10. Se queda en 10, con margen.
 
 ## Revisión completa del 28/10 (tarde)
 
-Revisado `main` 2cc3453 entero: lint, tipos y 47 tests bien; `preparar.py` regenera los datos **idénticos** a los subidos; `validacion.py` da lo mismo (44,4 % / 64,1 %); todas las cifras de las diapositivas y del guion salen iguales con el motor. La web publicada está al día.
+Revisado `main` 2cc3453 entero: lint, tipos y 47 tests bien (hoy son 51, con los de R1); `preparar.py` regenera los datos **idénticos** a los subidos; `validacion.py` da lo mismo (44,4 % / 64,1 %); todas las cifras de las diapositivas y del guion salen iguales con el motor. La web publicada está al día.
 
 **Arreglado (sin cambiar ninguna cifra de control):**
 - PR «Dónde vivir: con Reubicar, los reubicados también ocupan sitio»: con «Reubicar», Humanes salía con «casa para 5.006 más» cuando la reubicación ya lo llenaba. **En la demo, quitar «Reubicar» antes de «Dónde vivir»** (ya está en el guion).
@@ -153,7 +154,7 @@ Añadido el 26/10 (PR «Hospital, reequilibrio, plazo y datasets entregables»):
 | 8 | ✅ **Guion de la demo** | Borrador en `presentacion/GUION.md`: qué se pulsa y en qué orden (mapa -> año/reubicar -> ficha de Arroyomolinos -> «Planificar aquí» -> «Plan óptimo» -> «Ver en el mapa» -> «Dónde vivir» -> validación), con frases, tiempos y plan B. Falta cerrar quién habla en cada parte y ensayarlo con cronómetro. | | mar 27 |
 
 ## Extras: solo si todo lo anterior está terminado
-- ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: en la región de la cuenta (Madrid) no hay modelos que funcionen. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
+- ~~Asistente que escribe los filtros («somos 4 y trabajo en Getafe»)~~ **Hecho**: con IA de Groq, gratis (función de Vercel `web/api/asistente.ts`) y, si falla o no hay internet, con palabras clave en el navegador. Oracle no se pudo usar: el servicio de la región de Madrid estaba caído y en la de Fráncfort no nos dejaba entrar. Ya funciona en la web publicada (`GROQ_API_KEY` puesta en Vercel).
 - Tiempos en transporte público a sanidad y educación (los de coche ya están, con OSRM). El endpoint SPARQL de la Cátedra no se ha usado: si sale en las preguntas, es un siguiente paso, no una fuente.
 - Plazas escolares reales del endpoint en vez del límite de niños por colegio.
 
