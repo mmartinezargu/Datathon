@@ -7,16 +7,16 @@ import { useMemo, useState } from 'react'
 import { LIMITES } from '../colores'
 import { FILTROS_INICIALES, PERFILES, TAMANOS } from '../mudanza'
 import { FILTROS_REPARTO, MEZCLA_SUPUESTA, ORDEN_REPARTO, aplicarMezcla, cabenSinDirigir, hueco, llegadasPorPerfil, repartir } from '../reparto'
-import type { Escenario, FiltrosReparto, LecturaFrase, Medida, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
+import type { Escenario, FiltrosReparto, LecturaFrase, Municipio, Obra, Perfil, ResultadoMunicipio, Tamano } from '../tipos'
 import { miles, millones } from '../formato'
 import { csvAtraer, descargar } from '../descarga'
 import { costeObra } from '../motor'
-import { MEDIDAS, hospitalCercano, umbralHospital } from '../medida'
+import { MEDIDAS, umbralHospital } from '../medida'
 import { Asistente } from './Asistente'
 import { Icono } from './Iconos'
+import { GruposPromocion } from './Promocionar'
 
 const MAX_FILAS = 10
-const MAX_PROMOCIONAR = 5
 
 const EJEMPLOS = [
   'Llegan un 30 % de familias y un 50 % de jubilados',
@@ -26,13 +26,6 @@ const EJEMPLOS = [
 
 /** Nombre corto de cada grupo para el resumen de los ajustes. */
 const CORTO: Record<Perfil, string> = { familia: 'familias', mayor: 'mayores', teletrabajo: 'teletrabajo' }
-
-/** A quién se dirige la promoción de cada grupo, para el bloque «Dónde promocionar». */
-const PARA_QUIEN: Record<Perfil, string> = {
-  familia: 'familias con hijos',
-  mayor: 'personas mayores',
-  teletrabajo: 'quien teletrabaja',
-}
 
 interface Props {
   resultados: ResultadoMunicipio[] // con las obras del plan
@@ -70,11 +63,6 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
   const filas = todos ? reparto.pueblos : reparto.pueblos.slice(0, MAX_FILAS)
   const cambiar = (cambio: Partial<FiltrosReparto>) => onFiltros({ ...filtros, ...cambio })
   const hayCambios = filtros !== FILTROS_REPARTO || mezcla !== MEZCLA_SUPUESTA
-  // Para cada grupo, los pueblos que más reciben de él: ahí es donde conviene promocionar
-  const promocionar = ORDEN_REPARTO.filter((p) => llegan[p] > 0).map((p) => ({
-    perfil: p,
-    pueblos: reparto.pueblos.filter((f) => f.porPerfil[p] > 0).sort((a, b) => b.porPerfil[p] - a.porPerfil[p]).slice(0, MAX_PROMOCIONAR),
-  }))
 
   // Una frase: dónde (zona, tamaño, hospital, instituto) y, si dice a quién atraer, solo a ese grupo
   // Si da porcentajes («30 % familias»), se ponen y el resto se reparte entre los demás como estaba
@@ -185,24 +173,8 @@ export function Atraer({ resultados, resultadosSinPlan, porIne, escenario, mezcl
         )}
 
         <h2>Dónde promocionar a cada grupo</h2>
-        <div className="atraer-grupos">
-          {promocionar.map(({ perfil, pueblos }) => (
-            <div key={perfil} className="atraer-grupo">
-              <h3>A {PARA_QUIEN[perfil]}</h3>
-              {pueblos.length === 0 ? <p className="ayuda">Ningún municipio con sitio cumple lo que pides.</p> : (
-                <ol>
-                  {pueblos.map((f) => (
-                    <li key={f.ine}>
-                      <button className="enlace" onClick={() => onVerEnMapa(f.ine)}>{porIne.get(f.ine)!.nombre}</button>
-                      <span>atraer a unas {miles(f.porPerfil[perfil])}</span>
-                      <small>{porQue(perfil, porIneRes.get(f.ine)!, porIne.get(f.ine)!, medida)}</small>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </div>
-          ))}
-        </div>
+        <GruposPromocion reparto={reparto} llegan={llegan} resultados={resultados} porIne={porIne} medida={medida}
+          onVerEnMapa={onVerEnMapa} />
 
         <button className="desplegar atraer-descarga" disabled={!reparto.pueblos.length}
           onClick={() => descargar(`cabida_atraer_${escenario.anio}.csv`, csvAtraer(reparto, resultados, porIne, mezcla, filtros))}>
@@ -270,15 +242,4 @@ function Casilla({ texto, valor, onCambiar }: { texto: string; valor: boolean; o
 
 function LoLlena({ r }: { r: ResultadoMunicipio }) {
   return <span className="sim-llena"><Icono nombre={r.limitante} tamano={15} />{LIMITES[r.limitante].nombre}</span>
-}
-
-/** Por qué conviene promocionar este pueblo entre ese grupo: el sitio que tiene en lo que más le importa. */
-function porQue(perfil: Perfil, r: ResultadoMunicipio, m: Municipio, medida: Medida): string {
-  const { colegios, sanidad, vivienda } = r.limites
-  const partes = perfil === 'familia'
-    ? [colegios !== null ? `colegios con sitio para ${miles(colegios)}` : '', vivienda !== null ? `casas para ${miles(vivienda)}` : '']
-    : perfil === 'mayor'
-      ? [sanidad !== null ? `centro de salud con sitio para ${miles(sanidad)}` : '', `hospital a ${hospitalCercano(m, medida).distancia}`]
-      : [vivienda !== null ? `casas para ${miles(vivienda)}` : '', sanidad !== null ? `centro de salud para ${miles(sanidad)}` : '']
-  return partes.filter(Boolean).join(' · ')
 }
