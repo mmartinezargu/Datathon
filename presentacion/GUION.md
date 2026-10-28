@@ -98,10 +98,12 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
-| 7 | Bajar en la ficha y pulsar **Planificar aquí →** | Pestaña **Plan** con una sola obra: un centro de salud en la zona de Arroyomolinos. **11.625 personas más caben** | «Y ahora, ¿qué hacemos? Una sola obra, un centro de salud, y caben 11.625 personas más.» |
-| 8 | Pulsar **Plan recomendado** | **17 obras en 17 municipios** (7 ampliaciones de colegio, 3 institutos y 7 centros de salud). Pasan a caber **42.663**. Siguen sin sitio **8.621**, todos por falta de vivienda | «Y para toda la región, el plan recomendado elige, una a una, la obra que hace caber a más gente por cada euro, y luego quita las que sobran.» |
+| 7 | Bajar en la ficha y pulsar **Planificar aquí →** | Pestaña **Plan** con una sola obra: un centro de salud en Arroyomolinos. **11.625 personas más caben**. Debajo: «Sin reubicar en municipios cercanos, con estas mismas obras, seguirían sin sitio 66.140» (no leerlo) | «Y ahora, ¿qué hacemos? Una sola obra, un centro de salud, y caben 11.625 personas más.» |
+| 8 | Pulsar **Plan recomendado** | **17 obras en 17 municipios** (7 ampliaciones de colegio, 3 institutos y 7 centros de salud). Pasan a caber **42.663**. Siguen sin sitio **8.621**, todos por falta de vivienda. Debajo: «Sin reubicar en municipios cercanos, con estas mismas obras, seguirían sin sitio 40.245» | «Y para toda la región, el plan recomendado elige, una a una, la obra que hace caber a más gente por cada euro, y luego quita las que sobran.» |
 | 9 | Nada. Señalar «Siguen sin sitio 8.621» | Texto: «La vivienda y el ritmo no se arreglan con colegios ni centros de salud» | «Lo que queda ya no se arregla con colegios ni con centros de salud: es vivienda. Aquí CABIDA le dice a la Administración dónde construir, y dónde no basta con construir.» |
 | 10 | Pulsar **Ver en el mapa** | Mapa con el plan: «Con el plan: 97,1 M€, 17 obras». **125.805 de las 134.426 personas caben**. 8.621 no encuentran sitio | «Con el plan, caben 125.805 de las 134.426. Los rojos se enfrían.» |
+
+> **Si preguntan por las 47 obras y los 261 M€ de la diapositiva 9:** en «Plan», quitar el interruptor **Reubicar en municipios cercanos** y pulsar **Plan recomendado**: 47 obras (26 ampliaciones, 13 institutos y 8 centros de salud), 261 M€, y siguen sin sitio 23.874. Volver a ponerlo antes de seguir (está activado por defecto).
 
 > **Sobre el dinero.** En pantalla se ven los millones (97 M€). No los comentéis como dato firme: son estimaciones (la mediana de obras reales de la Comunidad, que son pocas). Si preguntan: «Son estimaciones; las fuentes de cada coste están en la pestaña Plan». En las diapositivas hablamos de obras y de personas.
 
@@ -110,7 +112,7 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
 | 11 | Pulsar la pestaña **Dónde vivir**. Si «Reubicar» sigue activo, quitarlo antes en el mapa: con la reubicación, Humanes y San Martín de la Vega se llenan y el paso 13 sale vacío | Caja «Cuéntanoslo con tus palabras» y tres ejemplos | «Y no solo es para quien planifica. También es para quien se muda.» |
-| 12 | Pulsar el ejemplo **«Somos 4 y trabajo en Getafe»** (se rellena y busca solo; tarda unos 3-4 segundos) | «Hemos entendido: …». Sin IA (palabras clave) sale: «Sois 4: os tratamos como una familia con hijos. Getafe tiene más de 50.000 habitantes y queda fuera del estudio: buscamos cerca, en su zona (Sur Metropolitano).» Con la IA, la frase puede variar un poco | «Se lo contamos con nuestras palabras: somos cuatro y trabajamos en Getafe. Lo entiende solo.» |
+| 12 | Pulsar el ejemplo **«Somos 4 y trabajo en Getafe»** (se rellena y busca solo; tarda unos 3-4 segundos) | «Hemos entendido: …». Sin IA (palabras clave) sale: «Sois 4: os tratamos como una familia con hijos. Con el hospital a menos de 30 min en coche, sin tráfico. Getafe tiene más de 50.000 habitantes y queda fuera del estudio: buscamos cerca, en su zona (Sur Metropolitano).» Con la IA, la frase puede variar un poco | «Se lo contamos con nuestras palabras: somos cuatro y trabajamos en Getafe. Lo entiende solo.» |
 | 13 | Nada | **Humanes de Madrid**, «encaja 75 sobre 100»: colegios +5.079, centro de salud +7.910, casas +5.006; hospital en Parla, a 11 min. El segundo: San Martín de la Vega | «Solo dos municipios aguantan. El primero, Humanes de Madrid: tiene sitio en colegios, centro de salud y casas, y el hospital a 11 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
 
 ### Cómo funciona: la pincelada (Rodrigo, 0:30)
@@ -154,14 +156,14 @@ Rodrigo ya lo ha contado en la web: aquí solo se recuerda, rápido.
 
 - [ ] **Diapositivas:** abrir `presentacion/diapositivas.html` en el navegador y pulsar **F** (pantalla completa). Tener a mano el PDF `entrega/CABIDA_presentacion_final.pdf` por si falla el proyector.
 - [ ] **Web:** otra ventana con `https://cabida.vercel.app/#mapa`, zoom al 100 % (Ctrl + 0) y **F5 justo antes de la demo**.
-- [ ] **Copia sin internet:** en `web/`, `npm run offline`; abrir `web/offline/CABIDA.html` con el wifi apagado y probar la demo entera. Sin internet, la caja de «Dónde vivir» usa palabras clave en vez de la IA (funciona igual, pero la frase hay que probarla).
+- [ ] **Copia sin internet:** `entrega/offline/CABIDA.html` (la web) y `entrega/offline/CABIDA_diapositivas.html` (las diapositivas), con doble clic. Abrirlas con el wifi apagado y probar la demo entera. Llevar la carpeta `entrega/offline/` entera en un USB (la web enlaza a `datos/` para las descargas). Sin internet, la caja de «Dónde vivir» usa palabras clave en vez de la IA (funciona igual, pero la frase hay que probarla).
 - [ ] **Modo «no molestar»** y notificaciones apagadas. Cerrar otras pestañas.
 - [ ] **Cronómetro:** dos ensayos completos el miércoles, con el reparto de voces definitivo.
 - [ ] **Una sola persona** con ratón y teclado durante la demo.
 
 ### Trampas conocidas
 
-- **No toquéis el deslizador «Personas que absorben los 155 municipios».** Se mueve de mil en mil y no puede volver a 134.426: las cifras dejarían de coincidir con las diapositivas (56.685 y 77.315 en vez de 56.796 y 77.630). Si lo movéis por curiosidad, **F5**. Para «mover» el escenario usad el año (2030/2035/2039) o «Reubicar»: esos sí vuelven exactos.
+- **El deslizador «Personas que absorben los 155 municipios» ya vuelve solo a 134.426**: al pasar cerca encaja en esa cifra, y si está en otra sale el enlace **«Volver a 134.426»**. Aun así, para «mover» el escenario en la demo usad el año (2030/2035/2039) o «Reubicar».
 - **La IA tarda unos segundos.** Si se queda pensando, esperad; si falla, la web usa las palabras clave y lo avisa.
 - **Las cifras de la demo coinciden con las diapositivas solo con la web recién cargada.**
 - **«Reubicar» se quita antes de «Dónde vivir».** Con la reubicación activa, los municipios que reciben gente se llenan y el ejemplo de Getafe da «Ningún municipio cumple todo».
@@ -196,6 +198,7 @@ Responde uno, y los demás no interrumpen. Si se atasca, el «dueño» del tema 
 | **¿Elegisteis el 3 % mirando el resultado?** | No. Con un 2 % al año la prueba saldría algo mejor (error del 43,4 % en vez del 44,4 %), y con más suavizado también. Dejamos los valores de partida |
 | **Rascafría: ¿su centro de salud atiende a 22.675 personas más?** | El límite de sanidad compara cada zona con las más cargadas de la Comunidad, y es el mismo para todas. En zonas rurales pequeñas sale muy alto. En Rascafría no decide nada: le limita la vivienda (casa para unas 254 personas). Es una limitación conocida: no hay datos abiertos de lo que aguanta cada centro |
 | **¿Las viviendas previstas son reales?** | Donde el planeamiento trae el número de viviendas, sí. Donde no lo trae, lo estimamos con la densidad de su municipio o de su zona (52.652 viviendas en 49 municipios). En urbanizaciones de chalés esa estimación puede salir alta (El Escorial, Meco): es un techo, no una previsión |
+| **¿Y si no se reubica?** | En «Plan» hay un interruptor «Reubicar en municipios cercanos». Sin reubicar, el plan recomendado sale de 47 obras y 261 M€, y aun así siguen sin sitio 23.874. Con las mismas 17 obras del plan reubicando, pero sin reubicar, seguirían sin sitio 40.245 |
 | **¿El plan recomendado es el más barato?** | No, por eso no lo llamamos óptimo. Añade la obra con más personas por euro y quita las que sobran, pero no prueba todas las combinaciones. Sabemos que cambiando algunas obras sale más barato. Y depende de reubicar: si en el municipio de destino no hay casa, la reubicación no ocurre |
 | **¿Qué hace la IA?** | Solo lee la frase del vecino y elige los filtros. Las cifras y las explicaciones las pone la web. Si no hay red, usa palabras clave |
 | **¿Por qué no Oracle?** | Nos dieron créditos de Oracle Cloud y lo intentamos, pero el servicio de IA de la región de Madrid estaba caído y en la de Fráncfort no nos dejaba entrar. Por eso usamos Groq, que es gratis. El asistente ya está preparado para usar Oracle como alternativa en cuanto funcione |
@@ -207,4 +210,4 @@ Responde uno, y los demás no interrumpen. Si se atasca, el «dueño» del tema 
 
 ---
 
-*Guion de la demo (tarea 8). Todas las cifras salen de la web publicada, https://cabida.vercel.app, con el escenario por defecto (2035, minutos en coche), comprobadas el 27/10/2026 y recalculadas con el motor el 28/10 (revisión completa). Si cambia la web, hay que cambiarlas aquí.*
+*Guion de la demo (tarea 8). Todas las cifras salen de la web publicada, https://cabida.vercel.app, con el escenario por defecto (2035, minutos en coche), comprobadas el 27/10/2026, recalculadas con el motor el 28/10 (revisión completa) y repasadas otra vez el 28/10 por la tarde (rama `entrega/final-29`). Si cambia la web, hay que cambiarlas aquí.*
