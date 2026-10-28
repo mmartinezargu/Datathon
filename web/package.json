@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "offline": "npm run build && node scripts/copia-offline.mjs",
+    "datasets": "vite-node scripts/datasets.ts",
     "test": "vitest run"
   },
   "dependencies": {

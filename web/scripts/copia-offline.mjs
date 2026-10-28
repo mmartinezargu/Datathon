@@ -2,7 +2,7 @@
 //
 // Genera offline/CABIDA.html: un único archivo con todo dentro (código, estilos, tipografías
 // y datos). Se abre con doble clic, sin servidor y sin conexión. Al lado deja
-// offline/datos/tabla_maestra.csv para el enlace de descarga.
+// offline/datos/ con los CSV de los enlaces de descarga (tabla maestra y resultados del escenario por defecto).
 //
 // Uso (desde web/):  npm run offline     (compila y genera la copia)
 
@@ -46,5 +46,7 @@ html = html.replace('</body>',
 
 mkdirSync(new URL('datos/', SALIDA), { recursive: true })
 writeFileSync(new URL('CABIDA.html', SALIDA), html)
-copyFileSync(new URL('datos/tabla_maestra.csv', DIST), new URL('datos/tabla_maestra.csv', SALIDA))
+for (const csv of ['tabla_maestra.csv', 'resultados_2035.csv', 'plan_recomendado.csv', 'zonas_salud.csv']) {
+  copyFileSync(new URL(`datos/${csv}`, DIST), new URL(`datos/${csv}`, SALIDA))
+}
 console.log(`  offline/CABIDA.html: ${(Buffer.byteLength(html) / 1e6).toFixed(1)} MB`)

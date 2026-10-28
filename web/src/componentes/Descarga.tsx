@@ -27,7 +27,10 @@ export function Descarga({ resultados, porIne, escenario, obras }: Props) {
       </button>
       <p className="ayuda descarga-pie">
         <a href="datos/tabla_maestra.csv" download>Tabla con los datos de partida</a> (población 2005–2025, viviendas,
-        colegios y sanidad de cada municipio). Licencia{' '}
+        colegios y sanidad de cada municipio). Con el escenario por defecto (2035, minutos en coche):{' '}
+        <a href="datos/resultados_2035.csv" download>resultados de cada municipio</a>,{' '}
+        <a href="datos/plan_recomendado.csv" download>obras del plan recomendado</a> y{' '}
+        <a href="datos/zonas_salud.csv" download>las 286 zonas de salud</a>. Licencia{' '}
         <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank" rel="noreferrer">CC BY 4.0</a>:
         puedes reutilizarlos citando a CABIDA. Los minutos en coche (<code>hospital_min</code>, <code>hospital_min_municipio</code> y{' '}
         <code>vecinos_min</code>) salen de{' '}
