@@ -93,7 +93,8 @@ export function filtrosDePerfil(perfil: Perfil, f: FiltrosReparto): FiltrosMudan
     ...base,
     sitioLibre: false, // aquí se reparte desde cero: cuenta todo lo que le cabe a cada pueblo
     instituto: perfil === 'familia' && f.instituto,
-    hospitalCerca: base.hospitalCerca || f.hospitalCerca,
+    // Como siempre en «Atraer»: hospital cerca solo para las personas mayores (o para todos, si se marca)
+    hospitalCerca: perfil === 'mayor' || f.hospitalCerca,
     zona: f.zona,
     tamano: f.tamano,
   }
