@@ -5,6 +5,7 @@
 
 import { LIMITES, TIPOS } from './colores'
 import { contarObras, partesObras } from './fuentesPlan'
+import { hueco } from './reparto'
 import { SIN_INVERSION, aperturaObra, costeObra, inversionesDe, inversionesPorZona } from './motor'
 import type { Escenario, FiltrosReparto, Medida, Municipio, Obra, Perfil, Reparto, ResultadoMunicipio, Traslado } from './tipos'
 
@@ -70,7 +71,7 @@ export function csvAtraer(reparto: Reparto, resultados: ResultadoMunicipio[], po
     const principal = PERFILES.reduce((a, b) => (f.porPerfil[b] > f.porPerfil[a] ? b : a))
     return [
       f.ine, m?.nombre ?? '', m?.zona ?? '', entero(f.porPerfil.familia), entero(f.porPerfil.mayor), entero(f.porPerfil.teletrabajo),
-      entero(f.total), entero(Math.max(0, Math.floor(r.caben))), f.lleno ? 'sí' : 'no', f.lleno ? LIMITES[r.limitante].nombre : '',
+      entero(f.total), entero(hueco(r, 'mayor')), f.lleno ? 'sí' : 'no', f.llenoPor ? LIMITES[f.llenoPor].nombre : '',
       GRUPO[principal], entero(r.limites.colegios), entero(r.limites.sanidad), entero(r.limites.vivienda),
       m ? decimal(m.hospital_km) : '', m ? decimal(m.hospital_min) : '',
       String(mezcla.familia), String(mezcla.mayor), String(mezcla.teletrabajo), textoFiltros,

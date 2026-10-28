@@ -1,14 +1,15 @@
 // Pestaña «Atraer»: coge la gente que el modelo prevé que llega y la reparte entre los pueblos según
 // quién es, como si se pudiera dirigir a dónde va cada uno.
-// Cada pueblo tiene un hueco: todo lo que le cabe (`caben`, el menor de sus límites). Como en el modelo,
-// cada persona ocupa sitio en todos los recursos a la vez, así que el hueco es uno solo para todos.
+// Cada municipio lleva lo que le queda de cada límite (vivienda, colegios, sanidad y ritmo). Las familias gastan
+// los cuatro; las personas mayores y quien teletrabaja, todos menos colegios (no traen niños en edad escolar).
+// Así un municipio con los colegios llenos pero con casas y centro de salud sigue recibiendo mayores.
 // Cada perfil recorre su propio ranking de «Dónde vivir» (con las casillas que trae marcadas: colegio
 // para las familias, hospital cerca para las personas mayores) más los filtros de dónde se reparte.
 // Eligen por turnos y a la par: en cada vuelta, cada grupo coloca una tanda proporcional a cuántos son, así que
 // los tres avanzan al mismo ritmo y, si no hay sitio para todos, falta para todos.
 
 import { FILTROS_INICIALES, cambiarPerfil, rankingMudanza } from './mudanza'
-import type { FiltrosMudanza, FiltrosReparto, Medida, Municipio, Perfil, Reparto, ResultadoMunicipio } from './tipos'
+import type { FiltrosMudanza, FiltrosReparto, Limite, Medida, Municipio, Perfil, Reparto, ResultadoMunicipio } from './tipos'
 
 export const ORDEN_REPARTO: Perfil[] = ['familia', 'mayor', 'teletrabajo']
 
@@ -57,9 +58,27 @@ export function aplicarMezcla(actual: Record<Perfil, number>, dicha: Partial<Rec
   return r
 }
 
-/** Hueco de un pueblo: todas las personas que le caben (nunca negativo). */
-export function hueco(r: ResultadoMunicipio): number {
-  return Math.max(0, Math.floor(r.caben))
+/** Los límites que gasta cada grupo: las familias, los cuatro; mayores y teletrabajo, todos menos colegios. */
+export const LIMITES_DE: Record<Perfil, Limite[]> = {
+  familia: ['vivienda', 'colegios', 'sanidad', 'ritmo'],
+  mayor: ['vivienda', 'sanidad', 'ritmo'],
+  teletrabajo: ['vivienda', 'sanidad', 'ritmo'],
+}
+
+/** Lo que queda de cada límite al empezar (personas enteras; sin límite = sin colegio de ese nivel, no aplica). */
+function limitesIniciales(r: ResultadoMunicipio): Record<Limite, number> {
+  const queda = (l: Limite) => (r.limites[l] === null ? Infinity : Math.max(0, Math.floor(r.limites[l]!)))
+  return { vivienda: queda('vivienda'), colegios: queda('colegios'), sanidad: queda('sanidad'), ritmo: queda('ritmo') }
+}
+
+/** Personas de un grupo que caben en un municipio (nunca negativo). Familias: todo lo que le cabe; mayores y teletrabajo, sin contar colegios. */
+export function hueco(r: ResultadoMunicipio, perfil: Perfil = 'familia'): number {
+  return huecoCon(limitesIniciales(r), perfil)
+}
+
+function huecoCon(queda: Record<Limite, number>, perfil: Perfil): number {
+  const n = Math.min(...LIMITES_DE[perfil].map((l) => queda[l]))
+  return Number.isFinite(n) ? n : 0
 }
 
 /** Para comparar: cuántos de los que llegan caben si cada uno va donde le lleva la tendencia (el modelo). */
@@ -86,7 +105,7 @@ export function filtrosDePerfil(perfil: Perfil, f: FiltrosReparto): FiltrosMudan
  */
 export function repartir(resultados: ResultadoMunicipio[], porIne: Map<string, Municipio>, llegan: Record<Perfil, number>,
   filtros: FiltrosReparto = FILTROS_REPARTO, medida: Medida = 'km'): Reparto {
-  const libre = new Map(resultados.map((r) => [r.ine, hueco(r)]))
+  const queda = new Map(resultados.map((r) => [r.ine, limitesIniciales(r)]))
   const recibe = new Map<string, Record<Perfil, number>>()
   const cuantos = ORDEN_REPARTO.map((p) => Math.max(0, Math.round(llegan[p])))
   const todos = cuantos.reduce((s, n) => s + n, 0)
@@ -107,9 +126,10 @@ export function repartir(resultados: ResultadoMunicipio[], porIne: Map<string, M
       let tanda = Math.min(t.tanda, t.quedan)
       while (tanda > 0 && t.i < t.lista.length) {
         const ine = t.lista[t.i]
-        const entran = Math.min(tanda, libre.get(ine)!)
+        const q = queda.get(ine)!
+        const entran = Math.min(tanda, huecoCon(q, t.perfil))
         if (entran === 0) { t.i++; continue }
-        libre.set(ine, libre.get(ine)! - entran)
+        for (const l of LIMITES_DE[t.perfil]) q[l] -= entran
         const fila = recibe.get(ine) ?? { familia: 0, mayor: 0, teletrabajo: 0 }
         fila[t.perfil] += entran
         recibe.set(ine, fila)
@@ -123,7 +143,10 @@ export function repartir(resultados: ResultadoMunicipio[], porIne: Map<string, M
   const sinSitio = Object.fromEntries(turnos.map((t) => [t.perfil, t.quedan])) as Record<Perfil, number>
   const pueblos = [...recibe].map(([ine, porPerfil]) => {
     const total = porPerfil.familia + porPerfil.mayor + porPerfil.teletrabajo
-    return { ine, porPerfil, total, lleno: libre.get(ine) === 0 }
+    // Lleno = no cabe nadie más de ningún grupo (se acaba la vivienda, la sanidad o el ritmo); llenoPor, lo que se acaba
+    const q = queda.get(ine)!
+    const llenoPor = LIMITES_DE.mayor.find((l) => q[l] === 0) ?? null
+    return { ine, porPerfil, total, lleno: llenoPor !== null, llenoPor }
   }).sort((a, b) => b.total - a.total)
   const colocados = pueblos.reduce((s, p) => s + p.total, 0)
   return { pueblos, colocados, sinSitio }
