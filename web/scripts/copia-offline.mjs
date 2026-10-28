@@ -28,7 +28,7 @@ if (enlaceFuentes) {
     const fuente = Buffer.from(await (await fetch(url)).arrayBuffer()).toString('base64')
     return b.replace(url, `data:font/woff2;base64,${fuente}`)
   }))
-  html = html.replace(enlaceFuentes[0], `<style>${embebidos.join('\n')}</style>`)
+  html = html.replace(enlaceFuentes[0], () => `<style>${embebidos.join('\n')}</style>`)
   console.log(`  tipografías: ${embebidos.length} dentro del HTML`)
 }
 
@@ -40,7 +40,8 @@ html = html.replace(script[0], '')
 // 3. Datos, dentro del HTML (App.tsx los lee de window.__DATOS_CABIDA__ en vez de pedirlos)
 const datos = Object.fromEntries(DATOS.map((f) => [f, JSON.parse(readFileSync(new URL(`datos/${f}`, DIST), 'utf8'))]))
 const sinCierre = (texto) => texto.replaceAll('</script', '<\\/script') // que no corte la etiqueta <script>
-html = html.replace('</body>',
+// Con función, no con texto: si no, replace interpreta los «$'» y «$&» que pueda traer el código minificado
+html = html.replace('</body>', () =>
   `<script>window.__DATOS_CABIDA__ = ${sinCierre(JSON.stringify(datos))}</script>\n` +
   `<script type="module">${sinCierre(leer(script[1]))}</script>\n</body>`)
 
