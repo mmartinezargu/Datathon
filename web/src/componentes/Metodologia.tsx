@@ -236,7 +236,7 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
           <li><b>Contamos zonas de salud, no médicos.</b> Cada municipio se asigna a la zona de salud que cubre más superficie de su término, y la población de la zona es la del Padrón 2019 actualizada con el crecimiento de su municipio principal.</li>
           <li><b>Suelo sin cifra de viviendas.</b> En {sueloEstimado.municipios} municipios hay suelo residencial pendiente sin cifra de viviendas en el planeamiento. Se estiman con la densidad de los ámbitos que sí la traen: {miles(sueloEstimado.viviendas)} viviendas en total. El suelo industrial, terciario o de equipamientos sin cifra no cuenta.</li>
           <li><b>Ámbitos partidos.</b> En la capa de planeamiento, un ámbito partido en varios polígonos repite sus viviendas en cada uno; aquí se cuentan una sola vez.</li>
-          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos alumnos como los más cargados de su tamaño, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
+          <li><b>«Lleno» es una comparación, no una norma.</b> Un colegio está lleno cuando tiene tantos alumnos como los más cargados de municipios de tamaño parecido, y un centro de salud cuando atiende a tanta gente como las zonas más pobladas; no según un estándar oficial.</li>
           <li><b>La gente que llega sigue la tendencia.</b> El modelo no anticipa cambios bruscos, como un barrio nuevo o una línea de metro. Por eso pone en otro municipio a {Math.round(nuestro.fuera_municipio * 100)} de cada 100 personas.</li>
           {enMin ? (
             <li><b>Los minutos en coche son sin tráfico.</b> Salen de OSRM, que calcula la ruta por carretera con los mapas de OpenStreetMap y la velocidad de cada vía. No cuentan atascos ni transporte público. Se miden desde el centro del municipio (donde están sus colegios). Con «Km en línea recta» se usa la distancia de siempre.</li>
@@ -298,7 +298,7 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
                   Se mira cuántos alumnos matriculados hay por colegio (en primaria y en ESO) y se compara con
                   municipios de tamaño parecido. No hay tramos: una curva sube poco a poco con el tamaño del municipio, porque los
                   colegios de los municipios grandes son más grandes. Un colegio está «lleno» cuando tiene tantos alumnos como el{' '}
-                  {pct(1 - escenario.exigencia, 0)} más cargado de su tamaño. Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
+                  {pct(1 - escenario.exigencia, 0)} más cargado de municipios de tamaño parecido. Se hace con primaria y con secundaria, y manda la que tiene menos sitio.
                 </p>
                 <p className="formula">log(alumnos por colegio) = a + b × log(vecinos), con a y b de una recta ajustada a los 155; el límite es esa recta subida hasta el percentil {pct(escenario.exigencia, 0)} de lo que se aparta cada municipio</p>
                 <p className="formula">plazas libres = colegios × límite − alumnos de hoy; personas que caben = plazas libres ÷ niños de esa edad que viven en el municipio por vecino</p>

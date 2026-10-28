@@ -289,7 +289,7 @@ export default function App() {
             <section className="escenario">
               <p className="frase">Hasta <b>{escenario.anio}</b>, los municipios de menos de 50.000 habitantes acogen</p>
               <div className="grande">{miles(escenario.personas)}<span> personas</span></div>
-              <Palancas escenario={escenario} onCambiar={setEscenario} />
+              <Palancas escenario={escenario} umbrales={umbrales} onCambiar={setEscenario} />
             </section>
             <Descarga resultados={resultados} porIne={porIne} escenario={escenario} obras={obras} />
           </aside>
