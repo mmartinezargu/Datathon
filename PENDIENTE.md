@@ -98,7 +98,7 @@ Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo
 
 ### R8. Guion: Oracle y voces
 - Añadir a «Preguntas que pueden hacernos»: **¿Por qué no Oracle?** → «Lo probamos para el asistente, pero en la región de Madrid de la cuenta no había modelos disponibles; por eso Groq, que es gratis. Los datos están listos para servirse desde Oracle como siguiente paso.»
-- Cerrar quién es cada voz y quién es el piloto.
+- ~~Cerrar quién es cada voz y quién es el piloto.~~ **Hecho (28/10)**: Mario V. (diapositivas 1–7 y 8–11), Víctor (mapa), Mario M. (plan), Rodrigo (dónde vivir y pincelada de «Cómo funciona»). Piloto propuesto: Mario V. Está en `presentacion/GUION.md`.
 - Duración: las bases dicen 15 min + preguntas; el guion es de 10. Se queda en 10, con margen.
 
 ## Revisión completa del 28/10 (tarde)
