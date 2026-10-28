@@ -107,8 +107,9 @@ function posiciones(v: number[]): number[] {
 // ---------- Asistente: de una frase a los filtros ----------
 // Sin IA ni internet: busca palabras clave y nombres de municipios en lo que escribe el vecino.
 
-/** Frases de ejemplo para la caja de texto. */
+/** Frases de ejemplo para la caja de texto. La primera es la de la demo: da 10 municipios medianos (con una ciudad grande, como Getafe, salen solo 2). */
 export const EJEMPLOS_FRASE = [
+  'Somos 4, tenemos hijos y buscamos un municipio mediano',
   'Somos 4 y trabajo en Getafe',
   'Estoy jubilado y quiero un municipio tranquilo',
   'Teletrabajo y busco algo en la Sierra Norte',
