@@ -33,6 +33,11 @@ export function textoObras(cuantas: Record<TipoObra, number>): string {
   return p.length > 1 ? `${p.slice(0, -1).join(', ')} y ${p[p.length - 1]}` : p[0] ?? ''
 }
 
+/** Frase de comparación del plan: con las obras de la lista, el caso contrario al del interruptor «Reubicar». */
+export function textoComparacion(reubica: boolean, sinSitio: number): string {
+  return `${reubica ? 'Sin reubicar' : 'Reubicando'} en municipios cercanos, con estas mismas obras, seguirían sin sitio ${miles(sinSitio)}.`
+}
+
 /** Cuántas obras de cada tipo hay en una lista. */
 export function contarObras(obras: { tipo: TipoObra }[]): Record<TipoObra, number> {
   const n: Record<TipoObra, number> = { ampliar_primaria: 0, colegio_primaria: 0, instituto: 0, centro_salud: 0 }

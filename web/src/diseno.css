@@ -382,3 +382,4 @@ button.marca { border: 0; background: none; color: #fff; cursor: pointer; paddin
 .plan-lista-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .plan-lista-cabeza .desplegar { width: auto; }
 .plan-tabla-titulo { margin: 14px 0 6px; font-size: 15px; }
+.plan-reubicar { margin: 0 0 14px; max-width: 640px; }
