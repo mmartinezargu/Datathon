@@ -89,7 +89,7 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("zbs_poblacion", "Población que atiende la zona: Padrón 2019 actualizado con el crecimiento 2019-2025 de su municipio principal",
          "personas", ZONAS_SALUD),
         ("nucleo_x", "Núcleo del municipio, coordenada X: mediana de sus colegios de primaria o secundaria "
-         "(si no tiene, centroide del término). Sirve para medir distancias entre pueblos", "km (UTM 30N, ETRS89)", NUCLEO),
+         "(si no tiene, centroide del término). Sirve para medir distancias entre municipios", "km (UTM 30N, ETRS89)", NUCLEO),
         ("nucleo_y", "Núcleo del municipio, coordenada Y (ver nucleo_x)", "km (UTM 30N, ETRS89)", NUCLEO),
         ("hospital_km", "Distancia en línea recta desde el núcleo del municipio (mediana de sus colegios; si no tiene, "
          "centroide del término) hasta el hospital general público más cercano de la Comunidad de Madrid", "km", SANITARIOS),
@@ -99,7 +99,7 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("hospital_min_municipio", "Municipio en el que está ese hospital", "texto", OSRM),
         ("vecinos_min", "Solo municipios del reto: minutos en coche, sin tráfico, desde su núcleo hasta el de cada otro "
          "municipio del reto al que se llega en 60 minutos o menos, como texto JSON {\"código INE\": minutos}. "
-         "Sirve para reubicar en pueblos cercanos midiendo en minutos", "minutos", OSRM),
+         "Sirve para reubicar en municipios cercanos midiendo en minutos", "minutos", OSRM),
     ],
     # Lo genera la web (web/src/descarga.ts), no el ETL: si cambian sus columnas, cámbialas también aquí.
     # Separador «;» y decimales con coma, para abrirlo en Excel en español.
@@ -127,11 +127,11 @@ DICCIONARIO: dict[str, list[tuple[str, str, str, tuple[str, str]]]] = {
         ("hospital_km", "Distancia en línea recta al hospital general público más cercano (ver tabla_maestra.csv)", "km", SANITARIOS),
         ("hospital_min", "Minutos en coche, sin tráfico, al hospital general público al que se llega antes (ver tabla_maestra.csv)",
          "minutos", OSRM),
-        ("reubicados_recibe", "Con «Reubicar en pueblos cercanos»: personas que no caben en otros pueblos y vienen aquí", "personas", ESCENARIO),
-        ("reubicados_envia", "Con «Reubicar en pueblos cercanos»: personas que no caben aquí y van a pueblos cercanos", "personas", ESCENARIO),
-        ("recibe_de", "De qué pueblos vienen: «Municipio (personas; min)» en coche o «Municipio (personas; km)» en línea recta, "
+        ("reubicados_recibe", "Con «Reubicar en municipios cercanos con sitio»: personas que no caben en otros municipios y vienen aquí", "personas", ESCENARIO),
+        ("reubicados_envia", "Con «Reubicar en municipios cercanos con sitio»: personas que no caben aquí y van a municipios cercanos", "personas", ESCENARIO),
+        ("recibe_de", "De qué municipios vienen: «Municipio (personas; min)» en coche o «Municipio (personas; km)» en línea recta, "
          "según medida, separados por «|»", "texto", ESCENARIO),
-        ("envia_a", "A qué pueblos van: «Municipio (personas; min)» o «Municipio (personas; km)», según medida, "
+        ("envia_a", "A qué municipios van: «Municipio (personas; min)» o «Municipio (personas; km)», según medida, "
          "separados por «|»", "texto", ESCENARIO),
         ("plan_plazas_primaria", "Con el plan de la pestaña «Plan»: plazas de primaria nuevas en el municipio (ampliar un colegio "
          "o construir uno)", "plazas", ESCENARIO),

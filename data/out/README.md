@@ -65,7 +65,7 @@ Qué significa para quien las reutilice:
 
 ## Límite de los datos de hospitales
 
-Solo se cuentan los hospitales generales públicos de la Comunidad de Madrid. Algunos pueblos de la frontera tienen uno más cerca fuera: Valdeavero, Ribatejada y Pezuela de las Torres (Guadalajara), San Martín de Valdeiglesias y Rozas de Puerto Real (Ávila) y Somosierra (Aranda de Duero). Solo cambiaría de lado Ribatejada (37 min al de la Comunidad frente a 29 al de Guadalajara); no cambiaría ninguna oportunidad condicionada ni la reubicación. Es una decisión del equipo y está explicada en «Cómo funciona».
+Solo se cuentan los hospitales generales públicos de la Comunidad de Madrid. Algunos municipios de la frontera tienen uno más cerca fuera: Valdeavero, Ribatejada y Pezuela de las Torres (Guadalajara), San Martín de Valdeiglesias y Rozas de Puerto Real (Ávila) y Somosierra (Aranda de Duero). Solo cambiaría de lado Ribatejada (37 min al de la Comunidad frente a 29 al de Guadalajara); no cambiaría ninguna oportunidad condicionada ni la reubicación. Es una decisión del equipo y está explicada en «Cómo funciona».
 
 ## Cómo regenerarlos
 

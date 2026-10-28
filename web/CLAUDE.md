@@ -41,7 +41,7 @@ React 19 + TypeScript + Vite + MapLibre GL 5. Web estática: sin backend, sin ll
 
 ## Asistente con IA
 
-- Proveedor: **Groq** (capa gratuita, modelo `openai/gpt-oss-120b`, responde en menos de 1 s y con esquema JSON garantizado). Oracle (OCI Generative AI) queda como alternativa, pero en la región de la cuenta (Madrid) no hay modelos que funcionen.
+- Proveedor: **Groq** (capa gratuita, modelo `openai/gpt-oss-120b`, responde en menos de 1 s y con esquema JSON garantizado). Oracle (OCI Generative AI) queda como alternativa: teníamos créditos, pero el servicio de la región de Madrid estaba caído y en la de Fráncfort no nos dejaba entrar.
 - Variables de entorno en Vercel (Settings → Environment Variables), nunca en el código ni en git: `GROQ_API_KEY` (`gsk_…`) y, opcional, `GROQ_MODELO`. Si no hay `GROQ_API_KEY` se usa `OCI_GENAI_API_KEY` + `OCI_REGION` + `OCI_MODELO`.
 - Límites de la capa gratuita de Groq: 1.000 peticiones al día y 8.000 tokens por minuto (unas 9 preguntas por minuto con el modelo grande). Si el grande está saturado (429), la función prueba con `openai/gpt-oss-20b`; si también, la web usa las palabras clave.
 - Con `npm run dev` la función también se sirve en local (`vite.config.ts`), con la clave de `.env.local`.

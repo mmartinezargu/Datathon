@@ -49,28 +49,28 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 
 **Diapositiva 2: «Madrid crece.»**
 - *(se ve)* «Madrid crece.»
-- *(pulsar)* «Los pueblos de la Comunidad han crecido un 15,6 % en diez años.»
+- *(pulsar)* «Los municipios de la Comunidad han crecido un 15,6 % en diez años.»
 - *(pulsar)* «La pregunta no es si crece. Es: ¿y dónde cabe la gente?»
 
 **Diapositiva 3: 134.426.**
-- *(se ve)* «134.426 personas llegarán a los pueblos de Madrid de aquí a 2035.»
+- *(se ve)* «134.426 personas llegarán a los municipios de Madrid de aquí a 2035.»
 - *(pulsar)* «No es una cifra inventada: es lo que ya pasó entre 2015 y 2025. Seguimos ese mismo ritmo.»
 
 **Diapositiva 4: el vaso.** Cada figura es 1.000 personas.
-- *(se ve el vaso vacío con su regla)* «Pensad en un vaso. Es lo que cabe en los pueblos sin ampliar nada.»
+- *(se ve el vaso vacío con su regla)* «Pensad en un vaso. Es lo que cabe en los municipios sin ampliar nada.»
 - *(pulsar)* «Caben 56.796.»
-- *(pulsar)* «Las otras 77.630, no. Casi seis de cada diez. Y eso no se ve a ojo, pueblo por pueblo: hay que calcularlo.»
+- *(pulsar)* «Las otras 77.630, no. Casi seis de cada diez. Y eso no se ve a ojo, municipio por municipio: hay que calcularlo.»
 
 ## Bloque 2: la solución (Mario V., 1:15)
 
 **Diapositiva 5: «Esto es CABIDA.»**
-- *(pulsar)* «155 pueblos.»
+- *(pulsar)* «155 municipios.»
 - *(pulsar)* «Cuatro tipos: en tensión, polos de crecimiento, oportunidades y consolidación.»
-- *(pulsar)* «Una respuesta para cada pueblo: cuánta gente llega, cuánta cabe y qué necesita.»
+- *(pulsar)* «Una respuesta para cada municipio: cuánta gente llega, cuánta cabe y qué necesita.»
 
 **Diapositiva 6: la regla.**
 - *(se ve)* «¿Cómo lo calculamos? Con una regla muy simple: manda el límite más bajo.»
-- *(pulsar)* «Vivienda, colegios, sanidad y ritmo de crecimiento. Si hay casas pero no hay colegio, el pueblo no aguanta: decide el eslabón más débil.»
+- *(pulsar)* «Vivienda, colegios, sanidad y ritmo de crecimiento. Si hay casas pero no hay colegio, el municipio no aguanta: decide el eslabón más débil.»
 
 **Diapositiva 7: «Veámoslo.»**
 - *(pulsar tres veces)* «Os lo enseñamos con la web en tres pasos: ver, decidir y elegir.»
@@ -86,10 +86,10 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
-| 1 | Nada. Pestaña **Mapa del gestor** | Mapa de Madrid con los 155 pueblos, y arriba tres tarjetas | «Este es el mapa del gestor: los 155 pueblos, cada uno con su color.» Pulsar **Leyenda** (abajo a la izquierda del mapa; sale plegada) y señalar: rojo, en tensión; verde, polo; azul, oportunidad; gris, consolidación. Los rayados son oportunidades con el hospital a más de 30 minutos |
+| 1 | Nada. Pestaña **Mapa del gestor** | Mapa de Madrid con los 155 municipios, y arriba tres tarjetas | «Este es el mapa del gestor: los 155 municipios, cada uno con su color.» Pulsar **Leyenda** (abajo a la izquierda del mapa; sale plegada) y señalar: rojo, en tensión; verde, polo; azul, oportunidad; gris, consolidación. Los rayados son oportunidades con el hospital a más de 30 minutos |
 | 2 | Nada | **56.796** caben · **77.630** sin sitio · **33** municipios con sitio al que no llega gente | «Caben 56.796. Se quedarían sin sitio 77.630. Y hay 33 municipios con sitio que no se aprovecha: les llega menos gente de la que cabe. Ahí está la oportunidad.» |
 | 3 | En «Año horizonte», pulsar **2039** y luego volver a **2035** | Con 2039: llegan 188.196 y se quedan sin sitio 118.840 | «Todo esto se mueve. Si miramos a 2039, llegan 188.196 y se quedan sin sitio 118.840.» (volver a 2035) |
-| 4 | *(opcional)* Activar **Reubicar en municipios cercanos con sitio** y **quitarlo** (si se queda activo, «Dónde vivir» cambia: ver paso 11) | Se reubican 26.346 personas y siguen sin sitio 51.284 | «Quien no cabe va al pueblo con sitio más cercano: a menos de 30 minutos en coche y con hospital cerca.» |
+| 4 | *(opcional)* Activar **Reubicar en municipios cercanos con sitio** y **quitarlo** (si se queda activo, «Dónde vivir» cambia: ver paso 11) | Se reubican 26.346 personas y siguen sin sitio 51.284 | «Quien no cabe va al municipio con sitio más cercano: a menos de 30 minutos en coche y con hospital cerca.» |
 | 5 | Pulsar **Arroyomolinos** (el primero de la lista de la derecha) | Ficha: llegan 12.305, no caben 11.489, caben 816. Hospital más cercano: Móstoles, a 12 min | «Arroyomolinos: llegarían unas 12.300 personas y caben 816.» |
 | 6 | Nada. Señalar las cuatro barras de la ficha | Vivienda 17.531 · Colegios 12.441 · **Sanidad 816** · Ritmo 13.095 | «¿Por qué? Tiene casas y colegios, pero el centro de salud no da más: ese es su límite.» |
 
@@ -98,7 +98,7 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 | # | Qué se pulsa | Qué se ve | Qué se dice |
 |---|---|---|---|
 | 7 | Bajar en la ficha y pulsar **Planificar aquí →** | Pestaña **Plan** con una sola obra: un centro de salud en la zona de Arroyomolinos. **11.625 personas más caben** | «Y ahora, ¿qué hacemos? Una sola obra, un centro de salud, y caben 11.625 personas más.» |
-| 8 | Pulsar **Plan recomendado** | **17 obras en 17 pueblos** (7 ampliaciones de colegio, 3 institutos y 7 centros de salud). Pasan a caber **42.663**. Siguen sin sitio **8.621**, todos por falta de vivienda | «Y para toda la región, el plan recomendado elige, una a una, la obra que hace caber a más gente por cada euro, y luego quita las que sobran.» |
+| 8 | Pulsar **Plan recomendado** | **17 obras en 17 municipios** (7 ampliaciones de colegio, 3 institutos y 7 centros de salud). Pasan a caber **42.663**. Siguen sin sitio **8.621**, todos por falta de vivienda | «Y para toda la región, el plan recomendado elige, una a una, la obra que hace caber a más gente por cada euro, y luego quita las que sobran.» |
 | 9 | Nada. Señalar «Siguen sin sitio 8.621» | Texto: «La vivienda y el ritmo no se arreglan con colegios ni centros de salud» | «Lo que queda ya no se arregla con colegios ni con centros de salud: es vivienda. Aquí CABIDA le dice a la Administración dónde construir, y dónde no basta con construir.» |
 | 10 | Pulsar **Ver en el mapa** | Mapa con el plan: «Con el plan: 97,1 M€, 17 obras». **125.805 de las 134.426 personas caben**. 8.621 no encuentran sitio | «Con el plan, caben 125.805 de las 134.426. Los rojos se enfrían.» |
 
@@ -110,7 +110,7 @@ Tiempo de voz: Mario V., 5:15 (3:05 + 2:10) · Víctor, 1:30 · Mario M., 1:30 �
 |---|---|---|---|
 | 11 | Pulsar la pestaña **Dónde vivir**. Si «Reubicar» sigue activo, quitarlo antes en el mapa: con la reubicación, Humanes y San Martín de la Vega se llenan y el paso 13 sale vacío | Caja «Cuéntanoslo con tus palabras» y tres ejemplos | «Y no solo es para quien planifica. También es para quien se muda.» |
 | 12 | Pulsar el ejemplo **«Somos 4 y trabajo en Getafe»** (se rellena y busca solo; tarda unos 3-4 segundos) | «Hemos entendido: …». Sin IA (palabras clave) sale: «Sois 4: os tratamos como una familia con hijos. Getafe tiene más de 50.000 habitantes y queda fuera del estudio: buscamos cerca, en su zona (Sur Metropolitano).» Con la IA, la frase puede variar un poco | «Se lo contamos con nuestras palabras: somos cuatro y trabajamos en Getafe. Lo entiende solo.» |
-| 13 | Nada | **Humanes de Madrid**, «encaja 75 sobre 100»: colegios +5.079, centro de salud +7.910, casas +5.006; hospital en Parla, a 11 min. El segundo: San Martín de la Vega | «Solo dos pueblos aguantan. El primero, Humanes de Madrid: tiene sitio en colegios, centro de salud y casas, y el hospital a 11 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
+| 13 | Nada | **Humanes de Madrid**, «encaja 75 sobre 100»: colegios +5.079, centro de salud +7.910, casas +5.006; hospital en Parla, a 11 min. El segundo: San Martín de la Vega | «Solo dos municipios aguantan. El primero, Humanes de Madrid: tiene sitio en colegios, centro de salud y casas, y el hospital a 11 minutos. El mismo motor sirve a quien planifica y a quien se muda.» |
 
 ### Cómo funciona: la pincelada (Rodrigo, 0:30)
 
@@ -136,8 +136,8 @@ Rodrigo ya lo ha contado en la web: aquí solo se recuerda, rápido.
 - *(pulsar)* «Seguir la tendencia sin más acierta 67.»
 
 **Diapositiva 9: impacto.**
-- *(pulsar)* «Si cada pueblo se arregla solo: 47 obras y aun así 23.874 personas sin sitio.»
-- *(pulsar)* «Si repartimos entre pueblos a 30 minutos: 17 obras y 8.621 sin sitio.»
+- *(pulsar)* «Si cada municipio se arregla solo: 47 obras y aun así 23.874 personas sin sitio.»
+- *(pulsar)* «Si repartimos entre municipios a 30 minutos: 17 obras y 8.621 sin sitio.»
 - *(pulsar)* «Menos obras. Menos gente sin sitio. Y lo que queda es vivienda: ahí necesitamos a la Administración.»
 
 **Diapositiva 10: todo abierto.**
@@ -185,11 +185,11 @@ Responde uno, y los demás no interrumpen. Si se atasca, el «dueño» del tema 
 | Pregunta | Respuesta corta |
 |---|---|
 | **¿De dónde salen los costes?** | De la mediana de obras reales de la Comunidad entre 2023 y 2026 (10 ampliaciones de colegio, 2 colegios nuevos, 5 institutos y 7 centros de salud), una noticia oficial por obra. Son estimaciones. Las fuentes están en la pestaña Plan y en `data/out/obras_referencia.csv`. Por eso en las diapositivas comparamos obras y personas, no euros |
-| **¿Por qué 134.426?** | Es lo que ganaron estos 155 pueblos entre 2015 y 2025, el 19 % de lo que creció la Comunidad. Si se reparte la previsión de la Comunidad (8 millones en 2039), hasta 2035 les tocarían entre 118.000 y 128.000 |
+| **¿Por qué 134.426?** | Es lo que ganaron estos 155 municipios entre 2015 y 2025, el 19 % de lo que creció la Comunidad. Si se reparte la previsión de la Comunidad (8 millones en 2039), hasta 2035 les tocarían entre 118.000 y 128.000 |
 | **¿El suelo previsto es suelo construido?** | No. El planeamiento no es licencia: cuenta como sitio posible, no como vivienda hecha |
-| **¿Y la vivienda vacía?** | Suponemos que se ocupa un 15 %. Es un supuesto sin dato oficial: al 30 % caben 60.286 y 71 pueblos quedan en tensión; al 50 %, 63.277 y 66 |
-| **¿Y los hospitales de fuera de la Comunidad?** | No se cuentan. A 6 pueblos les queda antes uno de fuera; solo Ribatejada cambiaría de lado |
-| **¿Qué significa «acierta 77 de cada 100»?** | Con datos de 2015 colocamos en su pueblo a 77 de cada 100 personas que llegaron hasta 2025. El error ponderado es 44,4 %, frente a 64,1 % de la tendencia sola; cuenta dos veces a cada persona mal colocada (donde sobra y donde falta) |
+| **¿Y la vivienda vacía?** | Suponemos que se ocupa un 15 %. Es un supuesto sin dato oficial: al 30 % caben 60.286 y 71 municipios quedan en tensión; al 50 %, 63.277 y 66 |
+| **¿Y los hospitales de fuera de la Comunidad?** | No se cuentan. A 6 municipios les queda antes uno de fuera; solo Ribatejada cambiaría de lado |
+| **¿Qué significa «acierta 77 de cada 100»?** | Con datos de 2015 colocamos en su municipio a 77 de cada 100 personas que llegaron hasta 2025. El error ponderado es 44,4 %, frente a 64,1 % de la tendencia sola; cuenta dos veces a cada persona mal colocada (donde sobra y donde falta) |
 | **¿El 77 es exactamente lo que hace la web?** | Casi. El 77 es la tendencia suavizada con el techo del 3 % al año, y lo que pasa del techo se reparte entre los demás. En la web ese techo es el límite de «ritmo»: lo que lo pasa se queda «sin sitio» (o se reubica). La tendencia suavizada sin techo acierta 72; la tendencia simple, 67. Además, la prueba reparte el total real de 2015-2025: comprueba **dónde** va la gente, no **cuánta** llega |
 | **¿Y repartir según el tamaño de cada municipio?** | Sale en la web, en «¿Acierta?»: coloca bien a 75 de cada 100. Pero no distingue qué municipios crecen deprisa y cuáles no (Spearman 0,03 frente a 0,28): manda gente a todos por igual. Con el techo, CABIDA acierta más (77) y además ordena mejor dónde crece |
 | **¿Elegisteis el 3 % mirando el resultado?** | No. Con un 2 % al año la prueba saldría algo mejor (error del 43,4 % en vez del 44,4 %), y con más suavizado también. Dejamos los valores de partida |
@@ -197,6 +197,7 @@ Responde uno, y los demás no interrumpen. Si se atasca, el «dueño» del tema 
 | **¿Las viviendas previstas son reales?** | Donde el planeamiento trae el número de viviendas, sí. Donde no lo trae, lo estimamos con la densidad de su municipio o de su zona (52.652 viviendas en 49 municipios). En urbanizaciones de chalés esa estimación puede salir alta (El Escorial, Meco): es un techo, no una previsión |
 | **¿El plan recomendado es el más barato?** | No, por eso no lo llamamos óptimo. Añade la obra con más personas por euro y quita las que sobran, pero no prueba todas las combinaciones. Sabemos que cambiando algunas obras sale más barato. Y depende de reubicar: si en el municipio de destino no hay casa, la reubicación no ocurre |
 | **¿Qué hace la IA?** | Solo lee la frase del vecino y elige los filtros. Las cifras y las explicaciones las pone la web. Si no hay red, usa palabras clave |
+| **¿Por qué no Oracle?** | Nos dieron créditos de Oracle Cloud y lo intentamos, pero el servicio de IA de la región de Madrid estaba caído y en la de Fráncfort no nos dejaba entrar. Por eso usamos Groq, que es gratis. El asistente ya está preparado para usar Oracle como alternativa en cuanto funcione |
 | **¿Y alquileres y tiempos de viaje al trabajo?** | No los sabemos: la propia web lo avisa. Son un siguiente paso, igual que los tiempos en transporte público |
 | **¿SPARQL de la Cátedra?** | No lo hemos usado. Es un siguiente paso, no una fuente |
 | **¿Qué licencia tienen vuestros datos?** | CC BY 4.0, salvo tres columnas: los minutos en coche, que son de OpenStreetMap y llevan su licencia, ODbL, con la cita «© colaboradores de OpenStreetMap». Quien no la quiera, las quita y se queda con datos solo CC BY 4.0, o usa los km en línea recta, que no dependen de OpenStreetMap |

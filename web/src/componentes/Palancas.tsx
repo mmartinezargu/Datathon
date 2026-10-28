@@ -14,7 +14,7 @@ interface Props {
 }
 
 const ANIOS = [2030, 2035, 2039]
-/** Para el texto: «unas 134.000». */
+/** Para el texto de la previsión: «entre 118.000 y 128.000». */
 const redondeo = (n: number) => Math.round(n / 1000) * 1000
 const EXIGENCIAS = [
   { valor: 0.75, texto: 'Estricta', ayuda: 'Un colegio se considera lleno cuando tiene tantos alumnos como el 25 % más cargado de los de su tamaño, y un centro de salud cuando atiende a tanta gente como el 25 % de las zonas más pobladas.' },
