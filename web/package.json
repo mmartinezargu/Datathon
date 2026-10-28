@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "offline": "npm run build && node scripts/copia-offline.mjs",
-    "datasets": "vite-node scripts/datasets.ts",
+    "datasets": "vite-node scripts/datasets.ts && node scripts/datos-abiertos.mjs",
+    "datos-abiertos": "node scripts/datos-abiertos.mjs",
     "test": "vitest run"
   },
   "dependencies": {

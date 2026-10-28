@@ -1,0 +1,287 @@
+codigo,zona_salud,poblacion,limite,sitio_libre,municipios_del_reto,centros_plan_recomendado
+001,Abrantes,33013,38891,5878,,0
+002,Acacias,20863,38891,18028,,0
+003,Adelfas,31317,38891,7574,,0
+004,Alameda,22841,38891,16050,,0
+005,Alameda de Osuna,31137,38891,7754,,0
+006,Alcalde Bartolomé González,22055,38891,16836,,0
+007,Alcalá de Guadaira,13158,38891,25733,,0
+008,Alcobendas - Chopera,29047,38891,9844,,0
+009,Alcocer,18455,38891,20436,,0
+010,Algete,28764,38891,10127,Algete; Cobeña,0
+011,Alicante,24469,38891,14422,,0
+012,Almendrales,23097,38891,15794,,0
+013,Alpedrete,15686,38891,23205,Alpedrete,0
+014,Alpes,38755,38891,136,,0
+015,Andrés Mellado,25505,38891,13386,,0
+016,Ángela Uriarte,29097,38891,9794,,0
+017,Antonio Leyva,14687,38891,24204,,0
+018,Aquitania,25993,38891,12898,,0
+019,Aranjuez,46498,38891,-7607,,0
+020,Aravaca,39026,38891,-135,,0
+021,Arganda del Rey,23714,38891,15177,,0
+022,Arganda - Felicidad,36705,38891,2186,,0
+023,Argüelles,25876,38891,13015,,0
+024,Arroyomolinos,38075,38891,816,Arroyomolinos,1
+025,Barajas,18904,38891,19987,,0
+026,Barcelona,21521,38891,17370,,0
+027,Barrio del Puerto,14988,38891,23903,,0
+028,Baviera,15822,38891,23069,,0
+029,Benita de Ávila,20855,38891,18036,,0
+030,Boadilla del Monte,66349,38891,-27458,,0
+031,Brújula,22417,38891,16474,,0
+032,Buenavista,23849,38891,15042,,0
+033,Buitrago de Lozoya,6102,38891,32789,La Acebeda; Berzosa del Lozoya; Braojos; Buitrago del Lozoya; Cervera de Buitrago; Gargantilla del Lozoya y Pinilla de Buitrago; Gascones; La Hiruela; Horcajo de la Sierra-Aoslos; Horcajuelo de la Sierra; Madarcos; Montejo de la Sierra; Navarredonda y San Mamés; Piñuécar-Gandullas; Prádena del Rincón; Puebla de la Sierra; Robledillo de la Jara; Robregordo; La Serna del Monte; Somosierra; Villavieja del Lozoya; Puentes Viejas,0
+034,Bustarviejo,22026,38891,16865,,0
+035,Butarque,20246,38891,18645,,0
+036,Cadalso de los Vidrios,5930,38891,32961,Cadalso de los Vidrios; Cenicientos; Rozas de Puerto Real,0
+037,Campamento,16361,38891,22530,,0
+038,Campo Real,21918,38891,16973,Ambite; Campo Real; Nuevo Baztán; Olmeda de las Fuentes; Pozuelo del Rey; Valdilecha; Villar del Olmo,0
+039,Campo de la Paloma,20500,38891,18391,,0
+040,Canal de Panamá,33596,38891,5295,,0
+041,Canillejas,30671,38891,8220,,0
+042,Carabanchel Alto,26652,38891,12239,,0
+043,Caramuel,24764,38891,14127,,0
+044,Carmen Calzado,16183,38891,22708,,0
+045,Casa de Campo,13933,38891,24958,,0
+046,Castelló,16874,38891,22017,,0
+047,Castilla la Nueva,22939,38891,15952,,0
+048,Cea Bermúdez,20859,38891,18032,,0
+049,Cercedilla,15915,38891,22976,Cercedilla; Los Molinos; Navacerrada,0
+050,Chopera,33707,38891,5184,,0
+051,Ciempozuelos,27757,38891,11134,Ciempozuelos; Titulcia,0
+052,Ciudad San Pablo,11724,38891,27167,,0
+053,Ciudad de los Periodistas,26984,38891,11907,,0
+054,Collado Mediano,14941,38891,23950,Becerril de la Sierra; Collado Mediano,0
+055,Collado Villalba Estación,30090,38891,8801,,0
+056,Collado Villalba Pueblo,21109,38891,17782,,0
+057,Colmenar Viejo Norte,21284,38891,17607,,0
+058,Colmenar Viejo Sur,37446,38891,1445,,0
+059,Colmenar de Oreja,20099,38891,18792,Colmenar de Oreja; Chinchón; Valdelaguna; Villaconejos,0
+060,Comillas,24063,38891,14828,,0
+061,Cortes,28293,38891,10598,,0
+062,Coslada - Jaime Vera,13946,38891,24945,,0
+063,Cuzco,20695,38891,18196,,0
+064,Daganzo de Arriba,18903,38891,19988,Ajalvir; Daganzo de Arriba; Fresno de Torote; Ribatejada,0
+065,Daroca,36949,38891,1942,,0
+066,Dehesa Vieja,30988,38891,7903,,0
+067,Dos de Mayo,32768,38891,6123,,0
+068,Doctor Cirajas,36382,38891,2509,,0
+069,Doctor Laín Entralgo,24653,38891,14238,,0
+070,Doctor Luengo Rodríguez,40668,38891,-1777,,0
+071,Doctor Tamames,18895,38891,19996,,0
+072,Doctor Trueta,10697,38891,28194,,0
+073,El Bercial,19740,38891,19151,,0
+074,El Escorial,17171,38891,21720,El Escorial,0
+075,El Espinillo,17869,38891,21022,,0
+076,El Greco,18522,38891,20369,,0
+077,El Juncal,29587,38891,9304,,0
+078,El Molar,36459,38891,2432,El Molar; Pedrezuela; Redueña; San Agustín del Guadalix; El Vellón; Venturada,1
+079,El Naranjo,21405,38891,17486,,0
+080,El Pardo,3706,38891,35185,,0
+081,El Restón,36980,38891,1911,,0
+082,El Soto,20801,38891,18090,,0
+083,Eloy Gonzalo,33449,38891,5442,,0
+084,Embajadores,27717,38891,11174,,0
+085,Ensanche Vallecas,63074,38891,-24183,,0
+086,Entrevías,29516,38891,9375,,0
+087,Espronceda,43689,38891,-4798,,0
+088,Estrecho de Corea,34704,38891,4187,,0
+089,Estrella,15619,38891,23272,,0
+090,Europa,19466,38891,19425,,0
+091,Federica Montseny,21115,38891,17776,,0
+092,Felipe II,21123,38891,17768,,0
+093,Francia,33675,38891,5216,,0
+094,Fuencarral,22479,38891,16412,,0
+095,Fuente el Saz,23614,38891,15277,Fuente el Saz de Jarama; Talamanca de Jarama; Valdeolmos-Alalpardo; Valdepiélagos; Valdetorres de Jarama,0
+096,Fuentelarreina,21519,38891,17372,,0
+097,Galapagar,46704,38891,-7813,Colmenarejo; Galapagar,1
+098,Gandhi,20956,38891,17935,,0
+099,García Noblejas,23645,38891,15246,,0
+100,General Fanjul,25072,38891,13819,,0
+101,General Moscardó,21697,38891,17194,,0
+102,General Oráa,28148,38891,10743,,0
+103,General Ricardos,30268,38891,8623,,0
+104,Getafe Norte,12198,38891,26693,,0
+105,Goya,63860,38891,-24969,,0
+106,Gregorio Marañón,40850,38891,-1959,,0
+107,Griñón,44296,38891,-5405,Batres; Casarrubuelos; Cubas de la Sagra; Griñón; Serranillos del Valle; Torrejón de la Calzada; Torrejón de Velasco,1
+108,Guadarrama,17547,38891,21344,Guadarrama,0
+109,Guayaba,19717,38891,19174,,0
+110,Guzmán el Bueno,22940,38891,15951,,0
+111,Huerta de Los Frailes,20228,38891,18663,,0
+112,Humanes de Madrid,27030,38891,11861,Humanes de Madrid; Moraleja de Enmedio,0
+113,Ibiza,36494,38891,2397,,0
+114,Imperial,24429,38891,14462,,0
+115,Infanta Mercedes,15472,38891,23419,,0
+116,Isabel II,35235,38891,3656,,0
+117,Jazmín,25295,38891,13596,,0
+118,Juan de Austria,15323,38891,23568,,0
+119,Juan de la Cierva,39959,38891,-1068,,0
+120,Justicia,14943,38891,23948,,0
+121,La Cabrera,7640,38891,31251,El Berrueco; Cabanillas de la Sierra; La Cabrera; Canencia; Garganta de los Montes; Valdemanco; Lozoyuela-Navas-Sieteiglesias,0
+122,La Elipa,14723,38891,24168,,0
+123,La Garena,8710,38891,30181,,0
+124,La Marazuela,12446,38891,26445,,0
+125,La Moraleja,25057,38891,13834,,0
+126,La Plata,32152,38891,6739,,0
+127,La Princesa,20373,38891,18518,,0
+128,La Ribota,18863,38891,20028,,0
+129,La Ventilla,24306,38891,14585,,0
+130,La Veredilla,13304,38891,25587,,0
+131,Las Águilas,29590,38891,9301,,0
+132,Las Américas,43208,38891,-4317,,0
+133,Las Calesas,28365,38891,10526,,0
+134,Las Ciudades,17761,38891,21130,,0
+135,Las Fronteras,36068,38891,2823,,0
+136,Las Margaritas,25319,38891,13572,,0
+137,Las Matas,6843,38891,32048,,0
+138,Las Olivas,16542,38891,22349,,0
+139,Las Rozas,39626,38891,-735,,0
+140,Las Tablas,34999,38891,3892,,0
+141,Lavapiés,25363,38891,13528,,0
+142,Leganés Norte,13182,38891,25709,,0
+143,Legazpi,30153,38891,8738,,0
+144,Londres,15419,38891,23472,,0
+145,Los Alperchines,19571,38891,19320,San Fernando de Henares,0
+146,Los Ángeles,33493,38891,5398,,0
+147,Los Castillos,27609,38891,11282,,0
+148,Los Cármenes,26938,38891,11953,,0
+149,Los Fresnos,9998,38891,28893,,0
+150,Los Pedroches,22461,38891,16430,,0
+151,Los Rosales,22506,38891,16385,,0
+152,Los Yébenes,36359,38891,2532,,0
+153,Lucero,41914,38891,-3023,,0
+154,Luis Vives,25328,38891,13563,,0
+155,Majadahonda,52174,38891,-13283,,0
+156,Manuel Merino,12007,38891,26884,,0
+157,Manzanares El Real,17842,38891,21049,El Boalo; Manzanares el Real,0
+158,Maqueda,29102,38891,9789,,0
+159,Mar Báltico,68488,38891,-29597,,0
+160,Marqués de la Valdavia,18509,38891,20382,,0
+161,Martín de Vargas,18608,38891,20283,,0
+162,Martínez de la Riva,17932,38891,20959,,0
+163,María Curie,13489,38891,25402,,0
+164,María Montessori,14316,38891,24575,,0
+165,María de Guzmán,23059,38891,15832,,0
+166,Meco,29282,38891,9609,Camarma de Esteruelas; Meco; Los Santos de la Humosa; Valdeavero,0
+167,Media Legua,26904,38891,11987,,0
+168,Mejorada del Campo,46669,38891,-7778,Loeches; Mejorada del Campo; Velilla de San Antonio,1
+169,Mendiguchía Carriche,23393,38891,15498,,0
+170,Miguel Servet,17708,38891,21183,,0
+171,Miguel de Cervantes,28309,38891,10582,,0
+172,Miraflores,23021,38891,15870,,0
+173,Mirasierra,35310,38891,3581,,0
+174,Monforte de Lemos,17209,38891,21682,,0
+175,Monovar,22757,38891,16134,,0
+176,Montecarmelo,19841,38891,19050,,0
+177,Monterrozas,40123,38891,-1232,,0
+178,Montesa,26141,38891,12750,,0
+179,Moralzarzal,14772,38891,24119,Moralzarzal,0
+180,Morata de Tajuña,8397,38891,30494,Morata de Tajuña,0
+181,María Jesús Hereza,39484,38891,-593,,0
+182,Méndez Álvaro,9657,38891,29234,,0
+183,Navalcarnero,47011,38891,-8120,El Álamo; Navalcarnero; Villamanta,1
+184,Navas del Rey,8170,38891,30721,Colmenar del Arroyo; Chapinería; Navas del Rey,0
+185,Nuestra Señora del Pilar,18328,38891,20563,,0
+186,Numancia,26070,38891,12821,,0
+187,Nuñez Morgado,25031,38891,13860,,0
+188,Opañel,20816,38891,18075,,0
+189,Orcasitas,24515,38891,14376,,0
+190,Orcasur,14834,38891,24057,,0
+191,Pacífico,35282,38891,3609,,0
+192,Palma Universidad,26238,38891,12653,,0
+193,Palomares,12725,38891,26166,,0
+194,Panaderas,36399,38891,2492,,0
+195,Paracuellos del Jarama,27650,38891,11241,Paracuellos de Jarama,0
+196,Parque Coimbra,12549,38891,26342,,0
+197,Parque Europa,35859,38891,3032,,0
+198,Parque Loranca,30494,38891,8397,,0
+199,Parque Oeste,14946,38891,23945,,0
+200,Pavones,17367,38891,21524,,0
+201,Perales de Tajuña,9818,38891,29073,Carabaña; Orusco de Tajuña; Perales de Tajuña; Tielmes,0
+202,Perales del Río,10146,38891,28745,,0
+203,Peña Prieta,18453,38891,20438,,0
+204,Peñagrande,26841,38891,12050,,0
+205,Pilar,44813,38891,-5922,,0
+206,Pinto,20792,38891,18099,,0
+207,Pintores,25512,38891,13379,,0
+208,Pizarro,16992,38891,21899,,0
+209,Portazgo,19245,38891,19646,,0
+210,Potosí,31335,38891,7556,,0
+211,Pozo de Tío Raimundo,7726,38891,31165,,0
+212,Pozuelo - Estación,39847,38891,-956,,0
+213,Pozuelo - Somosaguas,23998,38891,14893,,0
+214,Presentación Sabio,22957,38891,15934,,0
+215,Prosperidad,59367,38891,-20476,,0
+216,Puerta Bonita,15907,38891,22984,,0
+217,Puerta de Madrid,13850,38891,25041,,0
+218,Puerta del Ángel,19051,38891,19840,,0
+219,Quinta de los Molinos,12182,38891,26709,,0
+220,Rafael Alberti,21627,38891,17264,,0
+221,Ramón y Cajal,20394,38891,18497,,0
+222,Rascafría,2699,38891,36192,Alameda del Valle; Lozoya; Pinilla del Valle; Rascafría,0
+223,Reina Victoria,37233,38891,1658,,0
+224,Rejas,17933,38891,20958,,0
+225,Reyes Católicos,22684,38891,16207,,0
+226,Reyes Magos,27426,38891,11465,,0
+227,Rivas - La Paz,27406,38891,11485,,0
+228,Rivas - Santa Mónica,43487,38891,-4596,,0
+229,Rivas - 1º de Mayo,32255,38891,6636,,0
+230,Robledo de Chavela,10418,38891,28473,Fresnedillas de la Oliva; Navalagamella; Robledo de Chavela; Valdemaqueda,0
+231,Rosa Luxemburgo,26191,38891,12700,,0
+232,San Andrés,25171,38891,13720,,0
+233,San Blas,33515,38891,5376,,0
+234,San Cristóbal,22178,38891,16713,,0
+235,San Diego,27719,38891,11172,,0
+236,San Fermín,25439,38891,13452,,0
+237,San Fernando,19488,38891,19403,,0
+238,San Isidro,18498,38891,20393,,0
+239,San Juan de la Cruz,25925,38891,12966,,0
+240,San Lorenzo de El Escorial,26881,38891,12010,San Lorenzo de El Escorial; Santa María de la Alameda; Zarzalejo,0
+241,San Martín de Valdeiglesias,12185,38891,26706,Pelayos de la Presa; San Martín de Valdeiglesias,0
+242,San Martín de la Vega,21010,38891,17881,San Martín de la Vega,0
+243,Sanchinarro,31385,38891,7506,,0
+244,Santa Eugenia,26102,38891,12789,,0
+245,Sector Embarcaciones,32582,38891,6309,,0
+246,Sector III,30318,38891,8573,,0
+247,Sector Oficios,22010,38891,16881,,0
+248,Segovia,24427,38891,14464,,0
+249,Segre,40859,38891,-1968,,0
+250,Sevilla la Nueva,13520,38891,25371,Sevilla la Nueva; Villamantilla; Villanueva de Perales,0
+251,Sierra de Guadarrama,16075,38891,22816,,0
+252,Silvano,43872,38891,-4981,,0
+253,Simancas,29981,38891,8910,,0
+254,Soto del Real,28216,38891,10675,Bustarviejo; Guadalix de la Sierra; Miraflores de la Sierra; Navalafuente; Soto del Real,0
+255,Sánchez Morate,19276,38891,19615,,0
+256,Torrelaguna,6841,38891,32050,El Atazar; Patones; Torrelaguna; Torremocha de Jarama,0
+257,Torrelodones,35490,38891,3401,Hoyo de Manzanares; Torrelodones,1
+258,Torres de la Alameda,25983,38891,12908,Anchuelo; Corpa; Pezuela de las Torres; Santorcaz; Torres de la Alameda; Valverde de Alcalá; Villalbilla,0
+259,V Centenario,17130,38891,21761,,0
+260,Valdeacederas,27955,38891,10936,,0
+261,Valdebernardo,17036,38891,21855,,0
+262,Valdelasfuentes,27708,38891,11183,,0
+263,Valdemorillo,14420,38891,24471,Valdemorillo,0
+264,Valdemoro,48992,38891,-10101,,0
+265,Valderribas,21371,38891,17520,,0
+266,Valdezarza,49381,38891,-10490,,0
+267,Valle Inclán,11206,38891,27685,,0
+268,Valle de la Oliva,21451,38891,17440,,0
+269,Valleaguado,20959,38891,17932,,0
+270,Vandel,24038,38891,14853,,0
+271,Vicente Muzas,22349,38891,16542,,0
+272,Vicálvaro - Artilleros,20006,38891,18885,,0
+273,Vicálvaro - Villablanca,18989,38891,19902,,0
+274,Villa Vallecas,29320,38891,9571,,0
+275,Villa del Prado,11113,38891,27778,Aldea del Fresno; Villa del Prado,0
+276,Villaamil,26857,38891,12034,,0
+277,Villanueva de la Cañada,37448,38891,1443,Brunete; Quijorna; Villanueva de la Cañada,0
+278,Villanueva del Pardillo,18466,38891,20425,Villanueva del Pardillo,0
+279,Villarejo de Salvanés,15512,38891,23379,Belmonte de Tajo; Brea de Tajo; Estremera; Fuentidueña de Tajo; Valdaracete; Villamanrique de Tajo; Villarejo de Salvanés,0
+280,Villaviciosa de Odón,30127,38891,8764,Villaviciosa de Odón,0
+281,Vinateros - Torito,33228,38891,5663,,0
+282,Virgen de Begoña,10354,38891,28537,,0
+283,Virgen del Cortijo,15094,38891,23797,,0
+284,Virgen del Val,14685,38891,24206,,0
+285,Vista Alegre,39684,38891,-793,,0
+286,Zofío,33785,38891,5106,,0

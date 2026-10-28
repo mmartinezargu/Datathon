@@ -24,6 +24,9 @@ const K_SUAVIZADO = 5_000
 
 /** Suelo pendiente de desarrollar sin cifra de viviendas en el planeamiento, en los 155 (AUDITORIA.md, punto 1). */
 
+// Página de datos abiertos (public/datos-abiertos/). En la copia sin internet, la que va al lado de CABIDA.html
+const ENLACE_DATOS_ABIERTOS = window.__DATOS_CABIDA__ !== undefined ? 'datos-abiertos/index.html' : 'datos-abiertos/'
+
 const FUENTES = [
   { nombre: 'Padrón continuo: población por municipio, 2005–2025', quien: 'INE (tabla 2881)', para: 'Cuánta gente vive en cada municipio y cómo ha crecido', url: 'https://www.ine.es/jaxiT3/Tabla.htm?t=2881' },
   { nombre: 'Previsión de población: 8 millones en 2039 (nota de prensa del 17/02/2025)', quien: 'Comunidad de Madrid', para: 'Comparar la cifra por defecto con la previsión de la Comunidad', url: 'https://www.comunidad.madrid/node/71411' },
@@ -220,7 +223,8 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
           </table>
         </div>
         <p className="nota">
-          Todo son datos abiertos. Los resultados se pueden descargar desde el mapa («Llévate los datos») con licencia CC BY 4.0.
+          Todo son datos abiertos. Los datos de CABIDA, con su diccionario y su licencia (CC BY 4.0), están en{' '}
+          <a href={ENLACE_DATOS_ABIERTOS} target="_blank" rel="noreferrer">cabida.vercel.app/datos-abiertos</a>.
         </p>
       </section>
 
