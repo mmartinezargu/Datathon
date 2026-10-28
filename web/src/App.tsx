@@ -11,6 +11,7 @@ import { Mudanza } from './componentes/Mudanza'
 import { Atraer } from './componentes/Atraer'
 import { Metodologia } from './componentes/Metodologia'
 import { Plan } from './componentes/Plan'
+import { PromocionarEnPlan } from './componentes/Promocionar'
 import { Inicio, type Destino, type Totales } from './componentes/Inicio'
 import { Vaso } from './componentes/Vaso'
 import { OrigenTodos } from './componentes/OrigenVaso'
@@ -62,7 +63,6 @@ const PESTANAS: { id: Pestana; texto: string; icono: NombreIcono }[] = [
   { id: 'inicio', texto: 'Inicio', icono: 'inicio' },
   { id: 'mapa', texto: 'Mapa del gestor', icono: 'mapa' },
   { id: 'plan', texto: 'Plan', icono: 'plan' },
-  { id: 'atraer', texto: 'Atraer', icono: 'repartir' },
   { id: 'mudanza', texto: 'Dónde vivir', icono: 'vivir' },
   { id: 'metodologia', texto: 'Cómo funciona', icono: 'metodo' },
 ]
@@ -258,6 +258,9 @@ export default function App() {
             opciones={opcionesPlan} onOpciones={setOpcionesPlan}
             onFicha={(ine) => { elegir(ine); setPestana('mapa') }}
             onVerEnMapa={() => { setEscenario(escenarioDelPlan(escenario)); setSeleccionado(null); setPestana('mapa') }} />
+          {/* «Atraer» ya no está en el menú: lo que más importa de ella va aquí, y el enlace lleva a la pestaña completa (#atraer) */}
+          <PromocionarEnPlan resultados={resultados} porIne={porIne} escenario={escenario} mezcla={mezcla} filtros={filtrosReparto}
+            onAjustar={() => setPestana('atraer')} onVerEnMapa={(ine) => { elegir(ine); setPestana('mapa') }} />
         </main>
       ) : pestana === 'mudanza' ? (
         <main className="pagina">

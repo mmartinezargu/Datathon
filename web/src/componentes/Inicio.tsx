@@ -29,10 +29,9 @@ const PUERTAS: { destino: Destino; icono: NombreIcono; quien: string; que: strin
   { destino: 'acierta', icono: 'fiable', quien: '¿Es fiable?', que: 'Lo probamos contra el pasado: con datos hasta 2015 predijimos 2015-2025 y lo comparamos con lo que pasó.', boton: 'Ver la prueba' },
 ]
 
-/** Las otras dos herramientas del gestor, además del mapa. */
+/** La otra herramienta del gestor, además del mapa: el plan (qué construir y, al final, dónde promocionar). */
 const ATAJOS: { destino: Destino; icono: NombreIcono; nombre: string; que: string }[] = [
-  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir y cuánto cuesta' },
-  { destino: 'atraer', icono: 'repartir', nombre: 'Atraer', que: 'A dónde atraer a cada tipo de vecino' },
+  { destino: 'plan', icono: 'plan', nombre: 'Plan', que: 'Qué construir, cuánto cuesta y a dónde atraer a cada tipo de vecino' },
 ]
 
 export function Inicio({ totales, onIr }: { totales: Totales; onIr: (d: Destino) => void }) {
