@@ -31,6 +31,8 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
   const escala = Math.max(r.llegan, ...valores, 1)
   const ampliado = enPlan.length > 0
   const limite = alLimite(r, m, umbrales, inversion)
+  // Sin colegio de un nivel, sus alumnos estudian en otro municipio: ese nivel no limita
+  const sinInstituto = !nivelesColegio(m, umbrales).some((n) => n.nombre === 'secundaria')
 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
@@ -65,7 +67,10 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
                 {v !== null && <span className="l-barra" style={{ width: `${(v / escala) * 100}%`, background: manda ? tipo.color : undefined }} />}
                 <span className="l-llegan" style={{ left: `${(r.llegan / escala) * 100}%` }} title={`Llegan ${miles(r.llegan)}`} />
               </span>
-              <span className="l-valor">{v === null ? 'no aplica' : miles(v)}</span>
+              <span className="l-valor">
+                {v === null ? (l === 'colegios' ? 'sin colegio' : 'no aplica') : miles(v)}
+                {l === 'colegios' && v !== null && sinInstituto && <small className="l-sin">sin instituto</small>}
+              </span>
             </div>
           )
         })}
@@ -111,7 +116,7 @@ function Reubicados({ r, porIne, escenario, onElegir }: {
   } else if (r.recibe >= 1) {
     texto = <>Recibe <b>{miles(r.recibe)}</b> de: {lista(r.llegadas, 'origen')}.</>
   } else if (exceso >= 1) {
-    texto = <>No hay ningún pueblo con sitio a menos de {radioReubicacion(escenario)}: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
+    texto = <>No hay ningún municipio con sitio a menos de {radioReubicacion(escenario)}: las <b>{miles(exceso)}</b> personas que no caben se quedan sin sitio.</>
   } else {
     return null
   }
@@ -189,7 +194,7 @@ function explicacion(r: ResultadoMunicipio, m: Municipio, esc: Escenario, u: Umb
     }
     case 'vivienda':
       return (c.viv_vacias_sin_dato
-        ? `${miles(c.viv_vacias)} viviendas vacías (estimación: el INE no da las de un pueblo tan pequeño, se calculan con su zona) × `
+        ? `${miles(c.viv_vacias)} viviendas vacías (estimación: el INE no da las de un municipio tan pequeño, se calculan con su zona) × `
         : `${miles(c.viv_vacias)} viviendas vacías × `) + `${pct(esc.pctVivienda, 0)} + ${miles(c.viv_previstas)} viviendas previstas` +
         (c.viv_previstas_con_estimacion ? ` (${miles(c.viv_previstas_estimadas)} estimadas: suelo sin cifra en el planeamiento)` : '') +
         ` × ${pct(esc.pctSuelo, 0)}, ` +

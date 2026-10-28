@@ -20,7 +20,7 @@ export function Descarga({ resultados, porIne, escenario, obras }: Props) {
       <h3>Llévate los datos</h3>
       <p className="ayuda">
         Los {resultados.length} municipios con lo que ves ahora: cuánta gente llega, cuánta cabe y qué la limita
-        {hayInversion ? ', contando las obras del plan' : ''}. Se abre en Excel.
+        {hayInversion ? ', contando las obras del plan (qué se construye en cada uno y cuándo abre)' : ''}. Se abre en Excel.
       </p>
       <button className="desplegar" onClick={alDescargar}>
         Descargar CSV del escenario {escenario.anio}<span className="flecha" aria-hidden="true">↓</span>

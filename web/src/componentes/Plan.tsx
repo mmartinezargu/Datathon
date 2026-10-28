@@ -1,19 +1,22 @@
 // Pestaña «Plan» (#plan): qué hace falta construir para que quepa la gente.
 // Para profesionales: una sola lista de obras que se rellena de dos maneras (plan óptimo, o a tu medida: con un presupuesto o a mano),
-// todo editable, con los valores por defecto de CABIDA y su fuente. Las cuentas las hace motor.ts.
+// todo editable, con los valores por defecto de CABIDA y su fuente. Se ve en dos tablas (colegios e institutos; centros de salud):
+// en la lista van siempre en ese orden (ordenarObras) y las obras nuevas entran arriba de su tabla (anadirObra).
+// Las cuentas las hace motor.ts.
 
 import { useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
-  PARAMETROS_PLAN, aperturaObra, calcularUmbrales, costeObra, escenarioDelPlan, evaluarPlan, nuevaObra, obraSugerida, planOptimo, resumenReubicacion,
+  OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, aperturaObra, calcularUmbrales, costeObra, escenarioDelPlan, evaluarPlan, nuevaObra, obraSugerida,
+  planOptimo, resumenReubicacion,
 } from '../motor'
-import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA } from '../fuentesPlan'
+import { FUENTES_PLAN, FUENTE_ANIO_INICIO, NOMBRE_OBRA, QUE_HACE_OBRA, textoObras, valorObra } from '../fuentesPlan'
 import { LIMITES, TIPOS } from '../colores'
-import { csvPlan, descargar } from '../descarga'
 import { decimal, miles, millones } from '../formato'
 import { radioReubicacion } from '../medida'
 import type { Escenario, Municipio, Obra, OpcionesPlan, ParametrosPlan, ResultadoPlan, TipoObra, ZonaSalud } from '../tipos'
 import { Buscador } from './Buscador'
+import { ObrasReferencia } from './ObrasReferencia'
 
 interface Props {
   municipios: Municipio[]
@@ -31,6 +34,7 @@ interface Props {
 }
 
 const TIPOS_OBRA = Object.keys(NOMBRE_OBRA) as TipoObra[]
+const TIPOS_COLEGIO = TIPOS_OBRA.filter((t) => t !== 'centro_salud')
 type Modo = 'optimo' | 'medida' | null // cuál de los dos botones está elegido
 
 export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, parametros, onParametros, opciones, onOpciones, onFicha, onVerEnMapa }: Props) {
@@ -40,7 +44,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
   const umbrales = useMemo(() => calcularUmbrales(delReto, zonas, esc.exigencia), [delReto, zonas, esc.exigencia])
 
   const resultado = useMemo(() => evaluarPlan(municipios, zonas, esc, obras), [municipios, zonas, esc, obras])
-  // «Cada pueblo con lo suyo»: el mismo plan óptimo, con las mismas opciones, sin reubicar
+  // «Cada municipio con lo suyo»: el mismo plan óptimo, con las mismas opciones, sin reubicar
   const comparacion = useMemo(() => {
     const sinReubicar = { ...escenario, reequilibrio: false }
     return evaluarPlan(municipios, zonas, sinReubicar, planOptimo(municipios, zonas, sinReubicar, parametros, opciones))
@@ -54,7 +58,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
     const r = resultado.resultados.find((x) => x.ine === ine)
     const m = porIne.get(ine)
     if (!r || !m) return
-    onObras([...obras, nuevaObra(ine, obraSugerida(m, r, umbrales, obras, parametros), parametros)])
+    onObras(anadirObra(obras, nuevaObra(ine, obraSugerida(m, r, umbrales, obras, parametros), parametros), municipios))
   }
   const cambiar = (i: number, parcial: Partial<Obra>) => onObras(obras.map((o, k) => (k === i ? { ...o, ...parcial } : o)))
 
@@ -63,7 +67,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
       <section className="val-cabeza">
         <h1>¿Qué hace falta para que quepan?</h1>
         <p>
-          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas. Aun reubicando en pueblos cercanos,{' '}
+          Hasta {escenario.anio} llegan {miles(escenario.personas)} personas. Aun reubicando en municipios cercanos,{' '}
           <b>{miles(resultado.sinSitioAntes)}</b> se quedan sin sitio. Aquí se decide qué colegios y centros de salud construir, dónde y cuándo.
           El escenario se cambia en el <a href="#mapa">mapa</a>.
         </p>
@@ -84,7 +88,7 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
           <Presupuesto delReto={delReto} porIne={porIne} opciones={opciones} onRepartir={rellenar} />
           <div className="plan-seccion">
             <h3>O añade una obra a mano</h3>
-            <p className="ayuda">Elige un municipio: se añade la obra que suelta su límite, y en la lista puedes cambiarla.</p>
+            <p className="ayuda">Elige un municipio: se añade arriba de su tabla la obra que suelta su límite, y ahí puedes cambiarla.</p>
             <Buscador municipios={delReto} onElegir={anadir} texto="Añadir municipio" />
           </div>
         </div>
@@ -93,19 +97,16 @@ export function Plan({ municipios, zonas, porIne, escenario, obras, onObras, par
       <div className="plan-cuerpo">
         <div className="plan-izquierda">
           <Lista obras={obras} resultado={resultado} porIne={porIne} parametros={parametros} horizonte={escenario.anio}
-            onCambiar={cambiar} onBorrar={(i) => onObras(obras.filter((_, k) => k !== i))} onFicha={onFicha} />
+            onCambiar={cambiar} onBorrar={(i) => onObras(obras.filter((_, k) => k !== i))} onVaciar={() => { onObras([]); setModo(null) }}
+            onFicha={onFicha} />
           <Parametros parametros={parametros} onParametros={onParametros} />
         </div>
 
         <aside className="plan-derecha" aria-label="Resultado del plan">
-          <Resumen r={resultado} comparacion={comparacion} hayObras={obras.length > 0} />
+          <Resumen r={resultado} comparacion={comparacion} hayObras={obras.length > 0} presupuesto={opciones.presupuestoTotal} />
           <div className="plan-acciones">
             <button className="plan-boton principal" disabled={!obras.length} onClick={onVerEnMapa}>
               <b>Ver en el mapa</b><span>Con la lista y la reubicación en el simulador</span>
-            </button>
-            <button className="desplegar" disabled={!obras.length}
-              onClick={() => descargar(`cabida_plan_${escenario.anio}.csv`, csvPlan(obras, resultado.ganaPorObra, porIne))}>
-              Descargar CSV del plan<span className="flecha" aria-hidden="true">↓</span>
             </button>
           </div>
           <Calendario r={resultado} desde={obras.length ? Math.min(...obras.map((o) => o.inicio)) : parametros.anioInicio} />
@@ -152,74 +153,130 @@ function Presupuesto({ delReto, porIne, opciones, onRepartir }: {
           </ul>
         )}
       </div>
-      <button className="plan-boton principal" type="submit" disabled={!valido}><b>Repartir</b></button>
+      <button className="plan-boton principal" type="submit" disabled={!valido}><b>Repartir (sustituye la lista)</b></button>
     </form>
   )
 }
 
-function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onBorrar, onFicha }: {
+function Lista({ obras, resultado, porIne, parametros, horizonte, onCambiar, onBorrar, onVaciar, onFicha }: {
   obras: Obra[]; resultado: ResultadoPlan; porIne: Map<string, Municipio>; parametros: ParametrosPlan; horizonte: number
-  onCambiar: (i: number, parcial: Partial<Obra>) => void; onBorrar: (i: number) => void; onFicha: (ine: string) => void
+  onCambiar: (i: number, parcial: Partial<Obra>) => void; onBorrar: (i: number) => void; onVaciar: () => void; onFicha: (ine: string) => void
 }) {
   const limitante = new Map(resultado.resultados.map((r) => [r.ine, r.limitante]))
+  // Cada fila con su sitio en la lista (las dos tablas editan la misma lista)
+  const filas = obras.map((o, i) => ({ o, i }))
+  const colegios = filas.filter((f) => f.o.tipo !== 'centro_salud')
+  const centros = filas.filter((f) => f.o.tipo === 'centro_salud')
+  const nombre = (o: Obra) => porIne.get(o.ine)?.nombre ?? o.ine
+
+  // Columnas que comparten las dos tablas: municipio al principio; años, coste, apertura, lo que gana y borrar al final
+  const municipio = (o: Obra) => (
+    <td><button className="enlace" onClick={() => onFicha(o.ine)} title="Ver su ficha en el mapa">{nombre(o)}</button></td>
+  )
+  const finales = (o: Obra, i: number) => {
+    const gana = resultado.ganaPorObra[i] ?? 0
+    return (
+      <>
+        <td className="num"><Numero valor={o.anios} onCambiar={(anios) => onCambiar(i, { anios: Math.round(anios) })} etiqueta={`Años de obra en ${nombre(o)}`} corto /></td>
+        <td className="num">
+          {o.tipo === 'centro_salud'
+            ? <Numero valor={o.eurosPorPlaza} onCambiar={(eurosPorPlaza) => onCambiar(i, { eurosPorPlaza })} escala={1e6} sufijo="M€"
+              etiqueta={`Millones que cuesta el centro de ${nombre(o)}`} />
+            : millones(costeObra(o))}
+        </td>
+        <td className={`num${aperturaObra(o) > horizonte ? ' plan-tarde' : ''}`}
+          title={aperturaObra(o) > horizonte ? `Abre después de ${horizonte}` : undefined}>{aperturaObra(o)}</td>
+        <td className="num">
+          {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Sola no suelta el límite: manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()}, o va junto a la obra de debajo`}>0</span>}
+        </td>
+        <td className="num">{gana >= 1 ? miles(costeObra(o) / gana) : '—'}</td>
+        <td><button className="plan-borrar" onClick={() => onBorrar(i)} aria-label={`Borrar la obra de ${nombre(o)}`} title="Borrar">×</button></td>
+      </>
+    )
+  }
+  const cabeceraFinal = (
+    <><th className="num">Años</th><th className="num">Coste</th><th className="num">Abre</th><th className="num">Pasan<br />a caber</th>
+      <th className="num" title={AYUDA_POR_PERSONA}>€ por persona<br />que cabe</th><th aria-label="Borrar" /></>
+  )
+
   return (
     <section className="val-tarjeta">
-      <h2>Obras del plan</h2>
-      {obras.length === 0 ? (
+      <div className="plan-lista-cabeza">
+        <h2>Obras del plan</h2>
+        {obras.length > 0 && <button className="desplegar" onClick={onVaciar}>Vaciar lista<span className="flecha" aria-hidden="true">×</span></button>}
+      </div>
+      {obras.length === 0 && (
         <p className="vacio">La lista está vacía. Pulsa «Plan óptimo» para rellenarla, o usa «A tu medida» para repartir un presupuesto o añadir obras a mano.</p>
-      ) : (
-        <div className="tabla-scroll">
-          <table className="plan-tabla">
-            <thead>
-              <tr><th>Municipio</th><th>Obra</th><th className="num">Plazas</th><th className="num">€ por<br />plaza</th>
-                <th className="num">Años</th><th className="num">Coste</th><th className="num">Abre</th><th className="num">Pasan<br />a caber</th>
-                <th className="num">€ por<br />persona</th><th aria-label="Borrar" /></tr>
-            </thead>
-            <tbody>
-              {obras.map((o, i) => {
-                const centro = o.tipo === 'centro_salud'
-                const gana = resultado.ganaPorObra[i] ?? 0
-                const nombre = porIne.get(o.ine)?.nombre ?? o.ine
-                return (
+      )}
+      {colegios.length > 0 && (
+        <>
+          <h3 className="plan-tabla-titulo">Colegios e institutos</h3>
+          <div className="tabla-scroll">
+            <table className="plan-tabla">
+              <thead>
+                <tr><th>Municipio</th><th>Obra</th><th className="num">Plazas</th><th className="num">€ por<br />plaza</th>{cabeceraFinal}</tr>
+              </thead>
+              <tbody>
+                {colegios.map(({ o, i }) => (
                   <tr key={i}>
-                    <td><button className="enlace" onClick={() => onFicha(o.ine)} title="Ver su ficha en el mapa">{nombre}</button></td>
+                    {municipio(o)}
                     <td className="plan-obra">
-                      <select value={o.tipo} aria-label={`Obra en ${nombre}`}
+                      <select value={o.tipo} aria-label={`Obra en ${nombre(o)}`}
                         onChange={(e) => { const tipo = e.target.value as TipoObra; onCambiar(i, { tipo, ...parametros.obras[tipo] }) }}>
-                        {TIPOS_OBRA.map((t) => <option key={t} value={t}>{NOMBRE_OBRA[t]}</option>)}
+                        {TIPOS_COLEGIO.map((t) => <option key={t} value={t}>{NOMBRE_OBRA[t]}</option>)}
                       </select>
-                      {centro && <small title="Un centro de salud sirve a toda su zona básica">zona {porIne.get(o.ine)?.capacidad?.zbs_nombre}</small>}
                     </td>
-                    <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })}
-                      etiqueta={centro ? `Personas que atiende el centro de ${nombre}` : `Plazas en ${nombre}`} sufijo={centro ? 'pers.' : undefined} /></td>
+                    <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })} etiqueta={`Plazas en ${nombre(o)}`} /></td>
                     <td className="num"><Numero valor={o.eurosPorPlaza} onCambiar={(eurosPorPlaza) => onCambiar(i, { eurosPorPlaza })}
-                      escala={centro ? 1e6 : 1} sufijo={centro ? 'M€' : undefined}
-                      etiqueta={centro ? `Millones que cuesta el centro de ${nombre}` : `Euros por plaza en ${nombre}`} /></td>
-                    <td className="num"><Numero valor={o.anios} onCambiar={(anios) => onCambiar(i, { anios: Math.round(anios) })} etiqueta={`Años de obra en ${nombre}`} corto /></td>
-                    <td className="num">{millones(costeObra(o))}</td>
-                    <td className={`num${aperturaObra(o) > horizonte ? ' plan-tarde' : ''}`}
-                      title={aperturaObra(o) > horizonte ? `Abre después de ${horizonte}` : undefined}>{aperturaObra(o)}</td>
-                    <td className="num">
-                      {gana >= 1 ? miles(gana) : <span className="plan-cero" title={`Sola no suelta el límite: manda ${LIMITES[limitante.get(o.ine) ?? 'vivienda'].nombre.toLowerCase()}, o va junto a la obra de debajo`}>0</span>}
-                    </td>
-                    <td className="num">{gana >= 1 ? miles(costeObra(o) / gana) : '—'}</td>
-                    <td><button className="plan-borrar" onClick={() => onBorrar(i)} aria-label={`Borrar la obra de ${nombre}`} title="Borrar">×</button></td>
+                      etiqueta={`Euros por plaza en ${nombre(o)}`} /></td>
+                    {finales(o, i)}
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="ayuda plan-pie">«€ por persona que cabe»: {AYUDA_POR_PERSONA}</p>
+        </>
+      )}
+      {centros.length > 0 && (
+        <>
+          <h3 className="plan-tabla-titulo">Centros de salud</h3>
+          <div className="tabla-scroll">
+            <table className="plan-tabla">
+              <thead>
+                <tr><th>Municipio</th><th>Zona de salud</th><th className="num">Personas<br />que atiende</th>{cabeceraFinal}</tr>
+              </thead>
+              <tbody>
+                {centros.map(({ o, i }) => (
+                  <tr key={i}>
+                    {municipio(o)}
+                    <td className="plan-obra">{porIne.get(o.ine)?.capacidad?.zbs_nombre}</td>
+                    <td className="num"><Numero valor={o.plazas} onCambiar={(plazas) => onCambiar(i, { plazas })}
+                      etiqueta={`Personas que atiende el centro de ${nombre(o)}`} /></td>
+                    {finales(o, i)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="ayuda plan-pie">
+            Un centro de salud sirve a toda su zona básica: va al municipio más poblado de la zona. El coste es el del centro
+            ({millones(parametros.obras.centro_salud.eurosPorPlaza)} por defecto); se puede cambiar en cada fila.
+          </p>
+        </>
       )}
       {obras.length > 0 && (
         <p className="ayuda plan-pie">
-          «Pasan a caber»: lo que baja la gente sin sitio en los 155 al sumar esa obra a las de arriba (un centro de salud sirve a toda
-          su zona y, reubicando, lo que se libera aprovecha a los pueblos vecinos). Pulsa un municipio para ver su ficha.
+          «Pasan a caber»: lo que baja la gente sin sitio en los 155 al sumar esa obra a las que tiene encima (los centros de salud,
+          después de todos los colegios e institutos). Pulsa un municipio para ver su ficha.
         </p>
       )}
     </section>
   )
 }
+
+const AYUDA_POR_PERSONA = 'Cada plaza escolar da sitio a una familia entera, no solo al niño; cuántas personas depende de los niños ' +
+  'por vecino de cada municipio. Reubicando, lo que se libera aprovecha también a los vecinos.'
 
 /**
  * Campo numérico en formato español («23.078», «7,1»). Mientras se escribe guarda el texto, para poder borrar sin que salte.
@@ -244,23 +301,23 @@ function Numero({ valor, onCambiar, etiqueta, escala = 1, sufijo, corto = false,
   )
 }
 
-function Resumen({ r, comparacion, hayObras }: { r: ResultadoPlan; comparacion: ResultadoPlan; hayObras: boolean }) {
-  const colegios = r.obras.ampliar_primaria + r.obras.colegio_primaria + r.obras.instituto
+function Resumen({ r, comparacion, hayObras, presupuesto }: {
+  r: ResultadoPlan; comparacion: ResultadoPlan; hayObras: boolean; presupuesto?: number
+}) {
+  const total = Object.values(r.obras).reduce((s, n) => s + n, 0)
   const otros = r.sinSitioPor.colegios + r.sinSitioPor.sanidad
   const motivos = [
     r.sinSitioPor.vivienda >= 1 && `${miles(r.sinSitioPor.vivienda)} por falta de vivienda`,
-    r.sinSitioPor.ritmo >= 1 && `${miles(r.sinSitioPor.ritmo)} porque su pueblo crecería demasiado deprisa`,
+    r.sinSitioPor.ritmo >= 1 && `${miles(r.sinSitioPor.ritmo)} porque su municipio crecería demasiado deprisa`,
     otros >= 1 && `${miles(otros)} por colegios o sanidad, que necesitan más obras`,
   ].filter((x): x is string => !!x)
-  const colegiosComp = comparacion.obras.ampliar_primaria + comparacion.obras.colegio_primaria + comparacion.obras.instituto
   return (
     <section className="val-tarjeta plan-resumen" aria-live="polite">
       <h2>Lo que consigue</h2>
       {hayObras ? (
       <div className="plan-cifras">
         <Dato valor={millones(r.coste)} texto={`en ${r.municipios} ${r.municipios === 1 ? 'municipio' : 'municipios'}`} />
-        <Dato valor={`${colegios} + ${r.obras.centro_salud}`}
-          texto={`colegios e institutos (${detalleColegios(r)}) y centros de salud`} />
+        <Dato valor={String(total)} texto={`${total === 1 ? 'obra' : 'obras'}: ${textoObras(r.obras)}`} />
         <Dato valor={miles(r.pasanACaber)} texto={`personas más caben; ${miles(r.coste / Math.max(1, r.pasanACaber))} € por persona`} acento={TIPOS.polo.color} />
         <Dato valor={r.ultimaApertura ? String(r.ultimaApertura) : '—'} texto="abre lo último" />
       </div>
@@ -271,22 +328,14 @@ function Resumen({ r, comparacion, hayObras }: { r: ResultadoPlan; comparacion: 
         {(r.sinSitioPor.vivienda >= 1 || r.sinSitioPor.ritmo >= 1) && ' La vivienda y el ritmo no se arreglan con colegios ni centros de salud.'}
       </p>
       <p className="plan-comparacion">
-        <b>Cada pueblo con lo suyo.</b> Sin reubicar en pueblos cercanos, el mismo cálculo pide {colegiosComp} colegios e institutos
-        y {comparacion.obras.centro_salud} centros de salud, <b>{millones(comparacion.coste)}</b>, y aun así siguen sin sitio{' '}
-        <b>{miles(comparacion.sinSitio)}</b>.
+        <b>Cada municipio con lo suyo.</b>{' '}
+        {presupuesto
+          ? <>Con los mismos {millones(presupuesto)}, sin reubicar, siguen sin sitio <b>{miles(comparacion.sinSitio)}</b>.</>
+          : <>Sin reubicar en municipios cercanos, harían falta {textoObras(comparacion.obras) || 'ninguna obra'},{' '}
+            <b>{millones(comparacion.coste)}</b>, y aun así siguen sin sitio <b>{miles(comparacion.sinSitio)}</b>.</>}
       </p>
     </section>
   )
-}
-
-function detalleColegios(r: ResultadoPlan): string {
-  const partes = [
-    [r.obras.ampliar_primaria, 'ampliación', 'ampliaciones'],
-    [r.obras.colegio_primaria, 'colegio nuevo', 'colegios nuevos'],
-    [r.obras.instituto, 'instituto', 'institutos'],
-  ] as const
-  const texto = partes.filter(([n]) => n > 0).map(([n, uno, varios]) => `${n} ${n === 1 ? uno : varios}`)
-  return texto.length ? texto.join(', ') : 'ninguno'
 }
 
 function Dato({ valor, texto, acento }: { valor: string; texto: string; acento?: string }) {
@@ -330,12 +379,12 @@ function ComoSeConsigue({ r, esc }: { r: ResultadoPlan; esc: Escenario }) {
       <h2>Cómo se consigue</h2>
       <ul>
         {esc.medida === 'min' ? (
-          <li>Nadie se muda lejos: {miles(re.minMedio)} min de media en coche, sin tráfico, y nunca a más de {radioReubicacion(esc)} de su pueblo.</li>
+          <li>Nadie se muda lejos: {miles(re.minMedio)} min de media en coche, sin tráfico, y nunca a más de {radioReubicacion(esc)} de su municipio.</li>
         ) : (
-          <li>Nadie se muda lejos: {decimal(re.kmMedio)} km de media en línea recta, y nunca a más de {radioReubicacion(esc)} de su pueblo.</li>
+          <li>Nadie se muda lejos: {decimal(re.kmMedio)} km de media en línea recta, y nunca a más de {radioReubicacion(esc)} de su municipio.</li>
         )}
         <li>La Administración decide dónde se construye vivienda.</li>
-        <li>Sin esa vivienda en los pueblos con sitio, la reubicación no ocurre.</li>
+        <li>Sin esa vivienda en los municipios con sitio, la reubicación no ocurre.</li>
       </ul>
     </section>
   )
@@ -352,25 +401,34 @@ function Parametros({ parametros, onParametros }: { parametros: ParametrosPlan; 
       <div className="plan-param-lista">
         {TIPOS_OBRA.map((t) => {
           const v = parametros.obras[t]
+          const cabida = PARAMETROS_PLAN.obras[t]
           const centro = t === 'centro_salud'
+          const n = OBRAS_REFERENCIA.medianas[t].n
           return (
             <div key={t} className="plan-param">
               <h3>{NOMBRE_OBRA[t]}</h3>
               <p className="ayuda">{QUE_HACE_OBRA[t]}</p>
               <div className="plan-campos">
                 <label className="control"><span className="etiqueta">{centro ? 'Personas que atiende' : 'Plazas'}</span>
-                  <Numero valor={v.plazas} onCambiar={(plazas) => cambiar(t, { plazas })} etiqueta={`${NOMBRE_OBRA[t]}: ${centro ? 'personas que atiende' : 'plazas'}`} /></label>
+                  <Numero valor={v.plazas} onCambiar={(plazas) => cambiar(t, { plazas })} etiqueta={`${NOMBRE_OBRA[t]}: ${centro ? 'personas que atiende' : 'plazas'}`} />
+                  {v.plazas !== cabida.plazas && <ValorTuyo texto={miles(cabida.plazas)} />}</label>
                 <label className="control"><span className="etiqueta">{centro ? 'Millones el centro' : '€ por plaza'}</span>
                   <Numero valor={v.eurosPorPlaza} onCambiar={(eurosPorPlaza) => cambiar(t, { eurosPorPlaza })} escala={centro ? 1e6 : 1}
-                    etiqueta={`${NOMBRE_OBRA[t]}: ${centro ? 'millones que cuesta' : 'euros por plaza'}`} /></label>
+                    etiqueta={`${NOMBRE_OBRA[t]}: ${centro ? 'millones que cuesta' : 'euros por plaza'}`} />
+                  {v.eurosPorPlaza !== cabida.eurosPorPlaza && (
+                    <ValorTuyo texto={`${valorObra(t, cabida.eurosPorPlaza)} (mediana de ${n} ${n === 1 ? 'obra' : 'obras'})`} />
+                  )}</label>
                 <label className="control"><span className="etiqueta">Años de obra</span>
-                  <Numero valor={v.anios} onCambiar={(anios) => cambiar(t, { anios: Math.round(anios) })} etiqueta={`${NOMBRE_OBRA[t]}: años de obra`} /></label>
+                  <Numero valor={v.anios} onCambiar={(anios) => cambiar(t, { anios: Math.round(anios) })} etiqueta={`${NOMBRE_OBRA[t]}: años de obra`} />
+                  {v.anios !== cabida.anios && <ValorTuyo texto={`${cabida.anios} años`} />}</label>
               </div>
+              <ObrasReferencia tipo={t} />
               <p className="plan-fuente">
-                {FUENTES_PLAN[t].texto}{' '}
+                {FUENTES_PLAN[t].texto}
                 {FUENTES_PLAN[t].enlaces.map((e, k) => (
-                  <span key={e.url}>{k > 0 && '; '}<a href={e.url} target="_blank" rel="noreferrer">{e.texto}</a></span>
-                ))}.
+                  <span key={e.url}>{k === 0 ? ' ' : '; '}<a href={e.url} target="_blank" rel="noreferrer">{e.texto}</a></span>
+                ))}
+                {FUENTES_PLAN[t].enlaces.length > 0 && '.'}
               </p>
             </div>
           )
@@ -378,7 +436,8 @@ function Parametros({ parametros, onParametros }: { parametros: ParametrosPlan; 
         <div className="plan-param">
           <h3>Año de inicio de las obras</h3>
           <label className="control"><span className="etiqueta">Empiezan en</span>
-            <Numero valor={parametros.anioInicio} onCambiar={(a) => onParametros({ ...parametros, anioInicio: Math.round(a) })} etiqueta="Año en que empiezan las obras" anio /></label>
+            <Numero valor={parametros.anioInicio} onCambiar={(a) => onParametros({ ...parametros, anioInicio: Math.round(a) })} etiqueta="Año en que empiezan las obras" anio />
+            {parametros.anioInicio !== PARAMETROS_PLAN.anioInicio && <ValorTuyo texto={String(PARAMETROS_PLAN.anioInicio)} />}</label>
           <p className="plan-fuente">{FUENTE_ANIO_INICIO}</p>
         </div>
       </div>
@@ -387,4 +446,9 @@ function Parametros({ parametros, onParametros }: { parametros: ParametrosPlan; 
       </button>
     </details>
   )
+}
+
+/** Debajo de un campo que alguien ha cambiado: «Valor tuyo. El de CABIDA es …». */
+function ValorTuyo({ texto }: { texto: string }) {
+  return <small className="plan-tuyo">Valor tuyo. El de CABIDA es {texto}.</small>
 }

@@ -1,5 +1,6 @@
 // Pestaña «¿Dónde me mudo?»: la vista para el ciudadano. Elige su perfil y lo que necesita,
 // y le salen los municipios donde aún hay sitio para él, con una frase que explica por qué.
+// Siempre sin el plan de obras (App le pasa resultadosSinPlan): con los colegios y centros de salud que hay hoy.
 
 import { TIPOS } from '../colores'
 import { EJEMPLOS_FRASE, PERFILES, TAMANOS, cambiarPerfil, rankingMudanza } from '../mudanza'
@@ -44,11 +45,12 @@ export function Mudanza({ resultados, porIne, escenario, filtros, onFiltros, com
           Dinos quién eres y qué necesitas. Te enseñamos los municipios donde aún habrá sitio en los colegios,
           en el centro de salud y en la vivienda en {escenario.anio}, aunque llegue toda la gente prevista.
         </p>
+        <p className="ayuda">Con los colegios y centros de salud que hay hoy.</p>
       </section>
 
       <section className="val-tarjeta filtros">
         <Asistente porIne={porIne} actual={filtros} medida={medida} ejemplos={EJEMPLOS_FRASE} boton="Buscar"
-          noEntendido="Prueba a decir quién se muda (familia, jubilado, teletrabajo), dónde trabajas o si quieres un pueblo, o elige abajo."
+          noEntendido="Prueba a decir quién se muda (familia, jubilado, teletrabajo), dónde trabajas o si quieres un municipio, o elige abajo."
           onLectura={(l) => onFiltros(l.filtros)} />
 
         <h2>¿Quién se muda?</h2>

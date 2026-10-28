@@ -17,7 +17,7 @@ export function Reubicacion({ resumen, medida, sinSitio, porIne, onElegir }: Pro
   const nombre = (ine: string) => porIne.get(ine)?.nombre ?? ine
   return (
     <section className="reubicacion">
-      <h2>Reubicar en pueblos cercanos</h2>
+      <h2>Reubicar en municipios cercanos</h2>
       {resumen.personas >= 1 ? (
         <p>
           Se reubican <b>{miles(resumen.personas)}</b> personas en <b>{resumen.destinos}</b> municipios cercanos
@@ -26,7 +26,7 @@ export function Reubicacion({ resumen, medida, sinSitio, porIne, onElegir }: Pro
             : <> (de media a {decimal(resumen.kmMedio)} km)</>}. Siguen sin sitio <b>{miles(sinSitio)}</b>.
         </p>
       ) : (
-        <p>Ningún pueblo con sitio está lo bastante cerca: siguen sin sitio <b>{miles(sinSitio)}</b> personas.</p>
+        <p>Ningún municipio con sitio está lo bastante cerca: siguen sin sitio <b>{miles(sinSitio)}</b> personas.</p>
       )}
       {resumen.traslados.length > 0 && (
         <>
