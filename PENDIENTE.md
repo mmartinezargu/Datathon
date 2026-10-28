@@ -90,6 +90,7 @@ Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo
 ### R6. Diapositivas y guion (cuando R1 dé las cifras)
 - Diapositiva 9: «unos 282 millones frente a unos 103» → **261** frente a **97,1** (o lo que dé R1); «Plan óptimo» → «Plan recomendado»; «pueblos» → «municipios» en todas las diapositivas. Regenerar `entrega/CABIDA_presentacion_final.pdf`.
 - `presentacion/GUION.md`: lo mismo. Además, el paso 8 («el plan óptimo elige, una a una…») y la nota de 103 M€; la respuesta sobre costes (ahora son 28 obras reales y la mediana de cada tipo, en la tabla «Lo que vale cada obra del plan»); quitar la trampa del deslizador cuando esté R2.
+- **Hecho en parte (rama `correccion/textos-guion-diapositivas`)**: los 261 / 97 ya estaban; «Plan óptimo» → «Plan recomendado» en la diapositiva 9, en la versión detallada (2 sitios) y en el guion (pasos 8 y «Si vamos mal de tiempo»); paso 8 = «la que hace caber a más gente por cada euro, y luego quita las que sobran»; los dos PDF regenerados. **Queda**: «pueblos» → «municipios» en las diapositivas y la trampa del deslizador (después de R2). Ojo: las medianas de coste salen de 24 obras (10 + 2 + 5 + 7), no de las 28 del catálogo.
 
 ### R7. Prueba completa y copia offline
 - Portátil y móvil, todas las palancas, «Plan», «Atraer» y «Dónde vivir». Los fallos, en la PR correspondiente.
@@ -99,6 +100,27 @@ Generados con el motor TS para que cuadren con la web. Licencia CC BY 4.0, salvo
 - Añadir a «Preguntas que pueden hacernos»: **¿Por qué no Oracle?** → «Lo probamos para el asistente, pero en la región de Madrid de la cuenta no había modelos disponibles; por eso Groq, que es gratis. Los datos están listos para servirse desde Oracle como siguiente paso.»
 - Cerrar quién es cada voz y quién es el piloto.
 - Duración: las bases dicen 15 min + preguntas; el guion es de 10. Se queda en 10, con margen.
+
+## Revisión completa del 28/10 (tarde)
+
+Revisado `main` 2cc3453 entero: lint, tipos y 47 tests bien; `preparar.py` regenera los datos **idénticos** a los subidos; `validacion.py` da lo mismo (44,4 % / 64,1 %); todas las cifras de las diapositivas y del guion salen iguales con el motor. La web publicada está al día.
+
+**Arreglado (sin cambiar ninguna cifra de control):**
+- PR «Dónde vivir: con Reubicar, los reubicados también ocupan sitio»: con «Reubicar», Humanes salía con «casa para 5.006 más» cuando la reubicación ya lo llenaba. **En la demo, quitar «Reubicar» antes de «Dónde vivir»** (ya está en el guion).
+- Esta rama: textos del guion y de las diapositivas, y 6 respuestas nuevas en «Preguntas que pueden hacernos» (el 77, repartir según tamaño, el 3 %, Rascafría, viviendas estimadas, plan recomendado). En «Cómo funciona», los hospitales de fuera (faltaba Aranda de Duero).
+
+**Decidir (cambian cifras: si no da tiempo, se quedan como limitaciones conocidas y con su respuesta en el guion):**
+| # | Qué | Efecto si se arregla |
+|---|---|---|
+| D1 | **El «77 de cada 100»** es la tendencia **con** el techo del 3 % (y lo que pasa se reparte). En la web «llegan» es la tendencia **sin** techo, que acierta **72**. Además, el universo se elige con la población de 2025: con la de 2015 serían 159 municipios y **76** | Decidir qué se dice en la diapositiva 8. Propuesta: dejar 77 y tener la respuesta del guion |
+| D2 | **ESO**: `ninos_secundaria` cuenta de 12 a 17 años (6 cursos) y los alumnos y las plazas son solo de ESO (12 a 15). El sitio por ESO sale un 33 % más bajo; afecta a 9 municipios. El instituto suma 880 plazas como si todas fueran de ESO (280 son de Bachillerato) | Caben 56.920; reubicando, 51.160 sin sitio; plan 16 obras, 84,1 M€ |
+| D3 | **Población de las zonas de salud**: se actualiza con el municipio de **más superficie** de la zona, no el más poblado (`capacidad.py`). Zona 258 (Villalbilla): −17 %; zona 240 (San Lorenzo de El Escorial): +20 %. San Fernando de Henares solo cuenta media zona | Cambia sanidad en esas zonas (hoy no manda en ninguno de esos municipios) |
+| D4 | **Límite de sanidad igual para todas las zonas** (percentil de las 286): en zonas rurales pequeñas sale enorme (Rascafría, «+22.675»). No cambia `caben` (mandan vivienda o ritmo), pero se ve en «Dónde vivir» y en la ficha | Tope relativo o nota |
+| D5 | **Viviendas estimadas por densidad** infladas en urbanizaciones de chalés (El Escorial 6.120; Meco, Bustarviejo, Paracuellos) | Baja la vivienda en esos municipios |
+| D6 | **Más vacías que no principales** en 6 municipios (Mejorada, Velilla, Anchuelo…): 1.252 viviendas de más | `min(vacías, no principales)` |
+| D7 | El plan cuenta obras que abren después del año del escenario (con presupuesto anual y 2030); la poda deja obras que casi no rinden fuera del escenario por defecto (Guadalix, 26 personas por 11 M€ con exigencia 0,75) | Solo fuera del escenario por defecto |
+
+**Detalles menores:** la tabla de fuentes de «Cómo funciona» se sale 21 px en el móvil; `preparar.py` falla en Windows si la salida va a un fichero o tubería (`→` en un `print`: usar `PYTHONIOENCODING=utf-8`); en la ficha de Arroyomolinos «de cada 10, cabe 1» es 0,66 redondeado: no leerlo en voz alta. En R2, la pista del deslizador ya dice 134.426: lo que falta es que encaje al pasar cerca y el enlace «Volver a 134.426».
 
 ## Ya hecho
 Revisión del 28/10 (rama `mejora/revision-28`): texto de entrada con la previsión de la Comunidad, vaso sin textos dentro y con nota del sitio libre, mapa coloreado después de reubicar, «Ver todos» en las listas, «sin colegio» / «sin instituto» en la ficha, costes del plan con la mediana de obras reales (`data/out/obras_referencia.csv`), plan en dos tablas, «Vaciar lista», centros de salud en el municipio más poblado de su zona, columnas `plan_obras` y `plan_apertura` en el CSV del escenario (ya no hay CSV del plan aparte), «Dónde vivir» siempre sin el plan, validación «por comarcas», fuera «Dónde más se equivoca» y «municipio(s)» en vez de «pueblo(s)».
