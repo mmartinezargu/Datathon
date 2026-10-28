@@ -21,6 +21,10 @@ interface Props {
   origen?: ReactNode
   /** true = la cuenta incluye colegios o centros de salud nuevos: ya no es «sin ampliar servicios». */
   ampliado?: boolean
+  /** Ficha reubicando: personas que no caben y se van a municipios cercanos (entre el vaso y lo que no cabe, más claro). */
+  seVan?: number
+  /** Línea bajo el vaso con la reubicación: «Se van a municipios cercanos: X» o «Recibe de municipios cercanos: X». */
+  linea?: string
 }
 
 // Medidas del dibujo (unidades del SVG)
@@ -30,9 +34,9 @@ const SUELO = 214 // línea del fondo del vaso
 const ALTO_TOTAL = 186 // altura de la columna más alta (lo que llega, o el vaso si sobra sitio)
 const MINIMO = 10 // para que un trozo muy pequeño siga viéndose
 
-export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliado }: Props) {
-  const llegan = dentro + fuera
-  const rebosa = fuera > 0
+export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliado, seVan = 0, linea }: Props) {
+  const llegan = dentro + seVan + fuera
+  const rebosa = fuera + seVan > 0
   // Si rebosa, el vaso útil es lo que ya está lleno; el sitio libre de otros municipios va en la nota
   const tamanoVaso = rebosa ? dentro : capacidad
   const libre = Math.max(0, capacidad - dentro)
@@ -40,16 +44,17 @@ export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliad
 
   const altoVaso = Math.max(MINIMO, tamanoVaso * escala)
   const altoAgua = rebosa ? altoVaso : Math.max(llegan > 0 ? 4 : 0, dentro * escala)
-  const altoRojo = rebosa ? Math.max(MINIMO, fuera * escala) : 0
+  const altoVan = seVan > 0 ? Math.max(MINIMO, seVan * escala) : 0
+  const altoRojo = fuera > 0 ? Math.max(MINIMO, fuera * escala) : 0
   const borde = SUELO - altoVaso // altura del borde del vaso
-  const techo = borde - altoRojo // altura de lo más alto que llega
+  const techo = borde - altoVan - altoRojo // altura de lo más alto que llega
   const rojo = TIPOS.tension.color
   const azul = TIPOS.oportunidad.color
   const xEtiqueta = X_VASO + ANCHO_VASO + 16
 
   const etiquetas: EtiquetaVaso[] = [
     { y: rebosa ? techo : Math.max(SUELO - altoAgua, borde + 46), titulo: 'Llegan', valor: miles(llegan), color: '#15233B' },
-    ...(rebosa ? [{ y: borde - altoRojo / 2, titulo: 'No caben', valor: miles(fuera), color: rojo, fuerte: true, medio: true }] : []),
+    ...(fuera > 0 ? [{ y: techo + altoRojo / 2, titulo: 'No caben', valor: miles(fuera), color: rojo, fuerte: true, medio: true }] : []),
     { y: rebosa ? borde + altoVaso / 2 : borde, titulo: ampliado ? (rebosa ? 'Caben' : 'Caben en total') : 'Caben sin ampliar',
       valor: miles(rebosa ? dentro : capacidad), color: azul, medio: rebosa },
   ]
@@ -63,8 +68,13 @@ export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliad
     <figure className={`vaso${compacto ? ' compacto' : ''}`}>
       <svg viewBox="0 0 300 236" role="img" aria-label={resumen}>
         {/* Lo que no cabe: sobresale por encima del borde del vaso */}
-        {rebosa && (
-          <rect x={X_VASO} y={techo} width={ANCHO_VASO} height={altoRojo + 2} rx="6" fill={rojo} />
+        {fuera > 0 && (
+          <rect x={X_VASO} y={techo} width={ANCHO_VASO} height={altoRojo + (seVan > 0 ? 0 : 2)} rx="6" fill={rojo} />
+        )}
+        {/* Reubicando: los que no caben aquí y se van a municipios cercanos, más claros */}
+        {seVan > 0 && (
+          <rect x={X_VASO + 2} y={borde - altoVan} width={ANCHO_VASO - 4} height={altoVan} fill={rojo} fillOpacity="0.18"
+            stroke={rojo} strokeWidth="2" strokeDasharray="5 4" />
         )}
 
         {/* El vaso: fondo claro, agua azul y el contorno */}
@@ -80,7 +90,8 @@ export function Vaso({ capacidad, dentro, fuera, nota, compacto, origen, ampliad
       </svg>
 
       <figcaption>
-        <p className="vaso-frase">{frase(llegan, dentro, fuera, libre, sinAmpliar)}</p>
+        <p className="vaso-frase">{frase(llegan, dentro, fuera + seVan, libre, sinAmpliar)}</p>
+        {linea && <p className="vaso-linea">{linea}</p>}
         {rebosa && nota && <p className="vaso-nota">{nota}</p>}
         {origen && (
           <details className="vaso-origen">

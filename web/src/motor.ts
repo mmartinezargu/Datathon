@@ -211,6 +211,17 @@ export function quedanSinSitio(r: ResultadoMunicipio): number {
   return Math.max(0, -r.margen) - r.envia
 }
 
+/**
+ * Las cifras del vaso de la ficha. Sin reubicar: lo que llega, lo que cabe y lo que no. Reubicando, lo de después de reubicar:
+ * si envía, «no caben» son los que siguen sin sitio y aparte van los que se van a municipios cercanos;
+ * si recibe, «caben» son su gente más la que recibe.
+ */
+export function vasoFicha(r: ResultadoMunicipio, reubica: boolean) {
+  const suyos = Math.min(r.llegan, r.caben)
+  if (!reubica) return { capacidad: r.caben, dentro: suyos, fuera: Math.max(0, -r.margen), seVan: 0, recibe: 0 }
+  return { capacidad: r.caben, dentro: suyos + r.recibe, fuera: quedanSinSitio(r), seVan: r.envia, recibe: r.recibe }
+}
+
 /** Las cifras de cabecera del mapa: con la reubicación, lo que va a pueblos cercanos pasa de «sin sitio» a «caben». */
 export function cifrasCabecera(resultados: ResultadoMunicipio[]) {
   const reubicadas = resultados.reduce((s, r) => s + r.envia, 0)

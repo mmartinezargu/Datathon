@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   HOSPITAL_LEJOS_KM, HOSPITAL_LEJOS_MIN, OBRAS_REFERENCIA, PARAMETROS_PLAN, anadirObra, colocarObra, ordenarObras, RADIO_REUBICACION_MIN, aperturaObra, calcular, calcularUmbrales, cifrasCabecera, costeObra, escenarioDelPlan, escenarioPorDefecto,
-  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, podarPlan, quedanSinSitio, resumenReubicacion, cambiarTipoObra, sinSitioAlReves,
+  evaluarPlan, inversionesDe, inversionesPorZona, nivelesColegio, nuevaObra, planOptimo, podarPlan, quedanSinSitio, resumenReubicacion, cambiarTipoObra, sinSitioAlReves, vasoFicha,
 } from '../src/motor'
 import type { Municipio, Obra, ResultadoMunicipio, TipoObra, ZonaSalud } from '../src/tipos'
 import { textoComparacion } from '../src/fuentesPlan'
@@ -409,5 +409,23 @@ describe('plan', () => {
     expect(mapa.sinSitio).toBeCloseTo(r.sinSitio, 6)
     expect(mapa.reubicadas).toBeCloseTo(r.reubicadas, 6)
     expect(mapa.dentro).toBeCloseTo(esc.personas - r.sinSitio, 6)
+  })
+})
+
+describe('ficha reubicando', () => {
+  it('la suma de «no caben» de las 155 fichas reubicando a 30 min es la de la cabecera (51.284)', () => {
+    const e = { ...escenarioPorDefecto(2035, 'min'), reequilibrio: true }
+    const r = calcular(municipios, zonas, e)
+    const noCaben = r.reduce((s, x) => s + vasoFicha(x, true).fuera, 0)
+    expect(Math.round(noCaben)).toBe(51_284)
+    expect(Math.round(r.reduce((s, x) => s + vasoFicha(x, true).seVan, 0))).toBe(26_346)
+    // Sin reubicar, la ficha es la de siempre: 77.630
+    const sin = calcular(municipios, zonas, escenarioPorDefecto(2035, 'min'))
+    expect(Math.round(sin.reduce((s, x) => s + vasoFicha(x, false).fuera, 0))).toBe(77_630)
+    // En cada ficha: lo que llega = lo suyo que cabe + lo que se va + lo que no cabe
+    for (const x of r) {
+      const v = vasoFicha(x, true)
+      expect(v.dentro - v.recibe + v.seVan + v.fuera).toBeCloseTo(x.llegan, 6)
+    }
   })
 })

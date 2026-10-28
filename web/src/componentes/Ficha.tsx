@@ -1,6 +1,6 @@
 // Ficha de un municipio: qué le llega, qué le cabe, qué le limita y de dónde sale cada número.
 
-import { ANIO_BASE, alLimite, aperturaObra, costeObra, nivelesColegio, quedanSinSitio, umbralesDe } from '../motor'
+import { ANIO_BASE, alLimite, aperturaObra, costeObra, nivelesColegio, quedanSinSitio, umbralesDe, vasoFicha } from '../motor'
 import { CONDICIONADA, LIMITES, TIPOS } from '../colores'
 import type { Escenario, Inversion, Limite, Medida, Municipio, Obra, ResultadoMunicipio, TipoObra, Traslado, Umbrales } from '../tipos'
 import { caben, decimal, miles, millones, pct } from '../formato'
@@ -33,6 +33,10 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
   const limite = alLimite(r, m, umbrales, inversion)
   // Sin colegio de un nivel, sus alumnos estudian en otro municipio: ese nivel no limita
   const sinInstituto = !nivelesColegio(m, umbrales).some((n) => n.nombre === 'secundaria')
+  // Con «Reubicar», el vaso y la frase enseñan lo de después de reubicar
+  const v = vasoFicha(r, escenario.reequilibrio)
+  const linea = v.seVan >= 1 ? `Se van a municipios cercanos: ${miles(v.seVan)}`
+    : v.recibe >= 1 ? `Recibe de municipios cercanos: ${miles(v.recibe)}` : undefined
 
   return (
     <section className="ficha" style={{ borderTopColor: tipo.color }}>
@@ -48,10 +52,10 @@ export function Ficha({ r, m, porIne, escenario, umbrales, inversion, enPlan, on
         </div>
       </div>
 
-      <Vaso capacidad={r.caben} dentro={Math.min(r.llegan, r.caben)} fuera={Math.max(0, -r.margen)} compacto ampliado={ampliado}
+      <Vaso capacidad={v.capacidad} dentro={v.dentro} fuera={v.fuera} seVan={v.seVan} linea={linea} compacto ampliado={ampliado}
         origen={<OrigenMunicipio anio={escenario.anio} limitante={r.limitante} />} />
 
-      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado, escenario.medida)}</p>
+      <p className="ficha-frase">{frase(r, m, escenario.anio, ampliado, escenario.medida)}{escenario.reequilibrio && fraseReubicando(r)}</p>
       {limite && <p className="ficha-limite" style={{ borderLeftColor: TIPOS.tension.color }}>{textoAlLimite(limite, m)}</p>}
       {escenario.reequilibrio && <Reubicados r={r} porIne={porIne} escenario={escenario} onElegir={onElegir} />}
 
@@ -126,6 +130,19 @@ function Reubicados({ r, porIne, escenario, onElegir }: {
       {(r.envia >= 1 || r.recibe >= 1) && <span className="ayuda"> En el mapa, con borde discontinuo.</span>}
     </p>
   )
+}
+
+/** « Reubicando, …»: lo que cambia con la reubicación (vacío si no envía ni recibe). */
+function fraseReubicando(r: ResultadoMunicipio): string {
+  const quedan = quedanSinSitio(r)
+  if (r.envia >= 1) {
+    return ` Reubicando, ${miles(r.envia)} se van a municipios cercanos` +
+      (quedan >= 1 ? ` y ${miles(quedan)} siguen sin sitio.` : ' y no se queda nadie sin sitio.')
+  }
+  if (r.recibe >= 1) {
+    return ` Reubicando, recibe ${miles(r.recibe)} de municipios cercanos: caben ${miles(Math.min(r.llegan, r.caben) + r.recibe)}, su gente y la que recibe.`
+  }
+  return ''
 }
 
 function frase(r: ResultadoMunicipio, m: Municipio, anio: number, ampliado: boolean, medida: Medida): string {
