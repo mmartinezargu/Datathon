@@ -243,7 +243,7 @@ export function Metodologia({ escenario, validacion, comarcas, sinDatoVacias, su
           ) : (
             <li><b>La distancia al hospital es en línea recta.</b> No es el tiempo real en coche ni en transporte público. Se mide desde el centro del municipio (donde están sus colegios). {HOSPITAL_LEJOS_KM} km son unos {HOSPITAL_LEJOS_MIN} minutos en coche (estimación). Con «Minutos en coche» se usa el tiempo por carretera, sin tráfico.</li>
           )}
-          <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> Los municipios de la frontera pueden tener uno más cerca en Guadalajara, Segovia, Ávila o Toledo.</li>
+          <li><b>Solo se cuentan hospitales de la Comunidad de Madrid.</b> En 6 municipios de la frontera queda antes uno de fuera (en Guadalajara, Ávila o Aranda de Duero); solo Ribatejada cambiaría de lado.</li>
           <li><b>Faltan datos que también importan</b>: precios de la vivienda, empleo y transporte.</li>
         </ul>
       </section>
